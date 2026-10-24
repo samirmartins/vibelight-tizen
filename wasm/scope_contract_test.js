@@ -24,6 +24,7 @@ function withoutInputWake(source) {
 }
 
 function withoutLogs(source) {
+ source=require('./frame-pacing-scope.cjs').launch(source);
  source=require('./branding-scope.cjs').normalize('wasm/platform/index.js',source);
  source=require('./branding-scope.cjs').normalize('wasm/platform/messages.js',source);
  source=require(require('path').resolve('wasm/app-lifecycle-scope.cjs')).launch(source);
@@ -143,7 +144,7 @@ assert.strictEqual(between(now,'function showStreamMode()','// Maximize the size
 assert.strictEqual(between(now,'function fullscreenWasmModule()','// Start the given appID'),
   between(old,'function fullscreenWasmModule()','// Start the given appID'));
 const oldCss = require('./controller-mapping-scope.cjs').legacy('wasm/static/css/style.css', cp.execFileSync('git',['show','v3.3.10:wasm/static/css/style.css'],{encoding:'utf8'}));
-const css = fs.readFileSync('wasm/static/css/style.css','utf8');
+const css = require('./frame-pacing-scope.cjs').normalize('wasm/static/css/style.css', fs.readFileSync('wasm/static/css/style.css','utf8'));
 assert.strictEqual(css.slice(css.indexOf('   Streaming Layout')),oldCss.slice(oldCss.indexOf('   Streaming Layout')));
 
 }

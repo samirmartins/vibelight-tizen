@@ -23,7 +23,7 @@ Dependencies: Node.js 22, GCC/G++, FFmpeg with libx264, OpenSSL development head
 and Git/GNU timeout. Native fixtures use ASan/UBSan.
 The runner checks completion markers, rejects unhandled rejections, bounds each
 process and cleans temporary files, including failed runs.
-The current comparisons require tags `v3.3.8`, `v3.3.10`, `v3.4.0`, `v3.4.1`, `v3.4.2`, `v3.4.3`, `v3.4.4`, `v3.4.7`, `v3.4.8` and `v3.4.9`;
+The current comparisons require tags `v3.3.8`, `v3.3.10`, `v3.4.0`, `v3.4.1`, `v3.4.2`, `v3.4.3`, `v3.4.4`, `v3.4.7`, `v3.4.8`, `v3.4.9` and `v3.4.11`;
 use a full checkout. CI uses `fetch-depth: 0` and read-only permissions, without
 signing secrets. These tests do not compile the Samsung target or prove TV performance.
 
@@ -118,6 +118,16 @@ repeated rejected keyframes, deferred IDR requests without another submit,
 clock-read equivalence. ASan/UBSan and a negative control guard the fixture.
 The idle retry uses the existing receive timeout; no video queue or worker is
 added. These are recovery contracts, not measured FPS or TV latency gains.
+
+Experimental frame pacing: `frame_pacing_test.js` exercises the opt-in scheduler
+and real common-c RTP/depacketizer/queue with ASan/UBSan. It covers quantized
+arrivals, bounded requested waits, timer bypass, IDR acknowledgement/cooldown,
+stale references, overflow, allocation failure, oversized frames, concurrent
+receive/complete, cancellation and strict OFF defaults shared by Play/Resume.
+Use `ML_PACING_SANITIZER=thread node wasm/frame_pacing_test.js` for its separate
+race check. ON alone selects the existing decoder worker; OFF keeps direct
+submission without a pacing context or wait. Synthetic scheduling and mock
+submission do not establish Samsung presentation timing, latency or A/V sync.
 
 Optional seeded stress is separate from the core runner. The existing JS fixtures
 accept `ML_STARTUP_CASES`, `ML_RUMBLE_FRAMES`, `ML_AUDIO_SECONDS`,

@@ -1182,7 +1182,8 @@ const Views = {
       'selectCodec',
       'hdrModeBtn',
       'fullRangeBtn',
-      'gameModeBtn'
+      'gameModeBtn',
+      'framePacingBtn'
     ]),
     up: function() {
       this.view.prevOption();

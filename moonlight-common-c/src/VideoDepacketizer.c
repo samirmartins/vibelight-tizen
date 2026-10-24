@@ -1,5 +1,6 @@
 #include "Limelight-internal.h"
 #include "VideoRecoveryLog.h"
+#include "VideoPacing.h"
 
 static VIDEO_RECOVERY_LOG idrWaitLog;
 
@@ -42,6 +43,58 @@ static unsigned int consecutiveFrameDrops;
 
 static LINKED_BLOCKING_QUEUE decodeUnitQueue;
 
+typedef struct _PACED_DECODE_UNIT {
+    QUEUED_DECODE_UNIT base;
+    uint64_t epoch;
+} PACED_DECODE_UNIT;
+
+typedef struct _PACED_QUEUE {
+    PLT_MUTEX mutex;
+    PLT_COND available;
+    PACED_VIDEO_QUEUE_STATE state;
+    PACED_VIDEO_QUEUE_NOTIFY notify;
+    void* context;
+} PACED_QUEUE;
+
+// Null for the approved direct renderer. No pacing allocation or lock exists
+// unless the application explicitly enables the queued extension at setup.
+static PACED_QUEUE* pacedQueue;
+static void requestDecoderRefreshLocked(void);
+
+static void pacedQueueChanged(void) {
+    PQUEUED_DECODE_UNIT first = decodeUnitQueue.head ? decodeUnitQueue.head->data : NULL;
+    pacedQueue->state.oldestEnqueueMs = first ? first->decodeUnit.enqueueTimeMs : 0;
+    pacedQueue->state.recovering = decoderRefreshActive;
+    pacedQueue->notify(pacedQueue->context, &pacedQueue->state);
+    PltSignalConditionVariable(&pacedQueue->available);
+}
+
+int LiConfigurePacedVideoQueue(PACED_VIDEO_QUEUE_NOTIFY notify, void* context) {
+    if (!notify || pacedQueue ||
+        (VideoCallbacks.capabilities & (CAPABILITY_DIRECT_SUBMIT | CAPABILITY_PULL_RENDERER))) return -1;
+    PACED_QUEUE* queue = calloc(1, sizeof(*queue));
+    if (!queue) return -1;
+    if (PltCreateMutex(&queue->mutex) != 0) { free(queue); return -1; }
+    if (PltCreateConditionVariable(&queue->available, &queue->mutex) != 0) {
+        PltDeleteMutex(&queue->mutex); free(queue); return -1;
+    }
+    queue->notify = notify;
+    queue->context = context;
+    queue->state.epoch = 1;
+    pacedQueue = queue;
+    pacedQueueChanged();
+    return 0;
+}
+
+bool LiPacedVideoFrameIsCurrent(PDECODE_UNIT decodeUnit) {
+    LC_ASSERT(pacedQueue != NULL);
+    PltLockMutex(&pacedQueue->mutex);
+    bool current = !pacedQueue->state.stopped &&
+        ((PACED_DECODE_UNIT*)decodeUnit)->epoch == pacedQueue->state.epoch;
+    PltUnlockMutex(&pacedQueue->mutex);
+    return current;
+}
+
 typedef struct _BUFFER_DESC {
     char* data;
     unsigned int offset;
@@ -70,6 +123,7 @@ typedef struct _LENTRY_INTERNAL {
 
 // Init
 void initializeVideoDepacketizer(int pktSize) {
+    LC_ASSERT(pacedQueue == NULL);
     LbqInitializeLinkedBlockingQueue(&decodeUnitQueue, 15);
 
     nextFrameNumber = 1;
@@ -96,7 +150,7 @@ void initializeVideoDepacketizer(int pktSize) {
 
 // Also called after the existing UDP receive timeout. A deferred request must
 // not depend on another submit callback: P-frames are withheld during recovery.
-void servicePendingVideoDecoderRefresh(void) {
+static void servicePendingVideoDecoderRefreshLocked(void) {
     if (!decoderRefreshRequestPending) {
         return;
     }
@@ -114,6 +168,12 @@ void servicePendingVideoDecoderRefresh(void) {
     decoderRefreshRequestSent = true;
     lastDecoderRefreshRequestMs = now;
     LiRequestIdrFrame();
+}
+
+void servicePendingVideoDecoderRefresh(void) {
+    if (pacedQueue) PltLockMutex(&pacedQueue->mutex);
+    servicePendingVideoDecoderRefreshLocked();
+    if (pacedQueue) PltUnlockMutex(&pacedQueue->mutex);
 }
 
 // Free the NAL chain
@@ -162,10 +222,11 @@ static void dropFrameState(void) {
         waitingForIdrFrame = true;
         if (decoderRefreshActive) {
             decoderRefreshRequestPending = true;
-            servicePendingVideoDecoderRefresh();
+            servicePendingVideoDecoderRefreshLocked();
         }
         else {
-            LiRequestIdrFrame();
+            if (pacedQueue) requestDecoderRefreshLocked();
+            else LiRequestIdrFrame();
         }
     }
 
@@ -187,6 +248,12 @@ static void freeDecodeUnitList(PLINKED_BLOCKING_QUEUE_ENTRY entry) {
 }
 
 void stopVideoDepacketizer(void) {
+    if (pacedQueue) {
+        PltLockMutex(&pacedQueue->mutex);
+        pacedQueue->state.stopped = true;
+        pacedQueueChanged();
+        PltUnlockMutex(&pacedQueue->mutex);
+    }
     LbqSignalQueueShutdown(&decodeUnitQueue);
 }
 
@@ -194,6 +261,12 @@ void stopVideoDepacketizer(void) {
 void destroyVideoDepacketizer(void) {
     freeDecodeUnitList(LbqDestroyLinkedBlockingQueue(&decodeUnitQueue));
     cleanupFrameState();
+    if (pacedQueue) {
+        PltDeleteConditionVariable(&pacedQueue->available);
+        PltDeleteMutex(&pacedQueue->mutex);
+        free(pacedQueue);
+        pacedQueue = NULL;
+    }
 }
 
 // NB: This function also ensures an additional byte for the NALU type exists after the start sequence
@@ -275,7 +348,28 @@ void validateDecodeUnitForPlayback(PDECODE_UNIT decodeUnit) {
     }
 }
 
+static bool takePacedVideoFrame(VIDEO_FRAME_HANDLE* frameHandle, PDECODE_UNIT* decodeUnit, bool wait) {
+    PQUEUED_DECODE_UNIT qdu = NULL;
+    PltLockMutex(&pacedQueue->mutex);
+    while (!pacedQueue->state.stopped) {
+        if (LbqPollQueueElement(&decodeUnitQueue, (void**)&qdu) == LBQ_SUCCESS) break;
+        if (!wait) break;
+        PltWaitForConditionVariable(&pacedQueue->available, &pacedQueue->mutex);
+    }
+    if (qdu) {
+        pacedQueue->state.frames--;
+        pacedQueue->state.bytes -= qdu->decodeUnit.fullLength;
+        validateDecodeUnitForPlayback(&qdu->decodeUnit);
+        *frameHandle = qdu;
+        *decodeUnit = &qdu->decodeUnit;
+        pacedQueueChanged();
+    }
+    PltUnlockMutex(&pacedQueue->mutex);
+    return qdu != NULL;
+}
+
 bool LiWaitForNextVideoFrame(VIDEO_FRAME_HANDLE* frameHandle, PDECODE_UNIT* decodeUnit) {
+    if (pacedQueue) return takePacedVideoFrame(frameHandle, decodeUnit, true);
     PQUEUED_DECODE_UNIT qdu;
 
     int err = LbqWaitForQueueElement(&decodeUnitQueue, (void**)&qdu);
@@ -291,6 +385,7 @@ bool LiWaitForNextVideoFrame(VIDEO_FRAME_HANDLE* frameHandle, PDECODE_UNIT* deco
 }
 
 bool LiPollNextVideoFrame(VIDEO_FRAME_HANDLE* frameHandle, PDECODE_UNIT* decodeUnit) {
+    if (pacedQueue) return takePacedVideoFrame(frameHandle, decodeUnit, false);
     PQUEUED_DECODE_UNIT qdu;
 
     int err = LbqPollQueueElement(&decodeUnitQueue, (void**)&qdu);
@@ -306,6 +401,9 @@ bool LiPollNextVideoFrame(VIDEO_FRAME_HANDLE* frameHandle, PDECODE_UNIT* decodeU
 }
 
 bool LiPeekNextVideoFrame(PDECODE_UNIT* decodeUnit) {
+    // The paced consumer uses synchronized value snapshots, never a borrowed
+    // queue pointer that a concurrent recovery could free.
+    if (pacedQueue) return false;
     PQUEUED_DECODE_UNIT qdu;
 
     int err = LbqPeekQueueElement(&decodeUnitQueue, (void**)&qdu);
@@ -327,6 +425,23 @@ void LiWakeWaitForVideoFrame(void) {
 void LiCompleteVideoFrame(VIDEO_FRAME_HANDLE handle, int drStatus) {
     PQUEUED_DECODE_UNIT qdu = handle;
     PLENTRY_INTERNAL lastEntry;
+
+    // Cleanup owns its buffers already and cannot acknowledge a reference.
+    // Flush callers hold this lock, so cleanup deliberately does not reacquire it.
+    if (pacedQueue && drStatus != DR_CLEANUP) {
+        PltLockMutex(&pacedQueue->mutex);
+        if (((PACED_DECODE_UNIT*)qdu)->epoch != pacedQueue->state.epoch ||
+            pacedQueue->state.stopped) drStatus = DR_CLEANUP;
+        if (drStatus == DR_NEED_IDR) requestDecoderRefreshLocked();
+        else if (drStatus == DR_OK && qdu->decodeUnit.frameType == FRAME_TYPE_IDR) {
+            idrFrameProcessed = true;
+            decoderRefreshActive = false;
+            decoderRefreshRequestPending = false;
+            pacedQueueChanged();
+        }
+        PltUnlockMutex(&pacedQueue->mutex);
+        drStatus = DR_CLEANUP; // Shared legacy code below must not update flags again.
+    }
 
     if (drStatus == DR_NEED_IDR) {
         Limelog("Requesting IDR frame on behalf of DR\n");
@@ -516,12 +631,20 @@ static bool isIdrFrameStart(PBUFFER_DESC buffer) {
 // Reassemble the frame with the given frame number
 static void reassembleFrame(int frameNumber) {
     if (nalChainHead != NULL) {
+        if (pacedQueue && decoderRefreshActive && frameType != FRAME_TYPE_IDR) {
+            // Arrival of an IDR is not acknowledgement by the queued decoder.
+            // Withhold dependent frames until that reference is accepted.
+            cleanupFrameState();
+            servicePendingVideoDecoderRefreshLocked();
+            return;
+        }
         QUEUED_DECODE_UNIT qduDS;
         PQUEUED_DECODE_UNIT qdu;
 
         // Use a stack allocation if we won't be queuing this
         if ((VideoCallbacks.capabilities & CAPABILITY_DIRECT_SUBMIT) == 0) {
-            qdu = (PQUEUED_DECODE_UNIT)malloc(sizeof(*qdu));
+            qdu = (PQUEUED_DECODE_UNIT)malloc(pacedQueue ? sizeof(PACED_DECODE_UNIT) : sizeof(*qdu));
+            if (qdu && pacedQueue) ((PACED_DECODE_UNIT*)qdu)->epoch = pacedQueue->state.epoch;
         }
         else {
             qdu = &qduDS;
@@ -553,7 +676,13 @@ static void reassembleFrame(int frameNumber) {
             nalChainDataLength = 0;
 
             if ((VideoCallbacks.capabilities & CAPABILITY_DIRECT_SUBMIT) == 0) {
-                if (LbqOfferQueueItem(&decodeUnitQueue, qdu, &qdu->entry) == LBQ_BOUND_EXCEEDED) {
+                int offered = LbqOfferQueueItem(&decodeUnitQueue, qdu, &qdu->entry);
+                if (pacedQueue && offered != LBQ_SUCCESS) {
+                    LiCompleteVideoFrame(qdu, DR_CLEANUP);
+                    requestDecoderRefreshLocked();
+                    return;
+                }
+                if (offered == LBQ_BOUND_EXCEEDED) {
                     Limelog("Video decode unit queue overflow\n");
 
                     // RFI recovery is not supported here
@@ -574,6 +703,11 @@ static void reassembleFrame(int frameNumber) {
                     LiRequestIdrFrame();
                     return;
                 }
+                if (pacedQueue) {
+                    pacedQueue->state.frames++;
+                    pacedQueue->state.bytes += qdu->decodeUnit.fullLength;
+                    pacedQueueChanged();
+                }
             }
             else {
                 // Submit the frame to the decoder
@@ -589,6 +723,12 @@ static void reassembleFrame(int frameNumber) {
 
             // Move the start of our (potential) RFI window to the next frame
             startFrameNumber = nextFrameNumber;
+        }
+        else if (pacedQueue) {
+            // Allocation failure loses a reference too; never silently continue
+            // with dependent frames or report a successful submission.
+            cleanupFrameState();
+            requestDecoderRefreshLocked();
         }
     }
 }
@@ -757,12 +897,18 @@ static void processAvcHevcRtpPayloadSlow(PBUFFER_DESC currentPos, PLENTRY_INTERN
 
 // Dumps the decode unit queue and ensures the next frame submitted to the decoder will be
 // an IDR frame
-void requestDecoderRefresh(void) {
+static void requestDecoderRefreshLocked(void) {
+    if (pacedQueue && pacedQueue->state.stopped) return;
     // Wait for the next IDR frame
     waitingForIdrFrame = true;
     
     // Flush the decode unit queue
     freeDecodeUnitList(LbqFlushQueueItems(&decodeUnitQueue));
+    if (pacedQueue) {
+        pacedQueue->state.frames = 0;
+        pacedQueue->state.bytes = 0;
+        pacedQueue->state.epoch++;
+    }
     
     // Request the receive thread drop its state
     // on the next call. We can't do it here because
@@ -771,15 +917,27 @@ void requestDecoderRefresh(void) {
     dropStatePending = true;
     
     // Request the IDR frame
-    if (VideoCallbacks.capabilities & CAPABILITY_DIRECT_SUBMIT) {
+    if ((VideoCallbacks.capabilities & CAPABILITY_DIRECT_SUBMIT) || pacedQueue) {
         decoderRefreshActive = true;
         decoderRefreshRequestPending = true;
-        servicePendingVideoDecoderRefresh();
+        servicePendingVideoDecoderRefreshLocked();
     }
     else {
         // Preserve the queued-renderer protocol; it has a separate consumer.
         LiRequestIdrFrame();
     }
+    if (pacedQueue) pacedQueueChanged();
+}
+
+void requestDecoderRefresh(void) {
+    if (pacedQueue) PltLockMutex(&pacedQueue->mutex);
+    requestDecoderRefreshLocked();
+    if (pacedQueue) PltUnlockMutex(&pacedQueue->mutex);
+}
+
+void LiRequestPacedVideoRefresh(void) {
+    LC_ASSERT(pacedQueue != NULL);
+    requestDecoderRefresh();
 }
 
 // Return 1 if packet is the first one in the frame
@@ -838,7 +996,8 @@ static void processRtpPayload(PNV_VIDEO_PACKET videoPacket, int length,
         nextFrameNumber = frameIndex + 1;
         dropFrameState();
         if (waitingForIdrFrame) {
-            LiRequestIdrFrame();
+            if (pacedQueue) requestDecoderRefreshLocked();
+            else LiRequestIdrFrame();
         }
         else {
             connectionDetectedFrameLoss(startFrameNumber, frameIndex);
@@ -1125,7 +1284,7 @@ static void processRtpPayload(PNV_VIDEO_PACKET videoPacket, int length,
         if (waitingForIdrFrame || waitingForRefInvalFrame) {
             // IDR wait takes priority over RFI wait (and an IDR frame will satisfy both)
             if (waitingForIdrFrame) {
-                servicePendingVideoDecoderRefresh();
+                servicePendingVideoDecoderRefreshLocked();
                 if (videoRecoveryLogAllowed(&idrWaitLog))
                     Limelog("Waiting for IDR frame\n");
 
@@ -1133,7 +1292,8 @@ static void processRtpPayload(PNV_VIDEO_PACKET videoPacket, int length,
                 // detection of the recovery of the network. Requesting an IDR frame while
                 // the network is unstable will just contribute to congestion collapse.
                 if (waitingForNextSuccessfulFrame) {
-                    LiRequestIdrFrame();
+                    if (pacedQueue) requestDecoderRefreshLocked();
+                    else LiRequestIdrFrame();
                 }
             }
             else {
@@ -1179,7 +1339,7 @@ static void processRtpPayload(PNV_VIDEO_PACKET videoPacket, int length,
 // if it determines the frame to be unrecoverable. This lets us
 // avoid having to wait until the next received frame to determine
 // that we lost a frame and submit an RFI request.
-void notifyFrameLost(unsigned int frameNumber, bool speculative) {
+static void notifyFrameLostLocked(unsigned int frameNumber, bool speculative) {
     // We may not invalidate frames that we've already received
     LC_ASSERT(frameNumber >= startFrameNumber);
 
@@ -1205,8 +1365,16 @@ void notifyFrameLost(unsigned int frameNumber, bool speculative) {
     }
 }
 
+void notifyFrameLost(unsigned int frameNumber, bool speculative) {
+    if (pacedQueue) PltLockMutex(&pacedQueue->mutex);
+    notifyFrameLostLocked(frameNumber, speculative);
+    if (pacedQueue && waitingForIdrFrame) requestDecoderRefreshLocked();
+    if (pacedQueue) PltUnlockMutex(&pacedQueue->mutex);
+}
+
 // Add an RTP Packet to the queue
 void queueRtpPacket(PRTPV_QUEUE_ENTRY queueEntryPtr) {
+    if (pacedQueue) PltLockMutex(&pacedQueue->mutex);
     int dataOffset;
     RTPV_QUEUE_ENTRY queueEntry = *queueEntryPtr;
 
@@ -1238,8 +1406,15 @@ void queueRtpPacket(PRTPV_QUEUE_ENTRY queueEntryPtr) {
         // processRtpPayload didn't want this packet, so just free it
         free(existingEntry->allocPtr);
     }
+    if (pacedQueue) PltUnlockMutex(&pacedQueue->mutex);
 }
 
 int LiGetPendingVideoFrames(void) {
+    if (pacedQueue) {
+        PltLockMutex(&pacedQueue->mutex);
+        int frames = (int)pacedQueue->state.frames;
+        PltUnlockMutex(&pacedQueue->mutex);
+        return frames;
+    }
     return LbqGetItemCount(&decodeUnitQueue);
 }

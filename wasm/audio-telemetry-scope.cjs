@@ -53,6 +53,26 @@ function assertFrozen(reference, paths) {
     // independently tested overlay aggregation move, never a whole-file mask.
     const changed = cp.execFileSync('git', ['diff', '--name-only', reference, '--', ...rest], {encoding:'utf8'}).trim().split('\n').filter(Boolean);
     for (const file of changed) {
+      if (file === 'wasm/static/css/style.css') {
+        const normalize = require('./branding-scope.cjs').normalize;
+        const old = cp.execFileSync('git', ['show', reference+':'+file], {encoding:'utf8'});
+        assert.strictEqual(normalize(file, fs.readFileSync(file, 'utf8')), normalize(file, old), 'exact pacing switch styling only');
+        continue;
+      }
+      if (require('./frame-pacing-scope.cjs').added.includes(file)) {
+        assert.strictEqual(require('./frame-pacing-scope.cjs').normalize(file, fs.readFileSync(file, 'utf8')), '', 'exact opt-in pacing helper only');
+        continue;
+      }
+      if (file === 'wasm/frame_pacing_test.cpp' || file === 'wasm/frame_pacing_fixture.c') {
+        assert(!fs.readFileSync('CMakeLists.txt', 'utf8').includes(file), 'pacing fixtures are not linked into the app');
+        continue;
+      }
+      if (file === 'wasm/moonlight_wasm.hpp') {
+        const old = cp.execFileSync('git', ['show', reference+':'+file], {encoding:'utf8'});
+        const scope = require('./branding-scope.cjs').normalize;
+        assert.strictEqual(scope(file, fs.readFileSync(file,'utf8')), scope(file, old), 'exact opt-in pacing declarations only');
+        continue;
+      }
       if (file === 'wasm/static/css/vibelight.css') {
         assert.strictEqual(require('./branding-scope.cjs').normalize(file, fs.readFileSync(file, 'utf8')), '', 'exact geometry-free branding skin only');
         continue;

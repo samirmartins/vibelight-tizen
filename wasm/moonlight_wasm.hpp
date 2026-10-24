@@ -12,6 +12,7 @@
 #include "video_telemetry.hpp"
 #include "video_timing.hpp"
 #include "session_lifecycle.hpp"
+#include "frame_pacing.hpp"
 
 #include "samsung/wasm/elementary_media_stream_source.h"
 #include "samsung/wasm/elementary_media_stream_source_listener.h"
@@ -181,6 +182,8 @@ class MoonlightInstance {
   static int StartupVidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags);
   static void VidDecCleanup(void);
   static int VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit);
+  static int VidDecSubmitPacedDecodeUnit(PDECODE_UNIT decodeUnit);
+  static void VidDecStopPacing();
   static void AddVideoStats(VIDEO_STATS& src, VIDEO_STATS& dst);
   static void FormatVideoStats(VIDEO_STATS& stats, char* output, int length);
   // Cadence instrumentation, fed from the frame submission path.
@@ -273,7 +276,7 @@ class MoonlightInstance {
   static void ApplyConnectionStatus(int connectionStatus, int generation);
   bool WaitFor(std::condition_variable* variable, std::function<bool()> condition);
 
-  template<bool CollectStats>
+  template<bool CollectStats, bool Paced = false>
   static int VidDecSubmitDecodeUnitImpl(PDECODE_UNIT decodeUnit);
 
   void OpenUrl_private(int callbackId, std::string url, std::string ppk, bool binaryResponse);
@@ -286,6 +289,9 @@ class MoonlightInstance {
   static CONNECTION_LISTENER_CALLBACKS s_ClCallbacks;
   static DECODER_RENDERER_CALLBACKS s_DrCallbacks;
   static AUDIO_RENDERER_CALLBACKS s_ArCallbacks;
+  // Selected once per stream. The OFF callback remains the direct renderer.
+  DECODER_RENDERER_CALLBACKS m_PacedDrCallbacks{};
+  std::unique_ptr<mlvideo::FramePacer> m_FramePacer;
 
   std::string m_Host;
   std::string m_AppVersion;

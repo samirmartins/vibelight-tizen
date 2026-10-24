@@ -16,7 +16,12 @@ static bool active;
 #ifdef TRANSPORT_REGRESSION
 static bool fixtureRfi, fixtureSwap, fixtureDropTail;
 #endif
+#ifdef REAL_VIDEO_QUEUE
+#include <stdatomic.h>
+static atomic_uint timeReads;
+#else
 static unsigned timeReads;
+#endif
 static uint32_t requestTimes[256];
 static RTP_VIDEO_QUEUE rtp;
 extern int fixture_submit(PDECODE_UNIT);
@@ -40,6 +45,7 @@ void connectionDetectedFrameLoss(uint32_t start, uint32_t end) { LiRequestIdrFra
 void connectionSendFrameFecStatus(PSS_FRAME_FEC_STATUS status) { fecReports++; }
 
 // DIRECT_SUBMIT never queues a decode unit. Reject an accidental queued path.
+#ifndef REAL_VIDEO_QUEUE
 int LbqInitializeLinkedBlockingQueue(PLINKED_BLOCKING_QUEUE q, int bound) {
     memset(q, 0, sizeof(*q)); return 0;
 }
@@ -53,6 +59,16 @@ int LbqOfferQueueItem(PLINKED_BLOCKING_QUEUE q, void* data, PLINKED_BLOCKING_QUE
     assert(!"unexpected queued renderer"); return LBQ_BOUND_EXCEEDED;
 }
 void LbqSignalQueueShutdown(PLINKED_BLOCKING_QUEUE q) {}
+// Any pacing lock in the OFF fixture is a regression, not a successful mock.
+int PltCreateMutex(PLT_MUTEX* m) { assert(!"unexpected pacing allocation"); return -1; }
+void PltDeleteMutex(PLT_MUTEX* m) { assert(!"unexpected pacing lock"); }
+void PltLockMutex(PLT_MUTEX* m) { assert(!"unexpected pacing lock"); }
+void PltUnlockMutex(PLT_MUTEX* m) { assert(!"unexpected pacing lock"); }
+int PltCreateConditionVariable(PLT_COND* c, PLT_MUTEX* m) { assert(!"unexpected pacing condition"); return -1; }
+void PltDeleteConditionVariable(PLT_COND* c) { assert(!"unexpected pacing condition"); }
+void PltSignalConditionVariable(PLT_COND* c) { assert(!"unexpected pacing condition"); }
+void PltWaitForConditionVariable(PLT_COND* c, PLT_MUTEX* m) { assert(!"unexpected pacing wait"); }
+#endif
 
 // Extracted unchanged from ControlStream.c by the driver.
 #include "control_status.inc"

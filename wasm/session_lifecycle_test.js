@@ -23,6 +23,9 @@ const fixture=`
 #include <iostream>
 #include <pthread.h>
 #include "session_lifecycle.hpp"
+// The lifecycle fixture models only cancellation ownership; real pacing waits
+// and queue shutdown are covered by frame_pacing_test.
+struct Pacer { void Stop() {} };
 #include <cerrno>
 static std::atomic<bool> failCreate{false};
 static int recordingCreate(pthread_t* thread,const pthread_attr_t* attr,
@@ -74,6 +77,7 @@ class MoonlightInstance {
  std::mutex m_Mutex,m_LifecycleMutex;
  std::condition_variable m_EmssStateChanged,m_EmssVideoStateChanged;
  std::unique_ptr<Source> m_Source;
+ std::unique_ptr<Pacer> m_FramePacer;
  std::unique_ptr<int> m_SourceListener,m_VideoTrackListener;
  std::atomic<uint32_t> m_SessionGeneration{0};
  std::atomic<bool> m_StopComplete{true};

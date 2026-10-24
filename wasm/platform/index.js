@@ -86,6 +86,7 @@ function attachListeners() {
   $('#hdrModeSwitch').on('click', saveHdrMode);
   $('#fullRangeSwitch').on('click', saveFullRange);
   $('#gameModeSwitch').on('click', saveGameMode);
+  $('#framePacingSwitch').on('click', saveFramePacing);
   $('#disableWarningsSwitch').on('click', saveDisableWarnings);
   $('#performanceStatsSwitch').on('click', savePerformanceStats);
   $('#diagnosticsSwitch').on('change', SessionDiagnostics.changed);
@@ -1898,9 +1899,8 @@ function startGame(host, appID, audioPrepared) {
       var gamepadMask = getConnectedGamepadMask();
       var clientRefreshRateX100 = getDisplayRefreshRateX100(frameRate);
       setDisplayStreamReference(frameRate, clientRefreshRateX100);
-      // Frames are handed over as soon as they are complete; there is nothing
-      // left to pace. Kept in the call signature so the binding is unchanged.
-      const framePacing = 0;
+      // Freeze the experimental preference for this stream; Play and Resume share it.
+      const framePacing = $('#framePacingSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const optimizeGames = $('#optimizeGamesSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const rumbleFeedback = $('#rumbleFeedbackSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const mouseEmulation = $('#mouseEmulationSwitch').parent().hasClass('is-checked') ? 1 : 0;
@@ -2576,6 +2576,13 @@ function saveGameMode() {
   }, 100);
 }
 
+function saveFramePacing() {
+  setTimeout(() => {
+    storeData('framePacingExperimental',
+      $('#framePacingSwitch').parent().hasClass('is-checked'), null);
+  }, 100);
+}
+
 
 
 
@@ -2684,6 +2691,8 @@ function restoreDefaultsSettingsValues() {
   const defaultGameMode = false;
   document.querySelector('#gameModeBtn').MaterialSwitch.off();
   storeData('gameMode', defaultGameMode, null);
+  document.querySelector('#framePacingBtn').MaterialSwitch.off();
+  storeData('framePacingExperimental', false, null);
   if (parseFloat(platformVer) === 5.5) {
     // Tizen 5.5 has no support for it at all, so the switch is not offered
     document.querySelector('#gameModeBtn').MaterialSwitch.disable();
@@ -2976,6 +2985,12 @@ function loadUserDataCb() {
     }
   });
 
+
+  getData('framePacingExperimental', function(previousValue) {
+    const control = document.querySelector('#framePacingBtn').MaterialSwitch;
+    if (previousValue.framePacingExperimental === true) control.on();
+    else control.off();
+  });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored disableWarnings preferences.');
   getData('disableWarnings', function(previousValue) {

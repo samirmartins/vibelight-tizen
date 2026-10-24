@@ -515,6 +515,9 @@ int MoonlightInstance::StartupVidDecSetup(int videoFormat, int width, int height
 int MoonlightInstance::VidDecSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
   ClLogMessage("Video decoding setup has started.\n");
 
+  if (g_Instance->m_FramePacer && LiConfigurePacedVideoQueue(
+        mlvideo::FramePacer::QueueChanged, g_Instance->m_FramePacer.get()) != 0) return -1;
+
   // Resize the decode buffer based on initial decode buffer length
   s_DecodeBuffer.resize(INITIAL_DECODE_BUFFER_LEN);
 
@@ -954,7 +957,8 @@ void MoonlightInstance::PerformPresentationRecovery() {
   // turns one visible jump into a stream that degrades until it is restarted.
   s_ptsReanchorRequested.store(true, std::memory_order_release);
 
-  LiRequestIdrFrame();
+  if (g_Instance->m_FramePacer) LiRequestPacedVideoRefresh();
+  else LiRequestIdrFrame();
 }
 
 // Called after every accepted append. The position and clock sample are shared
@@ -1056,7 +1060,7 @@ void MoonlightInstance::VidDecCleanup(void) {
   s_DecodeBuffer.shrink_to_fit();
 }
 
-template<bool CollectStats>
+template<bool CollectStats, bool Paced>
 int MoonlightInstance::VidDecSubmitDecodeUnitImpl(PDECODE_UNIT decodeUnit) {
   if constexpr (CollectStats) {
     const uint32_t statsNowMs = LiGetMillis();
@@ -1316,6 +1320,18 @@ int MoonlightInstance::VidDecSubmitDecodeUnitImpl(PDECODE_UNIT decodeUnit) {
     m_ActiveWndVideoStats.decodedFrames++;
   }
 
+  if constexpr (Paced) {
+    // No transport lock or pacer lock may cross AppendPacket. Recovery can
+    // invalidate an owned frame while this worker is waiting or assembling it.
+    if (!LiPacedVideoFrameIsCurrent(decodeUnit) ||
+        !g_Instance->m_FramePacer->Wait(
+          static_cast<uint32_t>(decodeUnit->frameNumber), decodeUnit->enqueueTimeMs,
+          static_cast<uint64_t>(decodeUnit->fullLength),
+          std::chrono::duration<double, std::micro>(s_ptsStep).count(),
+          decodeUnit->frameType == FRAME_TYPE_IDR) ||
+        !LiPacedVideoFrameIsCurrent(decodeUnit)) return DR_NEED_IDR;
+  }
+
   std::chrono::time_point<std::chrono::steady_clock> appendStart;
   if constexpr (CollectStats) {
     appendStart = std::chrono::steady_clock::now();
@@ -1376,6 +1392,18 @@ int MoonlightInstance::VidDecSubmitDecodeUnit(PDECODE_UNIT decodeUnit) {
     return VidDecSubmitDecodeUnitImpl<true>(decodeUnit);
   }
   return VidDecSubmitDecodeUnitImpl<false>(decodeUnit);
+}
+
+int MoonlightInstance::VidDecSubmitPacedDecodeUnit(PDECODE_UNIT decodeUnit) {
+  // A queued keyframe is acknowledged only after a successful append.
+  if (!g_Instance->m_VideoStarted) return DR_NEED_IDR;
+  if (g_Instance->m_PerformanceStatsEnabled.load(std::memory_order_relaxed))
+    return VidDecSubmitDecodeUnitImpl<true, true>(decodeUnit);
+  return VidDecSubmitDecodeUnitImpl<false, true>(decodeUnit);
+}
+
+void MoonlightInstance::VidDecStopPacing() {
+  g_Instance->m_FramePacer->Stop();
 }
 
 void MoonlightInstance::AddVideoStats(VIDEO_STATS& src, VIDEO_STATS& dst) {

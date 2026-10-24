@@ -91,7 +91,9 @@ void Feed(uint32_t frame) {
 }
 `;
 function implementation(name,source) {
-  const methodStart=source.indexOf('template<bool CollectStats>\nint MoonlightInstance::VidDecSubmitDecodeUnitImpl');
+  const methodStart=source.indexOf(source.includes('template<bool CollectStats, bool Paced>')
+    ? 'template<bool CollectStats, bool Paced>\nint MoonlightInstance::VidDecSubmitDecodeUnitImpl'
+    : 'template<bool CollectStats>\nint MoonlightInstance::VidDecSubmitDecodeUnitImpl');
   assert(methodStart>0);
   const collection=between(source.slice(methodStart),'  if constexpr (CollectStats) {',"  // Derive this frame's timestamp");
   const methods=between(source,'void MoonlightInstance::AddVideoStats(', 'void MoonlightInstance::TogglePerformanceStats(')

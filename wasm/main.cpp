@@ -91,6 +91,7 @@ void MoonlightInstance::RequestStop(uint32_t error, bool stopCommon) {
       m_SessionPhase == mlsession::Phase::Blocked) return;
   m_SessionPhase = mlsession::Phase::Stopping;
   m_ConnectionCancelled = true;
+  if (m_FramePacer) m_FramePacer->Stop();
   if (stopCommon) m_StopNeedsLiStop.store(true, std::memory_order_release);
   m_Running = false;
   NotifyInputEvent();
@@ -277,7 +278,8 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
   }
 
   err = LiStartConnection(&serverInfo, &me->m_StreamConfig, &MoonlightInstance::s_ClCallbacks,
-    &MoonlightInstance::s_DrCallbacks, &MoonlightInstance::s_ArCallbacks, NULL, 0, NULL, 0);
+    me->m_FramePacer ? &me->m_PacedDrCallbacks : &MoonlightInstance::s_DrCallbacks,
+    &MoonlightInstance::s_ArCallbacks, NULL, 0, NULL, 0);
   if (err != 0) {
     me->m_StopNeedsLiStop.store(false, std::memory_order_release);
     emscripten_sync_run_in_main_runtime_thread(
@@ -479,6 +481,16 @@ MessageResult MoonlightInstance::StartStream(std::string host, int httpPort, std
   m_DisableWarningsEnabled = disableWarnings;
   m_OverlayStatsEnabled = performanceStats;
   m_PerformanceStatsEnabled = performanceStats || m_DiagnosticsGeneration.load() != 0;
+
+  // BeginSession joined the previous stream before replacing session state.
+  m_FramePacer.reset();
+  if (framePacing) {
+    m_FramePacer = std::make_unique<mlvideo::FramePacer>(LiGetMillis());
+    m_PacedDrCallbacks = s_DrCallbacks;
+    m_PacedDrCallbacks.capabilities &= ~CAPABILITY_DIRECT_SUBMIT;
+    m_PacedDrCallbacks.submitDecodeUnit = VidDecSubmitPacedDecodeUnit;
+    m_PacedDrCallbacks.stop = VidDecStopPacing;
+  }
 
   // Initialize the rendering surface before starting the connection
   if (InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height)) {

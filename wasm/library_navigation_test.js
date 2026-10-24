@@ -195,6 +195,8 @@ for(const file of paths){
   'wasm/main.cpp','wasm/index.html','CMakeLists.txt','res/config.xml'].includes(file)) {
   const transport=require('./video-transport-scope.cjs');
   if(transport.files.includes(file))assert.strictEqual(transport.normalize(file,read(file)),old(file),'exact video/refresh delta: '+file);
+  else if (require('./frame-pacing-scope.cjs').files.includes(file))
+    assert.strictEqual(require('./frame-pacing-scope.cjs').normalize(file,read(file)),old(file),'exact optional pacing integration: '+file);
   else assert.deepStrictEqual(require('./branding-scope.cjs').asset(file,fs.readFileSync(file)),cp.execFileSync('git',['show','v3.4.8:'+file]),'unchanged runtime bytes or exact approved icon: '+file);
   continue;
  }
