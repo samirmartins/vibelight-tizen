@@ -52,7 +52,7 @@ The in-app *Game Mode* switch is separate; see the FAQ below.
 
 ## What VibeLight offers
 
-- **Video:** hardware decoding, H.264/HEVC/AV1 (depending on TV hardware), TV-aware timing and stream recovery.
+- **Video:** hardware decoding, H.264/HEVC/AV1 (depending on TV hardware), configurable frame pacing, TV-aware timing and stream recovery.
 - **Audio:** AudioWorklet where supported, with adaptive buffering and a compatibility fallback.
 - **Controls:** rumble, saved button remapping and visual button testing.
 - **Library:** controller-first navigation, favorites, recent games, cached covers,
@@ -64,6 +64,7 @@ The in-app *Game Mode* switch is separate; see the FAQ below.
 ## Defaults and behavior
 
 - **Video defaults:** H.264, 1920×1080 at 60 FPS, 30 Mbps.
+- **Frame pacing:** on by default; configurable in Video Settings, effective on the next stream. May add latency; saved choices are preserved.
 - **Rumble:** on by default.
 - **Audio buffer:** adaptive, with a default 100 ms ceiling—not fixed latency.
 - **Smart Hub:** disconnects the client; the game stays available for Resume.

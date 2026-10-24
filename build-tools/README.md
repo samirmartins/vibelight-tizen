@@ -119,11 +119,12 @@ clock-read equivalence. ASan/UBSan and a negative control guard the fixture.
 The idle retry uses the existing receive timeout; no video queue or worker is
 added. These are recovery contracts, not measured FPS or TV latency gains.
 
-Experimental frame pacing: `frame_pacing_test.js` exercises the opt-in scheduler
+Configurable frame pacing: `frame_pacing_test.js` exercises the optional scheduler
 and real common-c RTP/depacketizer/queue with ASan/UBSan. It covers quantized
 arrivals, bounded requested waits, timer bypass, IDR acknowledgement/cooldown,
 stale references, overflow, allocation failure, oversized frames, concurrent
-receive/complete, cancellation and strict OFF defaults shared by Play/Resume.
+receive/complete, cancellation and ON defaults shared by Play/Resume, preserving
+explicit saved OFF preferences and checking Restore defaults and the menu label.
 Use `ML_PACING_SANITIZER=thread node wasm/frame_pacing_test.js` for its separate
 race check. ON alone selects the existing decoder worker; OFF keeps direct
 submission without a pacing context or wait. Synthetic scheduling and mock

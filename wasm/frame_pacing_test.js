@@ -57,7 +57,7 @@ void connectionSawFrame(uint32_t n){lastSeenFrame=n;}void connectionReceivedComp
   const branchStart = index.indexOf("  getData('framePacingExperimental', function(previousValue) {");
   const branchEnd = index.indexOf('\n  });', branchStart) + '\n  });'.length;
   assert(branchStart > 0 && branchEnd > branchStart);
-  for (const [saved, expected] of [[undefined, false], [null, false], [false, false], [true, true], [1, false], ['true', false]]) {
+  for (const [saved, expected] of [[undefined, true], [null, true], [false, false], [true, true], [1, false], ['true', false]]) {
     let state;
     vm.runInNewContext(index.slice(branchStart, branchEnd), {
       getData(key, callback) { assert.strictEqual(key, 'framePacingExperimental'); callback({framePacingExperimental: saved}); },
@@ -66,8 +66,16 @@ void connectionSawFrame(uint32_t n){lastSeenFrame=n;}void connectionReceivedComp
         return {MaterialSwitch: {on() { state = true; }, off() { state = false; }}};
       }}
     });
-    assert.strictEqual(state, expected, 'strict opt-in with no legacy preference inheritance');
+    assert.strictEqual(state, expected, 'new preferences default ON; explicit choices and invalid-value handling preserved');
   }
+  const resetStart = index.indexOf('function restoreDefaultsSettingsValues(');
+  const resetEnd = index.indexOf('\nfunction ', resetStart + 1);
+  const reset = index.slice(resetStart, resetEnd);
+  assert(reset.includes("document.querySelector('#framePacingBtn').MaterialSwitch.on();"));
+  assert(reset.includes("storeData('framePacingExperimental', true, null);"));
+  const html = read('wasm/index.html');
+  assert(html.includes('<label>Frame pacing</label>'));
+  assert(!html.includes('Frame pacing (experimental)'));
   assert.strictEqual((index.match(/const framePacing = /g) || []).length, 1);
   assert.strictEqual((index.match(/framePacing, optimizeGames, rumbleFeedback, mouseEmulation,/g) || []).length, 2);
   assert(read('wasm/platform/navigation.js').includes("'gameModeBtn',\n      'framePacingBtn'"));
@@ -88,5 +96,5 @@ void connectionSawFrame(uint32_t n){lastSeenFrame=n;}void connectionReceivedComp
     assert.notStrictEqual(scope.normalize(file, source + '\n// unexpected neighboring change\n'), expected,
       'unknown changes remain visible: ' + file);
   }
-  console.log('frame_pacing_test: integration contracts, strict OFF default, shared Play/Resume argument and menu navigation PASS');
+  console.log('frame_pacing_test: integration contracts, ON defaults, saved OFF choice, shared Play/Resume argument and menu navigation PASS');
 } finally { fs.rmSync(temporary, {recursive: true, force: true}); }

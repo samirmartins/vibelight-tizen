@@ -7,6 +7,18 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## v3.4.12
+
+### Improved
+- Adds configurable frame pacing to smooth irregular video delivery before
+  hardware decoding, with bounded, cancellable waits and recovery protection
+- Enables frame pacing for new preferences and Restore defaults while preserving
+  saved ON/OFF choices; changes apply to the next Play or Resume stream
+- Keeps the direct video path available when frame pacing is disabled, without
+  changing codec, resolution, bitrate, audio processing or controller behavior
+- Expands regression coverage for pacing, reference-frame recovery, cancellation,
+  concurrent queue access and setting persistence
+
 ## v3.4.11
 
 ### Improved

@@ -1899,7 +1899,7 @@ function startGame(host, appID, audioPrepared) {
       var gamepadMask = getConnectedGamepadMask();
       var clientRefreshRateX100 = getDisplayRefreshRateX100(frameRate);
       setDisplayStreamReference(frameRate, clientRefreshRateX100);
-      // Freeze the experimental preference for this stream; Play and Resume share it.
+      // Freeze the pacing preference for this stream; Play and Resume share it.
       const framePacing = $('#framePacingSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const optimizeGames = $('#optimizeGamesSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const rumbleFeedback = $('#rumbleFeedbackSwitch').parent().hasClass('is-checked') ? 1 : 0;
@@ -2620,13 +2620,6 @@ function restoreDefaultsSettingsValues() {
   $('#bitrateSlider')[0].MaterialSlider.change(defaultBitrate);
   storeData('bitrate', defaultBitrate, null);
 
-  // Frame pacing defaults off, which hands each frame to the pipeline as soon as
-  // it is decoded. This matches the default on the other Moonlight clients:
-  // moonlight-android ships DEFAULT_FRAME_PACING = "latency", where the newest
-  // frame is presented immediately rather than held for a display deadline.
-  // Holding frames back is available for anyone who wants it, but it is not what
-  // the reference implementations do out of the box.
-
   const defaultIpAddressFieldMode = false;
   document.querySelector('#ipAddressFieldModeBtn').MaterialSwitch.off();
   storeData('ipAddressFieldMode', defaultIpAddressFieldMode, null);
@@ -2691,8 +2684,8 @@ function restoreDefaultsSettingsValues() {
   const defaultGameMode = false;
   document.querySelector('#gameModeBtn').MaterialSwitch.off();
   storeData('gameMode', defaultGameMode, null);
-  document.querySelector('#framePacingBtn').MaterialSwitch.off();
-  storeData('framePacingExperimental', false, null);
+  document.querySelector('#framePacingBtn').MaterialSwitch.on();
+  storeData('framePacingExperimental', true, null);
   if (parseFloat(platformVer) === 5.5) {
     // Tizen 5.5 has no support for it at all, so the switch is not offered
     document.querySelector('#gameModeBtn').MaterialSwitch.disable();
@@ -2988,7 +2981,8 @@ function loadUserDataCb() {
 
   getData('framePacingExperimental', function(previousValue) {
     const control = document.querySelector('#framePacingBtn').MaterialSwitch;
-    if (previousValue.framePacingExperimental === true) control.on();
+    // Keep the existing storage key and explicit saved choices across updates.
+    if (previousValue.framePacingExperimental == null || previousValue.framePacingExperimental === true) control.on();
     else control.off();
   });
 
