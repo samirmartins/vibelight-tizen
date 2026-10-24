@@ -29,8 +29,11 @@ function normalize(file, source) {
     .replace('<img src="static/res/vibelight-mark.png" id="header-logo" alt="">', '<img src="static/res/ic_moonlight_logo.svg" id="header-logo">')
     .replace('<img src="static/res/vibelight-logo.png" id="wasmSpinnerLogo" alt="VibeLight Tizen">', '<img src="static/res/ic_moonlight_logo.svg" id="wasmSpinnerLogo">')
     .replaceAll('VibeLight', 'Moonlight');
-  if (file === 'CMakeLists.txt') return source.replace('project(MoonlightWasm VERSION 3.4.11)', 'project(MoonlightWasm VERSION 3.4.10)');
+  if (file === 'CMakeLists.txt') return source
+    .replace('project(MoonlightWasm VERSION 3.4.12)', 'project(MoonlightWasm VERSION 3.4.10)')
+    .replace('project(MoonlightWasm VERSION 3.4.11)', 'project(MoonlightWasm VERSION 3.4.10)');
   if (file === 'res/config.xml') return source
+    .replace('version="3.4.12"', 'version="3.4.10"')
     .replace('version="3.4.11"', 'version="3.4.10"')
     .replace('<name>VibeLight</name>', '<name>Moonlight</name>')
     .replace('<description>VibeLight Game Streaming</description>', '<description>Moonlight Game Streaming</description>');
