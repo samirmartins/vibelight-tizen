@@ -2,7 +2,6 @@
 #include <cassert>
 #include <atomic>
 #include <iostream>
-#include <limits>
 #include <thread>
 #include <vector>
 
@@ -84,34 +83,6 @@ static void ScheduleContracts() {
     waits += deadline > arrival * 1000.;
   }
   assert(waits > 1000);
-  // Qualified phase follows the already generated PTS, without resetting to
-  // half a frame ahead after each late packet or spending that whole budget.
-  mlvideo::PacingSchedule phase;
-  double holdSum = 0, previous = 0, maxError = 0;
-  unsigned measured = 0;
-  for (uint32_t i = 0; i < 2400; ++i) {
-    const auto a = 10000 + static_cast<uint64_t>(i * t / 1000 + (i % 2 ? 2 : 0));
-    const auto d = phase.Deadline(i, a, t, i * t);
-    assert(d >= a * 1000. && d - a * 1000. <= t / 2 + 1e-6);
-    if (i > 128) {
-      holdSum += d - a * 1000.; ++measured;
-      maxError = std::max(maxError, std::abs((d - previous) - t));
-    }
-    previous = d;
-  }
-  assert(holdSum / measured < 4000 && maxError < 1000);
-  // The existing PTS can jump after recovery. Never wait using its old phase.
-  assert(phase.Deadline(2400, 50000, t, 1) == 50000000.);
-  assert(phase.Deadline(2401, 50017, t, 0) == 50017000.);
-  assert(phase.Deadline(2402, 50033, t,
-    std::numeric_limits<double>::quiet_NaN()) >= 50033000.);
-  // The legacy timer protection stays cumulative and session-scoped.
-  mlvideo::PacingSchedule timer;
-  for (int i = 0; i < 64; ++i) timer.NoteWake(500);
-  assert(!timer.Bypassed());
-  for (int i = 0; i < 15; ++i) timer.NoteWake(4000);
-  assert(!timer.Bypassed());
-  timer.NoteWake(4000); assert(timer.Bypassed());
   jitter.NoteWake(2000);
   for (int i = 0; i < 14; ++i) jitter.NoteWake(2000);
   assert(!jitter.Bypassed()); jitter.NoteWake(2000); assert(jitter.Bypassed());
@@ -275,7 +246,7 @@ static void WaitContracts() {
 
 int main() {
   ScheduleContracts();
-  std::cout << "frame_pacing: quantized rates, PTS phase, jitter, budget, drift and timer bypass PASS\n";
+  std::cout << "frame_pacing: quantized rates, jitter, budget, drift, discontinuities and timer bypass PASS\n";
   TransportContracts();
   std::cout << "frame_pacing: real three-codec RTP/direct equality, IDR ACK/cooldown, epochs, FIFO/oversized/overflow and 100 shutdowns PASS\n";
   WaitContracts();

@@ -1328,8 +1328,7 @@ int MoonlightInstance::VidDecSubmitDecodeUnitImpl(PDECODE_UNIT decodeUnit) {
           static_cast<uint32_t>(decodeUnit->frameNumber), decodeUnit->enqueueTimeMs,
           static_cast<uint64_t>(decodeUnit->fullLength),
           std::chrono::duration<double, std::micro>(s_ptsStep).count(),
-          decodeUnit->frameType == FRAME_TYPE_IDR,
-          std::chrono::duration<double, std::micro>(framePts).count()) ||
+          decodeUnit->frameType == FRAME_TYPE_IDR) ||
         !LiPacedVideoFrameIsCurrent(decodeUnit)) return DR_NEED_IDR;
   }
 
