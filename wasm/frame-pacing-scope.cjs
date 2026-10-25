@@ -6,10 +6,10 @@ const cp = require('child_process'), crypto = require('crypto');
 const approved = {
   'moonlight-common-c/src/VideoDepacketizer.c': 'afef183d378307378d68ea1765276fa488813ec25a8672dcb5f990d2aa0013e0',
   'moonlight-common-c/src/VideoPacing.h': 'c8efd3d0e1ff13bdd7c9a85e1d20a37cbeacad150ca0a63fab1cb839327344c6',
-  'wasm/frame_pacing.hpp': 'bb34dc065b524c18640525c3145cae9ff3f3b910d041a32727be876e4868b780',
+  'wasm/frame_pacing.hpp': '85248852a423c37dacd8a05b696a0f478a5b44690cc4c1758d819de0f12f6a31',
   'wasm/main.cpp': '8ef09c860927ddecc9a6d85ed5b99df27088ac3f57aed5fbbf61fb23b0ade97a',
   'wasm/moonlight_wasm.hpp': '7d84a39d58498bd4c19594cf0e790b5760f9abbcfffce44231b7617d5f70ff78',
-  'wasm/wasmplayer.cpp': '39afb1eba49abf8d7382fbef4aff6626f28fedfada480b18c572e0af77a47b13',
+  'wasm/wasmplayer.cpp': 'f2508d64deaf7d867d86c75edcf8c91afdc113273a8ab03b5b4900ab3593111c',
   'wasm/platform/index.js': '0ccf8d8881bc2fa11284459ced437996b46d52dffec2efc82989e84b9785af5f',
   'wasm/platform/navigation.js': '583841994ded672007d1f99b36c505ce0a7ac785c5dfa6ab0e98284bbe9eb036',
   'wasm/index.html': 'be2139be88617be90d6bcc79eca945595e8d26000602429b42f34020eae367d1',
