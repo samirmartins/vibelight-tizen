@@ -61,7 +61,11 @@ assert.deepStrictEqual(a.snapshot(),b.snapshot());assert(a.snapshot().slice(1).e
 for(let cycle=0;cycle<40;cycle++) {
   for(const f of [a,b]) {f.context.startGamepadSnapshot(false);f.tick();f.pad.connected=false;f.tick();f.pad.connected=true;f.pad.timestamp++;f.pad.axes=[-0,NaN,Infinity,-0.75];f.tick();
     const replacement=new Int32Array(f.heap.buffer);f.context.Module.HEAP32=replacement;f.tick();}
-  assert.deepStrictEqual(a.snapshot(),b.snapshot());
+  const before=b.snapshot(),after=a.snapshot();
+  // Only the formerly unused metadata word identifies a replacement owner.
+  // Every axis/button/capability/publication word still matches the old builder.
+  for(let slot=0;slot<4;slot++)after[5+49*slot]=before[5+49*slot];
+  assert.deepStrictEqual(after,before);
   for(const f of [a,b])f.context.stopGamepadSnapshot();
   assert.deepStrictEqual(a.snapshot(),b.snapshot());
 }

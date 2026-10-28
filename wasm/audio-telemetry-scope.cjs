@@ -130,6 +130,13 @@ function assertFrozen(reference, paths) {
         assert.strictEqual(require('./branding-scope.cjs').normalize(file, fs.readFileSync(file,'utf8')), old, 'only the two approved visible product-name literals may differ');
         continue;
       }
+      if (require('./controller-identity-scope.cjs').files.includes(file)) {
+        const identity = require('./controller-identity-scope.cjs').normalize;
+        const old = cp.execFileSync('git', ['show', reference+':'+file], {encoding:'utf8'});
+        assert.strictEqual(identity(file, fs.readFileSync(file,'utf8')), identity(file, old),
+          'exact tested controller identity delta only');
+        continue;
+      }
       // Permit only the approved packaging version bump; IDs, build options
       // and every other byte remain part of the frozen contract.
       if (file === 'CMakeLists.txt' || file === 'res/config.xml') {

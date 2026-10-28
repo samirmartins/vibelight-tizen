@@ -125,11 +125,13 @@ var _gpPhysicalForSlot = null;
 var _gpLogicalPads = null;
 var _gpTypeForSlot = null;
 var _gpCapabilitiesForSlot = null;
+var _gpIdForSlot = null;
+var _gpConnectionForSlot = null;
 var _gpKnownPhysical = new Set();
 
 function _gpEnsureMappings(maxPads) {
   if (_gpPhysicalForSlot && _gpPhysicalForSlot.length === maxPads &&
-      _gpTypeForSlot && _gpCapabilitiesForSlot) {
+      _gpTypeForSlot && _gpCapabilitiesForSlot && _gpIdForSlot && _gpConnectionForSlot) {
     return;
   }
   _gpPhysicalForSlot = new Int32Array(maxPads);
@@ -137,15 +139,21 @@ function _gpEnsureMappings(maxPads) {
   _gpLogicalPads = new Array(maxPads);
   _gpTypeForSlot = new Int32Array(maxPads);
   _gpCapabilitiesForSlot = new Int32Array(maxPads);
+  _gpIdForSlot = new Array(maxPads);
+  _gpConnectionForSlot = new Int32Array(maxPads);
 }
 
 function _gpClearSlotMetadata(slot) {
   _gpTypeForSlot[slot] = _GP_TYPE_UNKNOWN;
   _gpCapabilitiesForSlot[slot] = 0;
+  _gpIdForSlot[slot] = null;
 }
 
 function _gpCacheSlotMetadata(slot, gamepad) {
   var buttons = gamepad && gamepad.buttons ? gamepad.buttons : [];
+  _gpIdForSlot[slot] = gamepad && gamepad.id || '';
+  var generation = (_gpConnectionForSlot[slot] + 1) & 0x7fffffff;
+  _gpConnectionForSlot[slot] = generation || 1;
   _gpTypeForSlot[slot] = _gpControllerType(gamepad);
   _gpCapabilitiesForSlot[slot] =
     (buttons.length > 7 ? _GP_CAP_ANALOG_TRIGGERS : 0) |
@@ -163,6 +171,16 @@ function _gpGetActuator(gamepad) {
 
 function _gpControllerType(gamepad) {
   var id = gamepad && gamepad.id ? gamepad.id.toLowerCase() : '';
+  // Accept structured browser/HID identifiers, not arbitrary product numbers.
+  // Vendor metadata takes precedence over a generic/conflicting display name.
+  var vendor = id.match(/\bvendor\s*:\s*(?:0x)?([0-9a-f]{4})\b/) ||
+    id.match(/^([0-9a-f]{4})[-:]([0-9a-f]{4})(?:[-:\s]|$)/) ||
+    id.match(/\bvid_([0-9a-f]{4})(?:&|\b)/);
+  if (vendor) {
+    if (vendor[1] === '054c') { return _GP_TYPE_PS; }
+    if (vendor[1] === '045e') { return _GP_TYPE_XBOX; }
+    if (vendor[1] === '057e') { return _GP_TYPE_NINTENDO; }
+  }
   if (/playstation|dualsense|dualshock|sony/.test(id)) { return _GP_TYPE_PS; }
   if (/xbox|xinput|x-box|microsoft|360/.test(id)) { return _GP_TYPE_XBOX; }
   if (/nintendo|switch|joy-con|pro controller/.test(id)) { return _GP_TYPE_NINTENDO; }
@@ -193,6 +211,10 @@ function _gpRefreshMappings(pads, maxPads) {
       _gpLogicalPads[slot] = null;
       _gpClearSlotMetadata(slot);
       _rumbleForgetSlot(slot);
+    } else if (physical >= 0 && _gpIdForSlot[slot] !== (existing.id || '')) {
+      // Browser slots can be reused without an observable disconnected frame.
+      _gpCacheSlotMetadata(slot, existing);
+      _rumbleForgetSlot(slot);
     }
   }
   for (var p = 0; p < pads.length; p++) {
@@ -215,6 +237,11 @@ function _gpRefreshMappings(pads, maxPads) {
 
 window.addEventListener('gamepadconnected', function(event) {
   _gpKnownPhysical.add(event.gamepad.index);
+  var slot = _gpFindSlot(event.gamepad.index);
+  if (slot >= 0) {
+    _gpCacheSlotMetadata(slot, event.gamepad);
+    _rumbleForgetSlot(slot);
+  }
 });
 window.addEventListener('gamepaddisconnected', function(event) {
   _gpKnownPhysical.delete(event.gamepad.index);
@@ -256,10 +283,11 @@ function _gpBuildSnapshot(pads) {
     _gpNextWords[offset] = 1;
     _gpNextWords[offset + 1] = numAxes;
     _gpNextWords[offset + 2] = numButtons;
-    _gpNextWords[offset + 3] = gamepad.timestamp ? 1 : 0;
+    // Reuse the previously unread timestamp-flag word; the ABI stays 49 words.
+    _gpNextWords[offset + 3] = _gpConnectionForSlot[slot];
     // Type detection lowercases the controller name and runs several regular
     // expressions. Capabilities also inspect the actuator object. Both are
-    // immutable for a connected pad, so they are cached when its slot is made
+    // cached per connection/identity, so they are computed when its slot is made
     // rather than rebuilt on every animation frame.
     _gpNextWords[offset + 4] = _gpTypeForSlot[slot];
     _gpNextWords[offset + 5] = _gpCapabilitiesForSlot[slot];

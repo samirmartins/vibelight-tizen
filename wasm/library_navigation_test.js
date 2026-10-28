@@ -195,6 +195,8 @@ for(const file of paths){
   'wasm/main.cpp','wasm/index.html','CMakeLists.txt','res/config.xml'].includes(file)) {
   const transport=require('./video-transport-scope.cjs');
   if(transport.files.includes(file))assert.strictEqual(transport.normalize(file,read(file)),old(file),'exact video/refresh delta: '+file);
+  else if(require('./controller-identity-scope.cjs').files.includes(file))
+    assert.strictEqual(require('./controller-identity-scope.cjs').normalize(file,read(file)),old(file),'exact tested controller identity delta: '+file);
   else if(file==='wasm/platform/app-lifecycle.js'||file==='wasm/static/js/utils.js')
     assert.strictEqual(require('./stream-return-scope.cjs').normalize(file,read(file)),old(file),'exact tested stop-to-menu delta: '+file);
   else if (require('./frame-pacing-scope.cjs').files.includes(file))

@@ -68,10 +68,9 @@ struct GamepadState {
   int32_t connected;
   int32_t numAxes;
   int32_t numButtons;
-  // Tizen reports gamepads that are not really there, and those keep a
-  // timestamp of zero. JS reduces the timestamp to this flag, which is all the
-  // logic below ever needed from it.
-  int32_t hasTimestamp;
+  // JS filters phantom pads before publication. This formerly unused word now
+  // distinguishes owners reusing a browser slot without changing the ABI.
+  int32_t connectionGeneration;
   int32_t controllerType;
   int32_t capabilities;
   int32_t supportedButtonFlags;
@@ -256,6 +255,7 @@ void MoonlightInstance::PollGamepads() {
   static GamepadSnapshot snapshot = {};
   static uint32_t lastSequence = UINT32_MAX;
   static short lastConnectedMask = 0;
+  static int32_t lastConnectionGeneration[kMaxSnapshotPads] = {};
   static ControllerPacketState lastPacket[kMaxSnapshotPads] = {};
   static bool packetValid[kMaxSnapshotPads] = {};
   static bool comboTriggered[kMaxSnapshotPads] = {};
@@ -269,6 +269,7 @@ void MoonlightInstance::PollGamepads() {
     activeSession = session;
     lastSequence = UINT32_MAX;
     lastConnectedMask = 0;
+    std::memset(lastConnectionGeneration, 0, sizeof(lastConnectionGeneration));
     std::memset(lastPacket, 0, sizeof(lastPacket));
     std::memset(packetValid, 0, sizeof(packetValid));
     std::memset(comboTriggered, 0, sizeof(comboTriggered));
@@ -299,14 +300,28 @@ void MoonlightInstance::PollGamepads() {
   bool pendingLongPress = false;
   bool continuousMouseMovement = false;
 
-  if (activeGamepadMask != lastConnectedMask) {
+  short replacedMask = 0;
+  for (int gamepadID = 0; gamepadID < numGamepads; gamepadID++) {
+    const short bit = static_cast<short>(1 << gamepadID);
+    if ((activeGamepadMask & lastConnectedMask & bit) &&
+        snapshot.pads[gamepadID].connectionGeneration != lastConnectionGeneration[gamepadID]) {
+      replacedMask |= bit;
+    }
+  }
+  if (activeGamepadMask != lastConnectedMask || replacedMask) {
     for (int gamepadID = 0; gamepadID < kMaxSnapshotPads; gamepadID++) {
       const short bit = static_cast<short>(1 << gamepadID);
-      if ((lastConnectedMask & bit) && !(activeGamepadMask & bit)) {
-        LiSendMultiControllerEvent(gamepadID, activeGamepadMask, 0, 0, 0, 0, 0, 0, 0);
+      if ((lastConnectedMask & bit) && (!(activeGamepadMask & bit) || (replacedMask & bit))) {
+        // The host must free the previous virtual device before its new arrival.
+        // Other controllers use independent reliable channels. Keep their bits
+        // set so a delayed release cannot retire an already reannounced owner.
+        const short retainedMask = activeGamepadMask & ~bit;
+        if (LiSendMultiControllerEvent(gamepadID, retainedMask, 0, 0, 0, 0, 0, 0, 0) != 0) continue;
+        lastConnectedMask &= ~bit;
         packetValid[gamepadID] = false;
         comboTriggered[gamepadID] = false;
         longPressLatched[gamepadID] = false;
+        playPressedAt[gamepadID] = {};
       }
     }
     for (int gamepadID = 0; gamepadID < numGamepads; gamepadID++) {
@@ -317,18 +332,21 @@ void MoonlightInstance::PollGamepads() {
         if (!rumbleFeedbackSwitch.load(std::memory_order_acquire)) {
           capabilities &= ~LI_CCAP_RUMBLE;
         }
-        LiSendControllerArrivalEvent(
+        if (LiSendControllerArrivalEvent(
           gamepadID, activeGamepadMask, static_cast<uint8_t>(gamepad.controllerType),
-          static_cast<uint32_t>(gamepad.supportedButtonFlags), capabilities);
+          static_cast<uint32_t>(gamepad.supportedButtonFlags), capabilities) != 0) continue;
+        lastConnectedMask |= bit;
+        lastConnectionGeneration[gamepadID] = gamepad.connectionGeneration;
         packetValid[gamepadID] = false;
       }
     }
-    lastConnectedMask = activeGamepadMask;
   }
 
   for (int gamepadID = 0; gamepadID < numGamepads; ++gamepadID) {
     const GamepadState& gamepad = snapshot.pads[gamepadID];
-    if (!gamepad.connected) {
+    const short bit = static_cast<short>(1 << gamepadID);
+    if (!gamepad.connected || !(lastConnectedMask & bit) ||
+        gamepad.connectionGeneration != lastConnectionGeneration[gamepadID]) {
       continue;
     }
 

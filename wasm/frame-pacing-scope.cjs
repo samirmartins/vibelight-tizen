@@ -17,6 +17,7 @@ const approved = {
 };
 const added = ['moonlight-common-c/src/VideoPacing.h', 'wasm/frame_pacing.hpp'];
 function normalize(file, source) {
+  source = require('./controller-identity-scope.cjs').normalize(file, source);
   source = require('./stream-return-scope.cjs').normalize(file, source);
   if (!approved[file] || crypto.createHash('sha256').update(source).digest('hex') !== approved[file]) return source;
   if (added.includes(file)) return '';
