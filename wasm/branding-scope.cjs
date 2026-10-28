@@ -33,6 +33,7 @@ function normalize(file, source) {
     .replace('project(MoonlightWasm VERSION 3.4.12)', 'project(MoonlightWasm VERSION 3.4.10)')
     .replace('project(MoonlightWasm VERSION 3.4.11)', 'project(MoonlightWasm VERSION 3.4.10)');
   if (file === 'res/config.xml') return source
+    .replace('version="3.4.13"', 'version="3.4.10"')
     .replace('version="3.4.12"', 'version="3.4.10"')
     .replace('version="3.4.11"', 'version="3.4.10"')
     .replace('<name>VibeLight</name>', '<name>Moonlight</name>')
