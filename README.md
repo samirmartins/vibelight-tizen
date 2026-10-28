@@ -8,7 +8,7 @@
 
 **VibeLight-Tizen** is an independently maintained, vibe-coded **fork of [Moonlight Tizen](https://github.com/brightcraft/moonlight-tizen)** for Samsung Smart TVs.
 
-Stream PC games through [Sunshine](https://app.lizardbyte.dev/Sunshine/) or NVIDIA GameStream. The goal: keep improving VibeLight on Tizen OS toward a **console-like experience**, with **smoother gameplay and low latency**, without sacrificing image quality.
+Stream PC games through [VibeShine](https://github.com/Nonary/VibeShine) (recommended), [Sunshine](https://app.lizardbyte.dev/Sunshine/) or NVIDIA GameStream. The goal: keep improving VibeLight on Tizen OS toward a **console-like experience**, with **smoother gameplay and low latency**, without sacrificing image quality.
 
 ---
 
@@ -22,7 +22,7 @@ Simulated UI preview · [Image credits and licenses](docs/images/ATTRIBUTION.md)
 
 ## Installation and quick start
 
-You need a Samsung TV running **Tizen 5.5 or newer** and a PC running Sunshine.
+You need a Samsung TV running **Tizen 5.5 or newer** and a PC running **VibeShine** or **Sunshine**.
 Keep the TV, PC and installation device on the same local network.
 
 Choose the build that suits your TV:
@@ -37,13 +37,12 @@ The in-app *Game Mode* switch is separate; see the FAQ below.
 2. **Install on the TV.** Enable the TV's Developer Mode and install the downloaded
    widget with Apps2Samsung, following the
    [Installation Guide](INSTALLATION.md#apps2samsung-recommended).
-3. **Set up Sunshine on the PC.** Follow Sunshine's
-   [Getting Started guide](https://docs.lizardbyte.dev/projects/sunshine/latest/md_docs_2getting__started.html),
+3. **Set up VibeShine or Sunshine on the PC.** Install and configure your preferred host,
    open its web interface, and add your games under **Applications**.
-   You can use **Desktop** for the first connection. Keep Sunshine running.
+   You can use **Desktop** for the first connection. Keep the host running.
 4. **Add and pair the PC.** Open VibeLight on the TV and select your PC from **PCs**.
    If it is not listed, choose **Add Host** and enter the PC's local IP address.
-   Enter the PIN shown on the TV in Sunshine's **PIN** page on the PC to complete pairing.
+   Enter the PIN shown on the TV in the host's **PIN** page on the PC to complete pairing.
 5. **Start playing.** Connect a gamepad to the TV, select a game or **Desktop**
    in the library, and choose **Play**. Use **Resume** to reconnect to an
    application that is already running.
@@ -83,7 +82,7 @@ decoder's Ultra Low Latency mode, which can freeze video on some models.
 ### How do I wake the PC?
 
 Enable Wake-on-LAN on the PC and network adapter, then pair while the PC is online.
-Select **Wake PC**; enter its LAN MAC address if prompted. When Sunshine is ready,
+Select **Wake PC**; enter its LAN MAC address if prompted. When the host is ready,
 press **Play**. If the status is outdated, use **Reload VibeLight**. Play remains
 available regardless of the displayed status. The MAC stays in TV storage and
 LAN wake packets.
@@ -92,7 +91,7 @@ LAN wake packets.
 
 Follow the manual **Add Host** and PIN steps in [Installation and quick start](#installation-and-quick-start).
 If the pairing dialog says the PC is busy, stop its running streaming application
-before retrying. For other errors, check Sunshine's **Troubleshooting** logs.
+before retrying. For other errors, check the host's **Troubleshooting** logs.
 
 ### Can I update without losing settings?
 

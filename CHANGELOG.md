@@ -7,6 +7,14 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## v3.4.13
+
+### Improved
+- Improves host availability checks after a streaming session ends
+- Recognizes PlayStation, Xbox and Nintendo controller families from supported identifiers and handles controller replacement or reconnection
+- Consolidates shared stream options and controller lifecycle logic
+- Recommends VibeShine as a host alongside Sunshine
+
 ## v3.4.12
 
 ### Improved
