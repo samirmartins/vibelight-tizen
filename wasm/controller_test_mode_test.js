@@ -2,7 +2,7 @@
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process');
 const menu=fs.readFileSync('wasm/platform/controller-mapping-menu.js','utf8');
 function fixture() {
-  let pads=[],nextFrame=null,serial=0,view,navigation=0;
+  let pads=[],nextFrame=null,serial=0,view,navigation=0,now=1000;
   const nodes=new Map(),listeners=new Map();
   function classes(node) {
     return {contains:c=>node.className.split(' ').includes(c),
@@ -36,7 +36,7 @@ function fixture() {
     return event;
   }
   const context={console,document,navigator:{getGamepads:()=>pads},isInGame:false,isDialogOpen:false,
-    repeatTimeout:1,navigationTimeout:2,repeatAction:()=>{},clearTimeout(){},
+    repeatTimeout:1,navigationTimeout:2,repeatAction:()=>{},clearTimeout(){},Date:{now:()=>now},
     requestAnimationFrame(fn){assert(!nextFrame);nextFrame=fn;return ++serial;},cancelAnimationFrame(){nextFrame=null;},
     addEventListener,removeEventListener,localStorage:{getItem:()=>null,setItem(){}},
     openUtilityDialog(){nodes.get('controllerMappingDialog').open=true;context.isDialogOpen=true;},
@@ -50,7 +50,7 @@ function fixture() {
   return {c:context,node:id=>nodes.get(id),view:()=>view,setPads(value){pads=value;},
     dispatch,listeners:name=>(listeners.get(name)||[]).length,navigation:()=>navigation,
     tick(time){const fn=nextFrame;assert(fn);nextFrame=null;fn(time);},pending:()=>!!nextFrame,
-    open(){context.ControllerMappingMenu.open();},start(){nodes.get('cm-test').onclick();},stop(){nodes.get('cm-test').onclick();}};
+    open(){context.ControllerMappingMenu.open();},start(){nodes.get('cm-test').onclick();},stop(){nodes.get('cm-test').onclick();},advance(ms){now+=ms;}};
 }
 function pad(index=0){return {index,connected:true,axes:[0,0,0,0],buttons:Array.from({length:18},()=>({pressed:false,value:0}))};}
 function button(p,index,pressed){p.buttons[index]={pressed,value:Number(pressed)};}
@@ -67,6 +67,10 @@ for(let index=0;index<18;index++) {
   button(p,index,false);f.tick(20+index*20);
   if(sprite)assert(!sprite.classList.contains('cm-active'),'release clears button '+index);
 }
+assert.strictEqual(f.listeners('mousemove'),1,'observer exists only during test');
+const pointer=f.dispatch('mousemove');assert(!pointer.prevented&&!pointer.stopped,'pointer remains passive');
+f.tick(400);assert(f.node('cm-art-button-17').classList.contains('cm-active'),'pointer activity highlights touchpad');
+f.advance(351);f.tick(410);assert(!f.node('cm-art-button-17').classList.contains('cm-active'),'highlight expires');
 // Keyboard-emulated confirm/back, direct view operations and raw pad events
 // must not navigate, click Finish or close the editor while testing.
 for(const [key,keyCode] of [['Enter',13],['Escape',27],['Backspace',8],['',10009],['',65385],['ArrowDown',40]]) {
@@ -80,6 +84,7 @@ button(p,4,true);button(p,5,true);f.tick(500);f.tick(2000);assert(f.pending());b
 button(p,1,true);f.tick(2100);f.tick(5099);assert(f.pending(),'2999ms does not exit');
 button(p,1,false);f.tick(5100);button(p,1,true);f.tick(5200);f.tick(8199);assert(f.pending(),'hold reset on release');
 f.tick(8200);assert(!f.pending(),'3000ms finishes');assert(f.node('cm-exit-hint').hidden);
+assert.strictEqual(f.listeners('mousemove'),0,'pointer observer removed after test');
 assert(f.node('controllerMappingDialog').open,'finishes only the test');
 assert(!f.node('cm-art-button-1').classList.contains('cm-active'),'idle artwork restored');
 f.view().back();assert(f.node('controllerMappingDialog').open,'held exit button cannot close editor');

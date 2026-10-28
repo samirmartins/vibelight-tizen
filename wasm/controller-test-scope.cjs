@@ -8,6 +8,7 @@ const styles = '/* Controller test visuals only; the original CC0 atlas remains 
   '#controllerMappingDialog #cm-exit-hint { position:sticky; top:0; z-index:2; border:2px solid #54f0ec; border-radius:7px; padding:.6em .8em; background:#163c50; color:#fff; font-weight:bold; text-align:center; }\n';
 const stableLine = '#controllerMappingDialog #cm-detail, #controllerMappingDialog #cm-axes { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }\n';
 function normalize(file,source) {
+  source = require('./controller-access-scope.cjs').normalize(file,source);
   return file === 'wasm/static/css/controller-mapping.css' ? source.replace(styles,'').replace(stableLine,'') : source;
 }
 module.exports={normalize};

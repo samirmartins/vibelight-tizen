@@ -7,6 +7,12 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## v3.4.14
+
+### Improved
+- Highlights the touchpad illustration when pointer activity is detected in the controller test
+- Shortens the touchpad description in the controller mapping screen
+
 ## v3.4.13
 
 ### Improved

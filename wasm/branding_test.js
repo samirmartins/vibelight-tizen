@@ -19,6 +19,11 @@ const changed = cp.execFileSync('git', ['diff', '--name-only', 'v3.4.10', '--', 
 const pacing = require('./frame-pacing-scope.cjs');
 const remaining = changed.filter(file => {
   const current=fs.readFileSync(file,'utf8');
+  const access=require('./controller-access-scope.cjs');
+  if(access.files.includes(file)) {
+    assert.strictEqual(access.normalize(file,current),cp.execFileSync('git',['show','v3.4.13:'+file],{encoding:'utf8'}));
+    return false;
+  }
   const identity=require('./controller-identity-scope.cjs');
   if(identity.files.includes(file)) {
     assert.strictEqual(identity.normalize(file,current),cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}),

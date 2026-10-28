@@ -6,6 +6,8 @@ var ControllerMappingMenu = (function() {
   var root, dialog, draft, selected = 0, choosing = false, testing = false, raf = 0;
   var focused = 'cm-enabled', lastSample = '', exitSince = null;
   var releaseGuard = false, exitPad = null, exitArmed = false, lastCountdown = '';
+  var pointerUntil = 0;
+  function observePointer() { if (testing) pointerUntil = Date.now() + 350; }
   // Existing CC0 atlas: physical Web Gamepad button, destination, pressed crop.
   // Source rectangles follow the Input Overlay preset, not its SDL button codes.
   var sprites = [
@@ -152,7 +154,7 @@ var ControllerMappingMenu = (function() {
     el('cm-detail').textContent = selected < 16 ? 'Sends '+names[draft.map[selected]]+'.'+
       ((selected === 6 || selected === 7) ? ' Analog trigger range is preserved.' : '') :
       selected === 16 ? 'Guide remains unchanged; availability depends on the TV.' :
-      selected === 17 ? 'Existing mouse behavior is unchanged. Game touch gestures are not exposed here.' : 'Not exposed as a standard button by the TV.';
+      selected === 17 ? 'Mouse input only.' : 'Not exposed as a standard button by the TV.';
     el('cm-change').disabled = selected >= 16 || testing || choosing;
     el('cm-list-title').textContent = choosing ? 'Choose game input · the other assignment swaps automatically' : 'Physical button → game input';
     var rows = el('cm-rows'); rows.textContent = '';
@@ -179,6 +181,10 @@ var ControllerMappingMenu = (function() {
   }
   function stopTest() {
     if (!testing) return;
+    window.removeEventListener('mousemove',observePointer,true);
+    window.removeEventListener('mousedown',observePointer,true);
+    window.removeEventListener('mouseup',observePointer,true);
+    pointerUntil = 0;
     testing = false; cancelAnimationFrame(raf); raf = 0; exitSince = null;
     releaseGuard = circleHeld();
     if (!releaseGuard) clearTestInput();
@@ -190,6 +196,10 @@ var ControllerMappingMenu = (function() {
   function startTest() {
     if (typeof LibraryNavigation !== 'undefined') LibraryNavigation.reset();
     clearTestInput();
+    pointerUntil = 0;
+    window.addEventListener('mousemove',observePointer,true);
+    window.addEventListener('mousedown',observePointer,true);
+    window.addEventListener('mouseup',observePointer,true);
     choosing = false; testing = true; lastSample = ''; exitSince = null; exitPad = null; lastCountdown = '';
     var initial = padsNow();
     for (var p=0;p<initial.length;p++) if (initial[p] && initial[p].connected) { exitPad = initial[p].index; break; }
@@ -206,7 +216,7 @@ var ControllerMappingMenu = (function() {
     el('cm-exit-hint').hidden = false;
     el('cm-exit-hint').textContent = 'Hold Circle / B for 3 seconds to finish the test.';
     el('cm-test').textContent = 'Finish test'; render(); focus('cm-test');
-    setStatus('Press buttons or move sticks.');
+    setStatus('Press buttons or move sticks. Pointer activity highlights the touchpad.');
     function tick(time) {
       if (!testing) return;
       if (document.hidden || isInGame) { close(); return; }
@@ -228,11 +238,12 @@ var ControllerMappingMenu = (function() {
         countdown = 'Keep holding Circle / B: '+Math.ceil((3000-(time-exitSince))/1000)+' s';
       } else exitSince = null;
       if (countdown !== lastCountdown) { lastCountdown = countdown; el('cm-exit-hint').textContent = countdown; }
-      var sample = JSON.stringify([!!pad,pressed,axes,triggers]);
+      var pointerActive = Date.now() < pointerUntil;
+      var sample = JSON.stringify([!!pad,pressed,axes,triggers,pointerActive]);
       if (sample !== lastSample) {
         lastSample = sample;
         for (var n=0;n<19;n++) el('cm-row-'+n).classList.toggle('cm-pressed',pressed.includes(n));
-        paintArt(pressed);
+        paintArt(pointerActive && !pressed.includes(17) ? pressed.concat([17]) : pressed);
         el('cm-axes').textContent = pad ? 'Axes '+axes.join('/')+' · L2/R2 '+triggers.join('/') : 'Connect a controller.';
         el('cm-detail').textContent = pressed.length ? 'Physical: '+pressed.map(function(n) { return names[n]; }).join(', ')+
           ' · Game: '+pressed.map(function(n) { return n < 17 ? names[preview[n]] : 'mouse (unchanged)'; }).join(', ') : 'Press a button to see its mapping.';
