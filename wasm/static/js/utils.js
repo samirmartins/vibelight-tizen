@@ -723,21 +723,25 @@ NvHTTP.prototype = {
     }.bind(this));
   },
 
-  launchApp: function(appId, mode, sops, rikey, rikeyid, enableHdr, localAudio, surroundAudioInfo, gamepadMask) {
-    return sendMessage('openUrl', [
-      this._baseUrlHttps + '/launch?' + this._buildUidStr() + '&appid=' + appId + '&mode=' + mode +
+  // Play and Resume must serialize the same stream options, in the same order.
+  _buildStreamOptions: function(mode, sops, rikey, rikeyid, enableHdr, localAudio, surroundAudioInfo, gamepadMask) {
+    return '&mode=' + mode +
       '&additionalStates=1&sops=' + sops + '&rikey=' + rikey + '&rikeyid=' + rikeyid + '&hdrMode=' + enableHdr +
       '&localAudioPlayMode=' + localAudio + '&surroundAudioInfo=' + surroundAudioInfo +
-      '&remoteControllersBitmap=' + gamepadMask + '&gcmap=' + gamepadMask, this.ppkstr, false
+      '&remoteControllersBitmap=' + gamepadMask + '&gcmap=' + gamepadMask;
+  },
+
+  launchApp: function(appId, mode, sops, rikey, rikeyid, enableHdr, localAudio, surroundAudioInfo, gamepadMask) {
+    return sendMessage('openUrl', [
+      this._baseUrlHttps + '/launch?' + this._buildUidStr() + '&appid=' + appId +
+      this._buildStreamOptions(mode, sops, rikey, rikeyid, enableHdr, localAudio, surroundAudioInfo, gamepadMask), this.ppkstr, false
     ]);
   },
 
   resumeApp: function(mode, sops, rikey, rikeyid, enableHdr, localAudio, surroundAudioInfo, gamepadMask) {
     return sendMessage('openUrl', [
-      this._baseUrlHttps + '/resume?' + this._buildUidStr() + '&mode=' + mode +
-      '&additionalStates=1&sops=' + sops + '&rikey=' + rikey + '&rikeyid=' + rikeyid + '&hdrMode=' + enableHdr +
-      '&localAudioPlayMode=' + localAudio + '&surroundAudioInfo=' + surroundAudioInfo +
-      '&remoteControllersBitmap=' + gamepadMask + '&gcmap=' + gamepadMask, this.ppkstr, false
+      this._baseUrlHttps + '/resume?' + this._buildUidStr() +
+      this._buildStreamOptions(mode, sops, rikey, rikeyid, enableHdr, localAudio, surroundAudioInfo, gamepadMask), this.ppkstr, false
     ]);
   },
 

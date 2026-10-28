@@ -143,13 +143,16 @@ function _gpEnsureMappings(maxPads) {
   _gpConnectionForSlot = new Int32Array(maxPads);
 }
 
-function _gpClearSlotMetadata(slot) {
+function _gpReleaseSlot(slot) {
+  _gpPhysicalForSlot[slot] = -1;
+  _gpLogicalPads[slot] = null;
   _gpTypeForSlot[slot] = _GP_TYPE_UNKNOWN;
   _gpCapabilitiesForSlot[slot] = 0;
   _gpIdForSlot[slot] = null;
+  _rumbleForgetSlot(slot);
 }
 
-function _gpCacheSlotMetadata(slot, gamepad) {
+function _gpBeginSlotConnection(slot, gamepad) {
   var buttons = gamepad && gamepad.buttons ? gamepad.buttons : [];
   _gpIdForSlot[slot] = gamepad && gamepad.id || '';
   var generation = (_gpConnectionForSlot[slot] + 1) & 0x7fffffff;
@@ -158,6 +161,7 @@ function _gpCacheSlotMetadata(slot, gamepad) {
   _gpCapabilitiesForSlot[slot] =
     (buttons.length > 7 ? _GP_CAP_ANALOG_TRIGGERS : 0) |
     (_gpGetActuator(gamepad) ? _GP_CAP_RUMBLE : 0);
+  _rumbleForgetSlot(slot);
 }
 
 function _gpGetActuator(gamepad) {
@@ -207,14 +211,10 @@ function _gpRefreshMappings(pads, maxPads) {
     var physical = _gpPhysicalForSlot[slot];
     var existing = physical >= 0 ? pads[physical] : null;
     if (physical >= 0 && !_gpIsUsable(existing)) {
-      _gpPhysicalForSlot[slot] = -1;
-      _gpLogicalPads[slot] = null;
-      _gpClearSlotMetadata(slot);
-      _rumbleForgetSlot(slot);
+      _gpReleaseSlot(slot);
     } else if (physical >= 0 && _gpIdForSlot[slot] !== (existing.id || '')) {
       // Browser slots can be reused without an observable disconnected frame.
-      _gpCacheSlotMetadata(slot, existing);
-      _rumbleForgetSlot(slot);
+      _gpBeginSlotConnection(slot, existing);
     }
   }
   for (var p = 0; p < pads.length; p++) {
@@ -223,8 +223,7 @@ function _gpRefreshMappings(pads, maxPads) {
     for (var freeSlot = 0; freeSlot < maxPads; freeSlot++) {
       if (_gpPhysicalForSlot[freeSlot] < 0) {
         _gpPhysicalForSlot[freeSlot] = gamepad.index;
-        _gpCacheSlotMetadata(freeSlot, gamepad);
-        _rumbleForgetSlot(freeSlot);
+        _gpBeginSlotConnection(freeSlot, gamepad);
         break;
       }
     }
@@ -239,18 +238,14 @@ window.addEventListener('gamepadconnected', function(event) {
   _gpKnownPhysical.add(event.gamepad.index);
   var slot = _gpFindSlot(event.gamepad.index);
   if (slot >= 0) {
-    _gpCacheSlotMetadata(slot, event.gamepad);
-    _rumbleForgetSlot(slot);
+    _gpBeginSlotConnection(slot, event.gamepad);
   }
 });
 window.addEventListener('gamepaddisconnected', function(event) {
   _gpKnownPhysical.delete(event.gamepad.index);
   var slot = _gpFindSlot(event.gamepad.index);
   if (slot >= 0) {
-    _gpPhysicalForSlot[slot] = -1;
-    _gpLogicalPads[slot] = null;
-    _gpClearSlotMetadata(slot);
-    _rumbleForgetSlot(slot);
+    _gpReleaseSlot(slot);
   }
 });
 

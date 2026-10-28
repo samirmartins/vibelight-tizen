@@ -11,6 +11,7 @@ const approved={
   'wasm/platform/index.js':'177658d699ab37d467a578ff9411f8555114854145b849303c2430fe4ae5dce3'
 };
 function normalize(file,source) {
+  source=require('./shared-paths-scope.cjs').normalize(file,source);
   if(!approved[file]||crypto.createHash('sha256').update(source).digest('hex')!==approved[file])return source;
   return cp.execFileSync('git',['show','v3.4.12:'+file],{encoding:'utf8'});
 }
