@@ -221,7 +221,12 @@ NvHTTP.prototype = {
     };
     var operation = new Promise(function(resolve, reject) {
       rejectAttempt = reject;
-      probe.selectServerAddress(resolve, function() { reject(new Error('PC did not respond')); }, fresh);
+      var select = function() {
+        if (!current()) { reject(new Error('Connection cancelled')); return; }
+        probe.selectServerAddress(resolve, function() { reject(new Error('PC did not respond')); }, fresh);
+      };
+      var waiting = typeof AppLifecycle !== 'undefined' ? AppLifecycle.waitForStreamStop(fresh) : null;
+      if (waiting) waiting.then(select, reject); else select();
     });
     operation.cancel = owner.cancel;
     // Five deduplicated candidates, each bounded to 4.5 s plus callback grace.
@@ -243,7 +248,7 @@ NvHTTP.prototype = {
       return address;
     }, function(error) {
       if (self._connectionAttempt === owner && !isInGame && (!scope || scope.active) &&
-          error && error.message !== 'Connection cancelled') self._authenticatedOnline = false;
+          error && !error.clientStreamStopping && error.message !== 'Connection cancelled') self._authenticatedOnline = false;
       throw error;
     });
     result = result.then(function(value) { cleanup(); return value; }, function(error) { cleanup(); throw error; });
@@ -344,9 +349,9 @@ NvHTTP.prototype = {
       while ((completion = completions.pop())) {
         completion(this);
       }
-    }.bind(this), function() {
+    }.bind(this), function(error) {
       if (isInGame || (scope && !scope.active)) return;
-      if (++this._consecutivePollFailures >= 2) {
+      if (!(error && error.clientStreamStopping) && ++this._consecutivePollFailures >= 2) {
         this.online = false;
         this._memCachedApplist = null;
       }

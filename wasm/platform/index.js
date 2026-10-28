@@ -287,8 +287,9 @@ function beginBackgroundPollingOfHost(host) {
     host.online = true;
     host._consecutivePollFailures = 0;
     update();
-  }, function() {
+  }, function(error) {
     if (!current()) return;
+    if (error && error.clientStreamStopping) return;
     host.online = false;
     host._memCachedApplist = null;
     update();

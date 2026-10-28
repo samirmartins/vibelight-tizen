@@ -18,6 +18,12 @@ const frozen = ['moonlight-common-c', 'libgamestream', 'h264bitstream',
 const changed = cp.execFileSync('git', ['diff', '--name-only', 'v3.4.10', '--', ...frozen], {encoding: 'utf8'}).trim().split('\n').filter(Boolean);
 const pacing = require('./frame-pacing-scope.cjs');
 const remaining = changed.filter(file => {
+  const current=fs.readFileSync(file,'utf8');
+  const beforeReturn=require('./stream-return-scope.cjs').normalize(file,current);
+  if(beforeReturn!==current&&!files.includes(file)&&!pacing.files.includes(file)) {
+    assert.strictEqual(beforeReturn,cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}),
+      'exact independently tested stop-to-menu integration: '+file);return false;
+  }
   if (pacing.files.includes(file) && !files.includes(file)) {
     const normalized = pacing.normalize(file, fs.readFileSync(file, 'utf8'));
     const old = pacing.added.includes(file) ? '' : cp.execFileSync('git', ['show', 'v3.4.10:' + file], {encoding:'utf8'});

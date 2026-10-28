@@ -41,7 +41,8 @@ function setup() {
   };
   return f;
 }
-(async()=>{
+module.exports={setup};
+if(require.main===module)(async()=>{
   const f=setup();await f.open();
   for(let i=0;i<12;i++){await retry(f);assert.strictEqual(f.host.online,false);assert.strictEqual(f.host.paired,true);}
   f.state='denied';for(let i=0;i<3;i++){await retry(f);assert(!f.host.online);assert.strictEqual(f.host.httpsPort,47984);}

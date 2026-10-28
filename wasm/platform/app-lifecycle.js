@@ -1,8 +1,33 @@
 // Smart Hub policy: disconnect locally on hide, return to the menu on show.
-// Event-only: no timers, polling, reconnects or per-frame gameplay work.
+// Visibility is event-only; menu probes may await bounded native cleanup.
 var AppLifecycle = (function() {
   var epoch = 0, hidden = !!document.hidden, returnHost = null, returning = false;
   var restoreHostPolling = false;
+  var stopWaiters = new Set();
+
+  function streamStopped(generation) {
+    stopWaiters.forEach(function(waiting) {
+      if (waiting.generation !== generation) return;
+      stopWaiters.delete(waiting);
+      waiting.resolve();
+    });
+  }
+  function waitForStreamStop(scope) {
+    if (typeof Module === 'undefined' || typeof Module.isStreamStopping !== 'function' ||
+        !Module.isStreamStopping()) return null;
+    if (!scope.active) return Promise.reject(new Error('Menu request cancelled'));
+    var waiting;
+    var operation = new Promise(function(resolve) {
+      waiting = { generation: Module.sessionGeneration, resolve: resolve };
+      stopWaiters.add(waiting);
+    });
+    operation.cancel = function() { stopWaiters.delete(waiting); };
+    // Menu-only, event-driven wait. No polling or host traffic during teardown.
+    return scope.request(function() { return operation; }, 8000).catch(function(error) {
+      if (scope.active) error.clientStreamStopping = true;
+      throw error;
+    });
+  }
 
   function current(token) { return !document.hidden && !hidden && token === epoch; }
   function deferMenu(host) {
@@ -70,5 +95,6 @@ var AppLifecycle = (function() {
     if (!isDialogOpen) Navigation.switch();
   }
   document.addEventListener('visibilitychange', changed);
-  return { epoch: function() { return epoch; }, current: current, deferMenu: deferMenu };
+  return { epoch: function() { return epoch; }, current: current, deferMenu: deferMenu,
+    waitForStreamStop: waitForStreamStop, streamStopped: streamStopped };
 })();

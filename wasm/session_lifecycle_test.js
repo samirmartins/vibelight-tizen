@@ -3,9 +3,13 @@
 // It verifies ownership/failure ordering, not physical Samsung playback.
 const fs=require('fs'), cp=require('child_process'), path=require('path'), assert=require('assert');
 const source=fs.readFileSync('wasm/main.cpp','utf8');
+const getter=fs.readFileSync('wasm/moonlight_wasm.hpp','utf8').match(/  bool IsStreamStopping\(\) const \{[\s\S]*?\n  \}/);
+assert(getter,'production atomic stop-state getter');
 const begin=source.indexOf('void MoonlightInstance::OnConnectionStopped(');
 const end=source.indexOf('void* MoonlightInstance::InputThreadFunc(',begin);
 assert(begin>0&&end>begin);
+const completion=source.slice(begin,end).match(/  MAIN_THREAD_ASYNC_EM_ASM\(\{\n    if \(Module\.sessionGeneration === \$0 && typeof AppLifecycle !== 'undefined'\) \{\n      AppLifecycle\.streamStopped\(\$0\);\n    \}\n  \}, generation\);/);
+assert(completion,'one asynchronous generation-checked completion bridge');
 const cycles=Number(process.env.ML_LIFECYCLE_CYCLES||30);
 assert(Number.isInteger(cycles)&&cycles>0&&cycles<=10000);
 const sanitizer=process.env.ML_LIFECYCLE_SANITIZER||'address,undefined';
@@ -39,7 +43,7 @@ namespace samsung { namespace wasm {
  struct ElementaryMediaTrack { void SetListener(void*) {} };
 }}
 enum class EmssReadyState{kDetached,kClosed,kOpen};
-static std::atomic<unsigned> stops{0},closes{0},destroyed{0},messages{0};
+static std::atomic<unsigned> stops{0},closes{0},destroyed{0},messages{0},readyMessages{0};
 void LiSendKeyboardEvent(int,int,int){}
 void LiStopConnection(){stops++;}
 void NotifyInputEvent(){}
@@ -81,6 +85,7 @@ class MoonlightInstance {
  std::unique_ptr<int> m_SourceListener,m_VideoTrackListener;
  std::atomic<uint32_t> m_SessionGeneration{0};
  std::atomic<bool> m_StopComplete{true};
+${getter[0]}
  mlsession::Phase m_SessionPhase{mlsession::Phase::Idle};
  std::shared_ptr<mlsession::CloseTicket> m_CloseTicket;
  std::shared_ptr<mlsession::CloseTicket> m_OpenTicket;
@@ -104,6 +109,14 @@ class MoonlightInstance {
   if(m_StopThread){pthread_join(m_StopThread,nullptr);m_StopThread=0;}
  }
 };
+void RecordStreamStopped(MoonlightInstance* app,uint32_t generation) {
+ assert(app->m_StopComplete.load(std::memory_order_acquire));
+ assert(!app->IsStreamStopping());
+ assert(app->IsCurrentSession(generation));
+ assert(app->m_SessionPhase==mlsession::Phase::Idle || app->m_SessionPhase==mlsession::Phase::Blocked);
+ assert(!app->m_ConnectionThread&&!app->m_InputThread);
+ readyMessages++;
+}
 `;
 const tests=`
 int main(){
@@ -113,10 +126,11 @@ int main(){
   pthread_create(&app.m_InputThread,nullptr,[](void* p)->void*{
    auto* app=static_cast<MoonlightInstance*>(p);while(app->m_Running)std::this_thread::yield();return nullptr;
   },&app);
-  const auto before=stops.load(),beforeClose=closes.load();
+  const auto before=stops.load(),beforeClose=closes.load(),beforeReady=readyMessages.load();
   std::thread a([&]{app.StopConnection();}),b([&]{app.StopConnection();});
   a.join();b.join();app.WaitStop();
   assert(stops==before+1&&closes==beforeClose+1&&!app.m_Source);
+  assert(readyMessages==beforeReady+1);
   assert(!app.m_ConnectionThread&&!app.m_InputThread&&!app.m_VideoStarted);
   const auto oldGeneration=app.m_SessionGeneration.load();
   app.Open();
@@ -174,7 +188,8 @@ const tmp=fs.mkdtempSync(path.join(require('os').tmpdir(),'moonlight-lifecycle-t
 try{
  const file=path.join(tmp,'test.cpp'),bin=path.join(tmp,'test');
  const connected=source.slice(source.indexOf('void MoonlightInstance::OnConnectionStarted('),begin);
- fs.writeFileSync(file,fixture+connected+source.slice(begin,end)+tests);
+ const body=source.slice(begin,end).replace(completion[0],'  RecordStreamStopped(me, generation);');
+ fs.writeFileSync(file,fixture+connected+body+tests);
  cp.execFileSync('g++',['-std=c++17','-O1','-g','-pthread','-fsanitize='+sanitizer,'-fno-omit-frame-pointer','-Iwasm',file,'-o',bin],{stdio:'inherit'});
  cp.execFileSync(bin,[],{stdio:'inherit',timeout:Math.max(15000,cycles*30)});
  console.log('session_lifecycle_test: real concurrent duplicate stops, bounded missing/failed close, retained ownership, late callback, stale worker and repeated reopen OK');

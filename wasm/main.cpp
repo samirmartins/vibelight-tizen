@@ -203,8 +203,14 @@ void* MoonlightInstance::StopThreadFunc(void* context) {
     std::lock_guard<std::mutex> guard(me->m_LifecycleMutex);
     me->m_SessionPhase = safe ? mlsession::Phase::Idle : mlsession::Phase::Blocked;
   }
-  // Last access: acquire in BeginSession permits only a completed join.
+  const uint32_t generation = job->generation;
+  // Last instance access: BeginSession may now join this completed worker.
   me->m_StopComplete.store(true, std::memory_order_release);
+  MAIN_THREAD_ASYNC_EM_ASM({
+    if (Module.sessionGeneration === $0 && typeof AppLifecycle !== 'undefined') {
+      AppLifecycle.streamStopped($0);
+    }
+  }, generation);
   return NULL;
 }
 
@@ -629,6 +635,10 @@ MessageResult stopStream() {
   return g_Instance->StopStream();
 }
 
+bool isStreamStopping() {
+  return g_Instance && g_Instance->IsStreamStopping();
+}
+
 MessageResult cancelRequest() {
   return g_Instance->CancelRequest();
 }
@@ -702,6 +712,7 @@ EMSCRIPTEN_BINDINGS(handle_message) {
   emscripten::value_object<MessageResult>("MessageResult").field("type", &MessageResult::type).field("ret", &MessageResult::ret);
   emscripten::function("startStream", &startStream);
   emscripten::function("stopStream", &stopStream);
+  emscripten::function("isStreamStopping", &isStreamStopping);
   emscripten::function("cancelRequest", &cancelRequest);
   emscripten::function("toggleStats", &toggleStats);
   emscripten::function("stun", &stun);

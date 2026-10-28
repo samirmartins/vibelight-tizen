@@ -129,6 +129,9 @@ class MoonlightInstance {
     std::string audioConfig, int audioJitterMs, bool playHostAudio, std::string videoCodec, bool hdrMode, bool fullRange, bool gameMode,
     bool disableWarnings, bool performanceStats, int clientRefreshRateX100);
   MessageResult StopStream();
+  bool IsStreamStopping() const {
+    return !m_StopComplete.load(std::memory_order_acquire);
+  }
 
   MessageResult CancelRequest();
 

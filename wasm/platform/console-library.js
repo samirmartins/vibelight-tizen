@@ -335,10 +335,11 @@ var ConsoleLibrary = (function() {
       checking = false;
       current.cancel();
       // A reachable unpaired PC is different from an offline PC.
-      if (!reached) host.online = false;
+      var closing = error && error.clientStreamStopping;
+      if (!reached && !closing) host.online = false;
       // No response cannot distinguish a powered-off PC from a slow Sunshine,
       // firewall or network failure. Do not claim to have measured its power.
-      status(!reached ? 'PC unavailable. Turn it on or use Wake PC, then reload VibeLight.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Try Reload VibeLight.');
+      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then reload VibeLight.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Try Reload VibeLight.');
       return cached;
     }).then(function() {
       if (!valid(token)) return;
