@@ -14,6 +14,7 @@ for (const row of rows) {
     assert(!/[<>]/.test(value), 'catalog is text, never executable markup');
   }
 }
+const nativeStages = [...fs.readFileSync('moonlight-common-c/src/Connection.c','utf8').match(/stageNames\[STAGE_MAX\] = \{([\s\S]*?)\};/)[1].matchAll(/"([^"]+)"/g)].map(m => 'Starting '+m[1]+'...').sort();
 const moduleSource = fs.readFileSync('wasm/platform/menu-i18n.js','utf8');
 assert(!/setTimeout|setInterval|requestAnimationFrame|fetch\(|XMLHttpRequest|addEventListener\(['"](?:keydown|mousemove|gamepad)/.test(moduleSource));
 assert(moduleSource.includes('observer.disconnect(); observer.takeRecords();'));
@@ -22,16 +23,19 @@ for (const [stored,language,expected] of [[null,'pt-BR','pt-BR'],[null,'es-ES','
   const sandbox={MenuTranslations:rows,navigator:{language},localStorage:{getItem(){return stored;}},document:{addEventListener(){}}};
   vm.runInNewContext(moduleSource,sandbox);
   assert.strictEqual(sandbox.MenuI18n.locale(),expected);
+  assert.deepStrictEqual(Object.keys(sandbox.MenuI18n.progressText).sort(),nativeStages);
+  const progress=sandbox.MenuI18n.progressText['Starting RTSP handshake...'];
+  assert.strictEqual(progress,expected==='pt-BR'?'Iniciando negociação RTSP...':expected==='es'?'Iniciando negociación RTSP...':'Starting RTSP handshake...');
 }
 const failedStorage={MenuTranslations:rows,navigator:{language:'es'},localStorage:{getItem(){throw Error('denied');}},document:{addEventListener(){}}};
 vm.runInNewContext(moduleSource,failedStorage);assert.strictEqual(failedStorage.MenuI18n.locale(),'es');
 const normalization = require('./menu-i18n-scope.cjs').normalize;
-for (const file of ['wasm/index.html','wasm/platform/navigation.js','wasm/platform/console-library.js','res/config.xml']) {
+for (const file of ['wasm/index.html','wasm/platform/navigation.js','wasm/platform/console-library.js','wasm/platform/messages.js','res/config.xml']) {
   const source=fs.readFileSync(file,'utf8');
   const stable=cp.execFileSync('git',['show','v3.4.15:'+file],{encoding:'utf8'});
   assert.strictEqual(normalization(file,source),stable,file+' only menu integration');
   assert.notStrictEqual(normalization(file,source+'\nthrow Error("unexpected");'),stable);
 }
-const frozen=['wasm/platform/index.js','wasm/platform/messages.js','wasm/platform/gamepad.js','wasm/platform/audio.js','wasm/platform/audio-worklet.js','wasm/platform/display.js','wasm/platform/diagnostics.js','wasm/platform/controller-mapping.js','wasm/main.cpp','wasm/wasmplayer.cpp','wasm/gamepad.cpp','wasm/auddec.cpp'];
+const frozen=['wasm/platform/index.js','wasm/platform/gamepad.js','wasm/platform/audio.js','wasm/platform/audio-worklet.js','wasm/platform/display.js','wasm/platform/diagnostics.js','wasm/platform/controller-mapping.js','wasm/main.cpp','wasm/wasmplayer.cpp','wasm/gamepad.cpp','wasm/auddec.cpp'];
 for (const file of frozen) assert(fs.readFileSync(file).equals(cp.execFileSync('git',['show','v3.4.15:'+file])),file+' remains identical');
 console.log('menu_i18n_test: catalog integrity, text-only templates, exact menu-only integration and unchanged gameplay sources PASS');

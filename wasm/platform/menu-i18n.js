@@ -7,16 +7,28 @@ var MenuI18n = (function() {
   var names = ['English', 'Português (Brasil)', 'Español'];
   var flags = ['us', 'br', 'es'];
   var entries = MenuTranslations;
+  var progressText = Object.create(null);
   var exact = Object.create(null), reverse = Object.create(null), patterns = [];
   function normalize(value) { return value.replace(/\s+/g, ' ').trim(); }
   entries.forEach(function(row) {
     exact[row[0]] = row;
-    row.slice(1).forEach(function(value) { reverse[value] = row[0]; });
+    row.slice(1).forEach(function(value) {
+      reverse[value] = row[0];
+      if (/\[Unsupported\]$/.test(row[0])) reverse[value.replace(/\[[^\]]+\]$/, '[Unsupported]')] = row[0];
+    });
     if (row[0].indexOf('{0}') !== -1) {
       var escaped = row[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       patterns.push({ row: row, re: new RegExp('^' + escaped.replace(/\\\{\d+\\\}/g, '(.+?)') + '$') });
     }
   });
+  // Prefer the most specific sentence over a generic template with the same prefix.
+  patterns.sort(function(a, b) { return b.row[0].replace(/\{\d+\}/g, '').length - a.row[0].replace(/\{\d+\}/g, '').length; });
+  function prepareProgress() {
+    var index = codes.indexOf(locale);
+    entries.forEach(function(row) {
+      if (row[0].indexOf('Starting ') === 0 && row[0].indexOf('{') === -1) progressText[row[0]] = row[index] || row[0];
+    });
+  }
   function supported(value) {
     value = String(value || '').toLowerCase();
     return /^pt(?:-|$)/.test(value) ? 'pt-BR' : /^es(?:-|$)/.test(value) ? 'es' : /^en(?:-|$)/.test(value) ? 'en' : null;
@@ -24,6 +36,7 @@ var MenuI18n = (function() {
   try { var saved = localStorage.getItem(key); if (codes.indexOf(saved) !== -1) locale = saved; }
   catch (e) { /* Keep the in-session choice if storage is unavailable. */ }
   if (!saved || codes.indexOf(saved) === -1) locale = supported(navigator.language) || 'en';
+  prepareProgress();
   function text(value) {
     if (locale === 'en') return value;
     var source = normalize(value), row = exact[source], args = [];
@@ -55,7 +68,8 @@ var MenuI18n = (function() {
     var k = attr || '#text', previous = fields[k];
     if (!previous || current !== previous.output) previous = { source: canonical(current) };
     var multiline = node.parentElement && node.parentElement.closest('.host-details-text,#systemInfoBtn');
-    var output = multiline ? previous.source.split('\n').map(text).join('\n') : text(previous.source);
+    var finding = node.parentElement && node.parentElement.id === 'diagnosisFinding';
+    var output = finding ? previous.source.split(/(; |\. Indications, not proven causes\.)/).map(text).join('') : multiline ? previous.source.split('\n').map(text).join('\n') : text(previous.source);
     previous.output = output; fields[k] = previous;
     if (current !== output) { if (attr) node.setAttribute(attr, output); else node.nodeValue = output; }
   }
@@ -94,7 +108,7 @@ var MenuI18n = (function() {
     if (!running || codes.indexOf(value) === -1) return;
     locale = value;
     try { localStorage.setItem(key, locale); } catch (e) { /* Session-only fallback. */ }
-    updateButton(); refresh(); close();
+    prepareProgress(); updateButton(); refresh(); close();
   }
   function focusChoice(delta) {
     selected = (selected + delta + codes.length) % codes.length;
@@ -136,7 +150,13 @@ var MenuI18n = (function() {
     observer.observe(document.body, {subtree: true, childList: true, characterData: true,
       attributes: true, attributeFilter: ['title', 'aria-label', 'placeholder', 'alt']});
   }
+  function connectionDialog() {
+    // One-shot connection UI only; never enable the menu observer here.
+    translate(document.getElementById('warningDialog'));
+  }
   function stop() {
+    // Flush the launch label before discarding queued menu mutations.
+    if (running) translate(document.getElementById('loadingSpinnerMessage'));
     if (observer) { observer.disconnect(); observer.takeRecords(); }
     running = false;
     close();
@@ -146,5 +166,5 @@ var MenuI18n = (function() {
     codes.forEach(function(code) { document.getElementById('language-' + code).onclick = function() { choose(code); }; });
     updateButton(); start();
   });
-  return { start: start, stop: stop, choose: choose, locale: function() { return locale; } };
+  return { start: start, stop: stop, choose: choose, progressText: progressText, connectionDialog: connectionDialog, locale: function() { return locale; } };
 })();

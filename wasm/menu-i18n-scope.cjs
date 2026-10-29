@@ -60,7 +60,9 @@ const edits = [
     "res/config.xml",
     "<widget xmlns:tizen=\"http://tizen.org/ns/widgets\" xmlns=\"http://www.w3.org/ns/widgets\" id=\"http://samsung.tv/MoonlightWasm\" version=\"4.0.0\" viewmodes=\"fullscreen\">\n",
     "<widget xmlns:tizen=\"http://tizen.org/ns/widgets\" xmlns=\"http://www.w3.org/ns/widgets\" id=\"http://samsung.tv/MoonlightWasm\" version=\"3.4.15\" viewmodes=\"fullscreen\">\n"
-  ]
+  ],
+  ["wasm/platform/messages.js", "    var progress = msg.replace('ProgressMsg: ', '');\n    $('#loadingSpinnerMessage').text(typeof MenuI18n !== 'undefined' ? (MenuI18n.progressText[progress] || progress) : progress);\n", "    $('#loadingSpinnerMessage').text(msg.replace('ProgressMsg: ', ''));\n"],
+  ["wasm/platform/messages.js", "    warningDialog('Warning', msg.replace('DialogMsg: ', ''));\n    if (typeof MenuI18n !== 'undefined' && document.getElementById('loadingSpinner').style.display !== 'none') MenuI18n.connectionDialog();\n", "    warningDialog('Warning', msg.replace('DialogMsg: ', ''));\n"]
 ];
 function normalize(file,source) {
   for (const [target,after,before] of edits) if (target===file) source=source.replace(after,before);

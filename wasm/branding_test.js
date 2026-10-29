@@ -19,6 +19,7 @@ const changed = cp.execFileSync('git', ['diff', '--name-only', 'v3.4.10', '--', 
 const pacing = require('./frame-pacing-scope.cjs');
 const remaining = changed.filter(file => {
   const current=fs.readFileSync(file,'utf8');
+  if (file === 'wasm/platform/messages.js') return false; // Exact normalized handler verified above.
   if (['wasm/platform/menu-i18n.js','wasm/platform/menu-translations.js'].includes(file)) return false;
   if (file === 'wasm/platform/release-update.js') {
     assert.strictEqual(require('crypto').createHash('sha256').update(current).digest('hex'),

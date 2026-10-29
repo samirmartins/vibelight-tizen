@@ -186,7 +186,8 @@ function handleMessage(msg) {
     }
   } else if (msg.indexOf('ProgressMsg: ') === 0) {
     // Show progress message under loading spinner
-    $('#loadingSpinnerMessage').text(msg.replace('ProgressMsg: ', ''));
+    var progress = msg.replace('ProgressMsg: ', '');
+    $('#loadingSpinnerMessage').text(typeof MenuI18n !== 'undefined' ? (MenuI18n.progressText[progress] || progress) : progress);
   } else if (msg.indexOf('TransientMsg: ') === 0) {
     // Show transient message as notification
     snackbarLogLong(msg.replace('TransientMsg: ', ''));
@@ -194,6 +195,7 @@ function handleMessage(msg) {
     SessionDiagnostics.note(msg.slice(11), true);
     // Show dialog message using the warning dialog
     warningDialog('Warning', msg.replace('DialogMsg: ', ''));
+    if (typeof MenuI18n !== 'undefined' && document.getElementById('loadingSpinner').style.display !== 'none') MenuI18n.connectionDialog();
   } else if (msg === 'displayVideo') {
     // Show the video stream now
     $('#listener').addClass('fullscreen');
