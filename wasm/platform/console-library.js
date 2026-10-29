@@ -131,6 +131,7 @@ var ConsoleLibrary = (function() {
   function valid(token) { return active && !isInGame && !document.hidden && token === epoch && host && hosts[host.serverUid] === host; }
   function status(text) { el('libraryStatus').textContent = text; }
   function cancel() {
+    if (typeof ReleaseUpdate !== 'undefined') ReleaseUpdate.cancel();
     if (typeof LibraryNavigation !== 'undefined') LibraryNavigation.viewChanged();
     epoch++;
     if (scope) scope.cancel();
@@ -162,7 +163,7 @@ var ConsoleLibrary = (function() {
   }
   function resume() {
     if (document.hidden) return;
-    if (active) { refresh(); focusCards(); }
+    if (active) { refresh(); focusCards(); checkRelease(); }
     else if (!started && runtimeReady && hostsReady) ready('runtime');
   }
   function preferred() {
@@ -441,6 +442,12 @@ var ConsoleLibrary = (function() {
     el('header-title').textContent = 'Library';
     el('libraryHost').textContent = host.hostname || 'PC';
   }
+  function checkRelease() {
+    if (typeof ReleaseUpdate === 'undefined') return;
+    ReleaseUpdate.check(function() {
+      return active && !isInGame && !document.hidden && !isDialogOpen && !launchPending;
+    });
+  }
   function open(pc) {
     if (!pc || isDialogOpen || document.hidden) return Promise.resolve();
     cancel(); stopPollingHosts(); stopSubnetScanner();
@@ -456,6 +463,7 @@ var ConsoleLibrary = (function() {
     status('Checking PC…');
     var opening = refresh();
     Navigation.change(Views.Apps); Navigation.start(); focusCards();
+    checkRelease();
     return opening;
   }
   function ready(part) {

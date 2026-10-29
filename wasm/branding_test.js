@@ -19,6 +19,11 @@ const changed = cp.execFileSync('git', ['diff', '--name-only', 'v3.4.10', '--', 
 const pacing = require('./frame-pacing-scope.cjs');
 const remaining = changed.filter(file => {
   const current=fs.readFileSync(file,'utf8');
+  if (file === 'wasm/platform/release-update.js') {
+    assert.strictEqual(require('crypto').createHash('sha256').update(current).digest('hex'),
+      '9d814d3a7cc57dc1783d8d434b2287c34a941f7e79647a421db79d7c240621af', 'exact release notice module');
+    return false;
+  }
   const access=require('./controller-access-scope.cjs');
   if(access.files.includes(file)) {
     assert.strictEqual(access.normalize(file,current),cp.execFileSync('git',['show','v3.4.13:'+file],{encoding:'utf8'}));
@@ -62,3 +67,5 @@ for (const rule of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{
 assert(!/#(?:performance-stats|connection-warnings)\b|\.fullscreen\b|\bcanvas\b|\bvideo\b/.test(css), 'stream surfaces and overlay are untouched');
 assert(css.includes('background: #333846') && css.includes('background: #282c38'));
 console.log('branding_test: stable runtime/IDs/defaults retained; original global colors and scoped block editor/Code identity only PASS');
+
+assert(fs.readFileSync('wasm/static/res/vibelight-splash.png').equals(fs.readFileSync('docs/images/vibelight-readme-logo.png')), 'startup artwork matches README');

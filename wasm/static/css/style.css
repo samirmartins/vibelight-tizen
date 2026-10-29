@@ -54,11 +54,13 @@ body {
     border-radius: 8px;
 }
 #wasmSpinnerLogo {
-    width: 30%;
-    position: fixed;
-    bottom: 350%;
-    left: 25%;
-    right: 25%;
+    width: 30vh;
+    max-width: 60vw;
+    height: auto;
+    position: absolute;
+    bottom: calc(100% + 28px);
+    left: 0;
+    right: 0;
     margin: 0 auto;
     animation: fadeInOut 3s infinite;
 }

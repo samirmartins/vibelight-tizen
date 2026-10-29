@@ -10,6 +10,7 @@ function asset(file, data) {
   return require('child_process').execFileSync('git', ['show', 'v3.4.10:' + file]);
 }
 function normalize(file, source) {
+  source = require('./release-update-scope.cjs').normalize(file, source);
   source = require('./controller-access-scope.cjs').normalize(file, source);
   source = require('./frame-pacing-scope.cjs').normalize(file, source);
   if (file === 'wasm/static/css/vibelight.css' && require('crypto').createHash('sha256').update(source).digest('hex') === 'aaa6bfdf3abd12115c07f8b7d8cc9c09173219c790b6417de6664a2dc4b4d637') return '';
@@ -36,6 +37,7 @@ function normalize(file, source) {
     .replace('project(MoonlightWasm VERSION 3.4.12)', 'project(MoonlightWasm VERSION 3.4.10)')
     .replace('project(MoonlightWasm VERSION 3.4.11)', 'project(MoonlightWasm VERSION 3.4.10)');
   if (file === 'res/config.xml') return source
+    .replace('version="3.4.15"', 'version="3.4.10"')
     .replace('version="3.4.14"', 'version="3.4.10"')
     .replace('version="3.4.13"', 'version="3.4.10"')
     .replace('version="3.4.12"', 'version="3.4.10"')
