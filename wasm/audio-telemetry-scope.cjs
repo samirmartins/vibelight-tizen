@@ -53,6 +53,10 @@ function assertFrozen(reference, paths) {
     // independently tested overlay aggregation move, never a whole-file mask.
     const changed = cp.execFileSync('git', ['diff', '--name-only', reference, '--', ...rest], {encoding:'utf8'}).trim().split('\n').filter(Boolean);
     for (const file of changed) {
+      if (file === 'wasm/static/css/menu-i18n.css') {
+        assert.strictEqual(require('crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex'), 'd57ea5d2e5f55359a079b81a181ab16a03a09e5672182e8667f321bb629338bf', 'reviewed menu selector styles only');
+        continue;
+      }
       if (file === 'wasm/static/css/style.css') {
         const normalize = require('./branding-scope.cjs').normalize;
         const old = cp.execFileSync('git', ['show', reference+':'+file], {encoding:'utf8'});

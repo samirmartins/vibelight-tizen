@@ -172,13 +172,14 @@ var ConsoleLibrary = (function() {
     return values.length === 1 ? values[0] : null;
   }
   function controls() {
-    return ['libraryPCsBtn','settingsBtn','quitRunningAppBtn','libraryWake','libraryPlay','libraryFavorite','libraryAll','libraryFavorites','libraryRecent','libraryRefresh'].filter(function(name) {
+    return ['libraryPCsBtn','languageBtn','settingsBtn','quitRunningAppBtn','libraryWake','libraryPlay','libraryFavorite','libraryAll','libraryFavorites','libraryRecent','libraryRefresh'].filter(function(name) {
       var node = el(name); return node && !node.disabled && node.style.display !== 'none' && !node.hidden;
     });
   }
-  function focusNav(step) {
+  function focusNav(step, control) {
     var names = controls();
     if (!names.length) return;
+    if (control && names.indexOf(control) !== -1) navIndex = names.indexOf(control);
     navIndex = Math.max(0, Math.min(names.length - 1, navIndex + (step || 0)));
     names.forEach(function(name) { el(name).classList.remove('hovered'); });
     el(names[navIndex]).classList.add('hovered');
@@ -188,6 +189,7 @@ var ConsoleLibrary = (function() {
   function hostReady() { return host.online && (!host.ppkstr || host._authenticatedOnline === true); }
   function updateSelection() {
     var app = picked(), r = record();
+    el('libraryTitle').setAttribute('data-i18n-skip', String(!!app));
     el('libraryTitle').textContent = app ? app.title : 'Your library';
     el('libraryPlay').textContent = app && Number(host.currentGame) === app.id ? 'Resume' : 'Play';
     // Availability is advisory. Play never wakes a PC or waits for a probe.

@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="static/css/style.css">
   <link rel="stylesheet" href="static/css/menu-tools.css">
   <link rel="stylesheet" href="static/css/console-library.css">
+  <link rel="stylesheet" href="static/css/menu-i18n.css">
   <link rel="stylesheet" href="static/css/controller-mapping.css">
   <link rel="stylesheet" href="static/css/vibelight.css">
   <script type="text/javascript" src="platform.js"></script>
@@ -34,6 +35,16 @@
         <nav class="mdl-navigation">
           <button type="button" id="libraryHomeBtn" class="console-toolbar-button">Library</button>
           <button type="button" id="libraryPCsBtn" class="console-toolbar-button">PCs</button>
+          <div id="languageControl">
+            <button type="button" id="languageBtn" class="console-toolbar-button" aria-label="Language / Idioma" aria-haspopup="menu" aria-expanded="false" aria-controls="languageMenu">
+              <img id="languageFlag" src="static/res/flags/us.svg" alt=""><span id="languageName">English</span><span aria-hidden="true">▾</span>
+            </button>
+            <div id="languageMenu" role="menu" aria-label="Language / Idioma" hidden>
+              <button type="button" id="language-en" role="menuitemradio" aria-checked="true" lang="en"><img src="static/res/flags/us.svg" alt="">English<span class="language-check" aria-hidden="true">✓</span></button>
+              <button type="button" id="language-pt-BR" role="menuitemradio" aria-checked="false" lang="pt-BR"><img src="static/res/flags/br.svg" alt="">Português (Brasil)<span class="language-check" aria-hidden="true">✓</span></button>
+              <button type="button" id="language-es" role="menuitemradio" aria-checked="false" lang="es"><img src="static/res/flags/es.svg" alt="">Español<span class="language-check" aria-hidden="true">✓</span></button>
+            </div>
+          </div>
           <button type="button" id="settingsBtn" class="mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect" role="link" aria-label="Settings">
             <i class="navigation-button-icons material-icons">settings</i>
           </button>
@@ -421,6 +432,8 @@
   <script defer src="static/js/jquery-2.2.0.min.js"></script>
   <script defer src="static/js/material.min.js"></script>
   <script type="text/javascript" src="$WEBAPIS/webapis/webapis.js"></script>
+  <script type="text/javascript" src="platform/menu-translations.js"></script>
+  <script type="text/javascript" src="platform/menu-i18n.js"></script>
   <script type="text/javascript" src="platform/messages.js"></script>
   <script type="text/javascript" src="platform/common.js"></script>
   <script type="text/javascript" src="platform/display.js"></script>

@@ -1,0 +1,12 @@
+#languageControl { position: relative; display: inline-flex; align-items: center; }
+#languageBtn { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
+#languageControl img { width: 32px; height: 22px; object-fit: cover; border-radius: 2px; }
+#languageMenu { position: absolute; right: 8px; top: calc(100% + 12px); width: 310px; padding: 8px; background: #202633; color: #fff; border: 1px solid #75839b; border-radius: 10px; box-shadow: 0 8px 28px #0009; z-index: 100; }
+#languageMenu[hidden] { display: none; }
+#languageMenu button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 58px; padding: 12px; border: 0; border-radius: 6px; color: inherit; background: transparent; font: inherit; font-size: 22px; text-align: left; cursor: pointer; white-space: nowrap; }
+#languageMenu button:hover, #languageMenu button:focus, #languageMenu button.hovered { background: #363f51; outline: 3px solid #63e3f4; outline-offset: -3px; }
+.language-check { margin-left: auto; visibility: hidden; }
+[aria-checked="true"] > .language-check { visibility: visible; }
+#main-header { overflow: visible; z-index: 5; }
+#main-header .mdl-navigation { overflow: visible; }
+@media (max-width: 1280px) { #languageBtn { font-size: 18px; padding: 10px 12px; gap: 8px; } }

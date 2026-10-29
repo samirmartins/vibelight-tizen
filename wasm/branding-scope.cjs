@@ -10,6 +10,7 @@ function asset(file, data) {
   return require('child_process').execFileSync('git', ['show', 'v3.4.10:' + file]);
 }
 function normalize(file, source) {
+  source = require('./menu-i18n-scope.cjs').normalize(file, source);
   source = require('./release-update-scope.cjs').normalize(file, source);
   source = require('./controller-access-scope.cjs').normalize(file, source);
   source = require('./frame-pacing-scope.cjs').normalize(file, source);

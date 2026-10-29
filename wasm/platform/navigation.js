@@ -501,7 +501,7 @@ const Views = {
     },
   },
   HostsNav: {
-    view: new ListView(() => document.getElementById('libraryHomeBtn').style.display === 'none' ? ['settingsBtn'] : ['libraryHomeBtn','settingsBtn']),
+    view: new ListView(() => document.getElementById('libraryHomeBtn').style.display === 'none' ? ['languageBtn','settingsBtn'] : ['libraryHomeBtn','languageBtn','settingsBtn']),
     up: function() {},
     down: function() {
       // Navigate to the Hosts view
@@ -813,6 +813,7 @@ const Views = {
   SettingsNav: {
     view: new ListView(() => [
       'goBackBtn',
+      'languageBtn',
       'restoreDefaultsBtn'
     ]),
     up: function() {},
@@ -1640,6 +1641,7 @@ const Navigation = (function() {
     let running = false;
 
     function start() {
+      if (typeof MenuI18n !== 'undefined') MenuI18n.start();
       if (!running) {
         running = true;
         window.addEventListener('mousemove', loseFocus);
@@ -1647,6 +1649,7 @@ const Navigation = (function() {
     }
 
     function stop() {
+      if (typeof MenuI18n !== 'undefined') MenuI18n.stop();
       if (typeof LibraryNavigation !== 'undefined') LibraryNavigation.reset();
       if (running) {
         running = false;
