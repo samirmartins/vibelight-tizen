@@ -34,3 +34,8 @@
 .cm-sprite.cm-active, .cm-guide.cm-active { visibility:visible; }
 #controllerMappingDialog #cm-exit-hint { position:sticky; top:0; z-index:2; border:2px solid #54f0ec; border-radius:7px; padding:.6em .8em; background:#163c50; color:#fff; font-weight:bold; text-align:center; }
 #controllerMappingDialog #cm-detail, #controllerMappingDialog #cm-axes { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cm-tuning { border-top:1px solid #3a526b; margin-top:12px; padding-top:10px; }
+.cm-tuning h3 { margin:0 0 8px; font-size:1em; }
+.cm-tuning-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+#controllerMappingDialog .cm-tuning-grid button { text-align:left; min-height:34px; }
+@media(max-width:800px) { .cm-tuning-grid { grid-template-columns:1fr; } }

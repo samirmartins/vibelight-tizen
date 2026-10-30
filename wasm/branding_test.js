@@ -57,7 +57,8 @@ assert.deepStrictEqual(remaining.sort(), files.filter(f => (f.startsWith('wasm/p
     'wasm/platform/stream-session.js',
     'wasm/platform/stream-overlay.js',
     'wasm/platform/controller-identity.js',
-    'wasm/platform/quick-help.js']).sort(), 'approved menu-navigation, system-overlay and controller-identity delta only');
+    'wasm/platform/quick-help.js',
+    'wasm/platform/controller-tuning.js']).sort(), 'approved menu-navigation, system-overlay, controller-identity and tuning delta only');
 const html = fs.readFileSync('wasm/index.html', 'utf8');
 for (const file of ['docs/images/vibelight-code-mark.svg', 'docs/images/vibelight-code-logo.svg']) {
   const svg = fs.readFileSync(file, 'utf8');

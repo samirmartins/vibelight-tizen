@@ -1,8 +1,10 @@
 #include "moonlight_wasm.hpp"
 
 #include <atomic>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <limits>
 
@@ -105,6 +107,59 @@ static std::atomic<bool> s_inputNeedsTimedWake{false};
 // Set only by the system overlay. Native input remains the single writer of
 // host packets, so suppression is one atomic neutral transition, not a JS race.
 static std::atomic<bool> s_inputSuppressed{false};
+
+// Optional analog shaping. Two packed 32-bit words are published through a
+// seqlock, so the input thread never reads a torn configuration and no 64-bit
+// atomic is required on older WASM runtimes. Default 0 is neutral.
+static std::atomic<uint32_t> s_tuningGeneration{0};
+static std::atomic<uint32_t> s_tuningLow{0};
+static std::atomic<uint32_t> s_tuningHigh{0};
+
+struct GamepadTuning {
+  bool enabled;
+  float deadzone;
+  float curve;
+  int invertLeft;
+  int invertRight;
+  bool swapSticks;
+  float triggerThreshold;
+};
+
+static GamepadTuning ReadGamepadTuning() {
+  GamepadTuning tuning = {};
+  for (;;) {
+    const uint32_t before = s_tuningGeneration.load(std::memory_order_acquire);
+    if ((before & 1u) != 0) continue;
+    const uint32_t low = s_tuningLow.load(std::memory_order_relaxed);
+    const uint32_t high = s_tuningHigh.load(std::memory_order_relaxed);
+    const uint32_t after = s_tuningGeneration.load(std::memory_order_acquire);
+    if (before != after) continue;
+    tuning.enabled = (high & 0x1u) != 0;
+    tuning.deadzone = static_cast<float>(low & 0x3ffu) / 1000.0f;
+    tuning.curve = static_cast<float>((low >> 10) & 0xffu) / 100.0f;
+    tuning.invertLeft = static_cast<int>((low >> 18) & 0x3u);
+    tuning.invertRight = static_cast<int>((low >> 20) & 0x3u);
+    tuning.swapSticks = (high & 0x2u) != 0;
+    tuning.triggerThreshold = static_cast<float>((high >> 2) & 0x3ffu) / 1000.0f;
+    return tuning;
+  }
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE void configureGamepadTuning(
+  int enabled, int deadzoneX1000, int curveX100, int invertLeft, int invertRight,
+  int swapSticks, int triggerThresholdX1000) {
+  const uint32_t deadzone = static_cast<uint32_t>(std::max(0, std::min(500, deadzoneX1000))) & 0x3ffu;
+  const uint32_t curve = static_cast<uint32_t>(std::max(50, std::min(200, curveX100))) & 0xffu;
+  const uint32_t left = static_cast<uint32_t>(std::max(0, std::min(3, invertLeft)));
+  const uint32_t right = static_cast<uint32_t>(std::max(0, std::min(3, invertRight)));
+  const uint32_t threshold = static_cast<uint32_t>(std::max(0, std::min(500, triggerThresholdX1000))) & 0x3ffu;
+  const uint32_t low = deadzone | (curve << 10) | (left << 18) | (right << 20);
+  const uint32_t high = (enabled ? 1u : 0u) | (swapSticks ? 2u : 0u) | (threshold << 2);
+  s_tuningGeneration.fetch_add(1, std::memory_order_acq_rel);
+  s_tuningLow.store(low, std::memory_order_relaxed);
+  s_tuningHigh.store(high, std::memory_order_relaxed);
+  s_tuningGeneration.fetch_add(1, std::memory_order_release);
+}
 
 extern "C" EMSCRIPTEN_KEEPALIVE void setInputSuppressed(int suppressed) {
   s_inputSuppressed.store(suppressed != 0, std::memory_order_release);
@@ -258,6 +313,37 @@ static float ClampTrigger(float value) {
   return std::max(0.0f, std::min(1.0f, value));
 }
 
+// Disabled tuning returns the original clamp result. Enabled tuning shapes the
+// value after the same clamp, so the neutral configuration is bit-identical.
+static float ShapeAxis(const GamepadTuning& tuning, float value) {
+  value = ClampAxis(value);
+  if (!tuning.enabled) {
+    return value;
+  }
+  const float magnitude = std::fabs(value);
+  if (tuning.deadzone > 0.0f) {
+    if (magnitude <= tuning.deadzone) {
+      return 0.0f;
+    }
+    value = std::copysign((magnitude - tuning.deadzone) / (1.0f - tuning.deadzone), value);
+  }
+  if (tuning.curve != 1.0f) {
+    value = std::copysign(std::pow(std::fabs(value), tuning.curve), value);
+  }
+  return value;
+}
+
+static float ShapeTrigger(const GamepadTuning& tuning, float value) {
+  value = ClampTrigger(value);
+  if (!tuning.enabled || tuning.triggerThreshold <= 0.0f) {
+    return value;
+  }
+  if (value <= tuning.triggerThreshold) {
+    return 0.0f;
+  }
+  return (value - tuning.triggerThreshold) / (1.0f - tuning.triggerThreshold);
+}
+
 // Function to poll gamepad input
 void MoonlightInstance::PollGamepads() {
   static GamepadSnapshot snapshot = {};
@@ -355,6 +441,8 @@ void MoonlightInstance::PollGamepads() {
     }
   }
 
+  const GamepadTuning tuning = ReadGamepadTuning();
+
   for (int gamepadID = 0; gamepadID < numGamepads; ++gamepadID) {
     const GamepadState& gamepad = snapshot.pads[gamepadID];
     const short bit = static_cast<short>(1 << gamepadID);
@@ -365,18 +453,32 @@ void MoonlightInstance::PollGamepads() {
 
     ControllerPacketState packet = {};
     packet.buttonFlags = GetButtonFlags(gamepad);
+    float leftX = gamepad.axis[GamepadAxis::LeftX];
+    float leftY = gamepad.axis[GamepadAxis::LeftY];
+    float rightX = gamepad.axis[GamepadAxis::RightX];
+    float rightY = gamepad.axis[GamepadAxis::RightY];
+    if (tuning.enabled) {
+      if ((tuning.invertLeft & 1) != 0) leftX = -leftX;
+      if ((tuning.invertLeft & 2) != 0) leftY = -leftY;
+      if ((tuning.invertRight & 1) != 0) rightX = -rightX;
+      if ((tuning.invertRight & 2) != 0) rightY = -rightY;
+      if (tuning.swapSticks) {
+        std::swap(leftX, rightX);
+        std::swap(leftY, rightY);
+      }
+    }
     packet.leftTrigger = static_cast<unsigned char>(std::lround(
-      ClampTrigger(gamepad.analogButton[GamepadButton::LeftTrigger]) * 255.0f));
+      ShapeTrigger(tuning, gamepad.analogButton[GamepadButton::LeftTrigger]) * 255.0f));
     packet.rightTrigger = static_cast<unsigned char>(std::lround(
-      ClampTrigger(gamepad.analogButton[GamepadButton::RightTrigger]) * 255.0f));
+      ShapeTrigger(tuning, gamepad.analogButton[GamepadButton::RightTrigger]) * 255.0f));
     packet.leftStickX = static_cast<short>(std::lround(
-      ClampAxis(gamepad.axis[GamepadAxis::LeftX]) * 32767.0f));
+      ShapeAxis(tuning, leftX) * 32767.0f));
     packet.leftStickY = static_cast<short>(std::lround(
-      -ClampAxis(gamepad.axis[GamepadAxis::LeftY]) * 32767.0f));
+      -ShapeAxis(tuning, leftY) * 32767.0f));
     packet.rightStickX = static_cast<short>(std::lround(
-      ClampAxis(gamepad.axis[GamepadAxis::RightX]) * 32767.0f));
+      ShapeAxis(tuning, rightX) * 32767.0f));
     packet.rightStickY = static_cast<short>(std::lround(
-      -ClampAxis(gamepad.axis[GamepadAxis::RightY]) * 32767.0f));
+      -ShapeAxis(tuning, rightY) * 32767.0f));
 
     const bool suppressed = s_inputSuppressed.load(std::memory_order_acquire);
     if (suppressed) {

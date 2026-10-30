@@ -45,6 +45,7 @@ function fixture() {
   context.window=context;
   vm.createContext(context);
   vm.runInContext(fs.readFileSync('wasm/platform/controller-mapping.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('wasm/platform/controller-tuning.js','utf8'),context);
   vm.runInContext(menu,context);
   addEventListener('gamepadinputchanged',()=>{navigation++;},false);
   return {c:context,node:id=>nodes.get(id),view:()=>view,setPads(value){pads=value;},
@@ -55,6 +56,17 @@ function fixture() {
 function pad(index=0){return {index,connected:true,axes:[0,0,0,0],buttons:Array.from({length:18},()=>({pressed:false,value:0}))};}
 function button(p,index,pressed){p.buttons[index]={pressed,value:Number(pressed)};}
 const f=fixture(),p=pad();f.setPads([p]);f.open();
+assert.strictEqual(f.node('cm-tuning-enabled').textContent,'Analog tuning: OFF');
+assert.strictEqual(f.node('cm-deadzone').disabled,true,'tuning buttons are inert while off');
+f.node('cm-tuning-enabled').onclick();
+assert.strictEqual(f.node('cm-tuning-enabled').textContent,'Analog tuning: ON');
+assert.strictEqual(f.node('cm-deadzone').disabled,false);
+f.node('cm-deadzone').onclick();
+assert.strictEqual(f.node('cm-deadzone').textContent,'Deadzone: 5%');
+f.node('cm-invert-left').onclick();
+assert.strictEqual(f.node('cm-invert-left').textContent,'Invert left: X');
+f.node('cm-tuning-enabled').onclick();
+assert.strictEqual(f.node('cm-deadzone').disabled,true,'turning tuning off disables the shaping controls');
 assert(!f.pending(),'no test work on open');
 f.start();assert(!f.node('cm-exit-hint').hidden);
 assert(/Circle \/ B.*3 seconds/.test(f.node('cm-exit-hint').textContent));

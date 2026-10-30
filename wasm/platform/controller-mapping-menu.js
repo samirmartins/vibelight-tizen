@@ -3,7 +3,7 @@ var ControllerMappingMenu = (function() {
   var names = ['Cross / A','Circle / B','Square / X','Triangle / Y','L1 / LB','R1 / RB',
     'L2 / LT','R2 / RT','Create / Back','Options / Start','L3 / LS click','R3 / RS click',
     'D-pad up','D-pad down','D-pad left','D-pad right','PS / Guide','Touchpad','Mute'];
-  var root, dialog, draft, selected = 0, choosing = false, testing = false, raf = 0;
+  var root, dialog, draft, tuning = null, selected = 0, choosing = false, testing = false, raf = 0;
   var focused = 'cm-enabled', lastSample = '', exitSince = null;
   var releaseGuard = false, exitPad = null, exitArmed = false, lastCountdown = '';
   var pointerUntil = 0;
@@ -112,6 +112,28 @@ var ControllerMappingMenu = (function() {
       else close();
     }, press:function() {}, switch:function() { focus(focused); }
   };
+  var curveNames = {1:'Linear', 0.75:'Soft', 1.5:'Precise', 2:'Strong'};
+  var invertNames = ['OFF', 'X', 'Y', 'X+Y'];
+  function cycle(list, value) {
+    var index = list.indexOf(value);
+    return list[(index + 1) % list.length];
+  }
+  function percent(value) { return Math.round(value * 100) + '%'; }
+  function renderTuning() {
+    if (!tuning) return;
+    el('cm-tuning-enabled').textContent = 'Analog tuning: ' + (tuning.enabled ? 'ON' : 'OFF');
+    el('cm-deadzone').textContent = 'Deadzone: ' + (tuning.deadzone ? percent(tuning.deadzone) : 'none');
+    el('cm-curve').textContent = 'Curve: ' + (curveNames[tuning.curve] || 'Linear');
+    el('cm-invert-left').textContent = 'Invert left: ' + invertNames[tuning.invertLeft];
+    el('cm-invert-right').textContent = 'Invert right: ' + invertNames[tuning.invertRight];
+    el('cm-swap-sticks').textContent = 'Swap sticks: ' + (tuning.swapSticks ? 'ON' : 'OFF');
+    el('cm-trigger-threshold').textContent =
+      'Trigger threshold: ' + (tuning.triggerThreshold ? percent(tuning.triggerThreshold) : 'none');
+    var disabled = !tuning.enabled || testing;
+    ['cm-deadzone','cm-curve','cm-invert-left','cm-invert-right','cm-swap-sticks',
+      'cm-trigger-threshold'].forEach(function(id) { el(id).disabled = disabled; });
+    el('cm-tuning-enabled').disabled = testing;
+  }
   function ensure() {
     if (root) return;
     root = document.createElement('div');
@@ -127,19 +149,38 @@ var ControllerMappingMenu = (function() {
       '<h3 id="cm-selected"></h3><p id="cm-detail"></p><div class="cm-actions">'+button('cm-change','Change')+button('cm-test','Test buttons')+'</div>'+
       '<p id="cm-axes">Sticks: original axes, sensitivity and range.</p></section>'+
       '<section class="cm-assignments" aria-label="Button assignments"><p id="cm-list-title">Physical button → game input</p><div id="cm-rows"></div></section></div>'+
+      '<section class="cm-tuning" aria-label="Analog controls"><h3>Analog controls</h3><div class="cm-tuning-grid">'+
+      button('cm-tuning-enabled','Analog tuning: OFF')+button('cm-deadzone','Deadzone: none')+
+      button('cm-curve','Curve: Linear')+button('cm-invert-left','Invert left: OFF')+
+      button('cm-invert-right','Invert right: OFF')+button('cm-swap-sticks','Swap sticks: OFF')+
+      button('cm-trigger-threshold','Trigger threshold: none')+
+      '</div><p class="cm-note">Optional response for the next stream. Defaults keep the original sticks and triggers.</p></section>'+
       '<p id="cm-status" role="status"></p><p class="cm-note">When ON, the saved layout applies to game controls. Triggers stay analog. One layout applies to all controllers.</p>'+
       '<footer>'+button('cm-reset','Restore layout')+'<div>'+button('cm-cancel','Cancel')+button('cm-save','Save')+'</div></footer></dialog>';
     document.body.appendChild(root); dialog = el('controllerMappingDialog');
     root.addEventListener('focusin',function(event) { if (event.target.tagName === 'BUTTON') focused = event.target.id; });
     el('cm-enabled').onclick = function() { draft.enabled = !draft.enabled; render(); };
+    el('cm-tuning-enabled').onclick = function() { tuning.enabled = !tuning.enabled; renderTuning(); };
+    el('cm-deadzone').onclick = function() { tuning.deadzone = cycle(ControllerTuning.DEADZONES, tuning.deadzone); renderTuning(); };
+    el('cm-curve').onclick = function() { tuning.curve = cycle(ControllerTuning.CURVES, tuning.curve); renderTuning(); };
+    el('cm-invert-left').onclick = function() { tuning.invertLeft = (tuning.invertLeft + 1) % 4; renderTuning(); };
+    el('cm-invert-right').onclick = function() { tuning.invertRight = (tuning.invertRight + 1) % 4; renderTuning(); };
+    el('cm-swap-sticks').onclick = function() { tuning.swapSticks = !tuning.swapSticks; renderTuning(); };
+    el('cm-trigger-threshold').onclick = function() { tuning.triggerThreshold = cycle(ControllerTuning.THRESHOLDS, tuning.triggerThreshold); renderTuning(); };
     el('cm-change').onclick = function() { choosing = true; render(); focus('cm-target-'+draft.map[selected]); };
     el('cm-test').onclick = function() {
       if (testing) { stopTest(); focus('cm-test'); } else startTest();
     };
-    el('cm-reset').onclick = function() { var enabled = draft.enabled; draft = ControllerMapping.defaults(); draft.enabled = enabled; render(); setStatus('Original button assignments restored. Save to keep them.'); };
+    el('cm-reset').onclick = function() {
+      var enabled = draft.enabled, tuningEnabled = tuning.enabled;
+      draft = ControllerMapping.defaults(); draft.enabled = enabled;
+      tuning = ControllerTuning.defaults(); tuning.enabled = tuningEnabled;
+      render(); setStatus('Original button assignments and analog defaults restored. Save to keep them.');
+    };
     el('cm-cancel').onclick = close;
     el('cm-save').onclick = function() {
       if (!ControllerMapping.save(draft)) { setStatus('Could not save. Check storage and try again; your previous layout is unchanged.'); return; }
+      if (!ControllerTuning.save(tuning)) { setStatus('Could not save the analog response. Check storage and try again.'); return; }
       close();
     };
     dialog.addEventListener('keydown',function(event) {
@@ -174,6 +215,7 @@ var ControllerMappingMenu = (function() {
       rows.appendChild(node);
     });
     ['cm-enabled','cm-reset','cm-save'].forEach(function(id) { el(id).disabled = testing; });
+    renderTuning();
   }
   function blockGamepad(event) {
     event.stopImmediatePropagation();
@@ -258,12 +300,12 @@ var ControllerMappingMenu = (function() {
     if (!dialog || !dialog.open) return;
     stopTest(); clearTestInput(); document.removeEventListener('visibilitychange',hidden);
     closeUtilityDialog('controllerMappingDialog');
-    el('cm-rows').textContent = ''; el('cm-art').removeAttribute('src'); draft = null; choosing = false;
+    el('cm-rows').textContent = ''; el('cm-art').removeAttribute('src'); draft = null; tuning = null; choosing = false;
     focusElement('controllerMappingBtn');
   }
   function open() {
     if (isInGame || isDialogOpen || document.hidden) return;
-    ensure(); draft = ControllerMapping.get(); selected = 0; choosing = false; focused = 'cm-enabled';
+    ensure(); draft = ControllerMapping.get(); tuning = ControllerTuning.get(); selected = 0; choosing = false; focused = 'cm-enabled';
     el('cm-art').src = 'static/res/controller-dualsense.png'; render();
     setStatus('Select a physical button, then Change. Cancel leaves saved settings unchanged.');
     openUtilityDialog('controllerMappingDialog',['cm-enabled','cm-cancel'],'cm-cancel');

@@ -1827,6 +1827,8 @@ function startGame(host, appID, audioPrepared) {
   }
   if (!audioPrepared) prepareStreamAudio();
   if (typeof ControllerMapping !== 'undefined') ControllerMapping.prepareSession();
+  // Freeze the optional analog response for this stream in one native call.
+  if (typeof ControllerTuning !== 'undefined') ControllerTuning.configureSession();
 
   // Reset the scheduler for the new stream, also inside the gesture handler
   startAudioScheduler();

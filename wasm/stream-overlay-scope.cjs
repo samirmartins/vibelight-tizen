@@ -3,8 +3,8 @@
 // the reviewed pre-overlay source; unknown neighboring edits stay visible.
 const crypto = require('crypto'), cp = require('child_process');
 const hashes = {
-  'wasm/index.html': '2b441d343696b76ca588326b172caae7c8cf8d412fc7399ab5e0b1d74b90112a',
-  'wasm/platform/index.js': '4e33a1a9138671121cf11682e16c5782763054b4c9375718f5a4874ae9938321',
+  'wasm/index.html': '63f4c643f409892980da63691994da51e8be5022cd52e0cb51a65ab35d3cf179',
+  'wasm/platform/index.js': '013cfd4f308968b910fd4b0b9bdba21b6c77ebe93a0b0a9673f7f5b047679b39',
   'wasm/platform/messages.js': 'b1d2d5ea9254bd5690e087d7b44da11992a3f769e9d8f50cd3a8300fa9bc32f2'
 };
 const assets = {
