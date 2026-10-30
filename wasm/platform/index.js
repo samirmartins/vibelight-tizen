@@ -1635,6 +1635,10 @@ function exitAppDialog() {
 // Handle layout elements when displaying the Apps view
 function showAppsMode() {
   console.log('%c[index.js, showAppsMode]', 'color: green;', 'Entering "Show Apps" mode.');
+  // Every menu return owns the end of the stream overlay, including launches
+  // that fail before native termination. The native stream still owns teardown.
+  if (typeof StreamSession !== 'undefined') StreamSession.reset();
+  if (typeof StreamOverlay !== 'undefined') StreamOverlay.close(true);
   $('#header-title').html('Apps');
   $('#header-logo').show();
   $('#main-header').show();

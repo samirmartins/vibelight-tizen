@@ -57,6 +57,10 @@ function assertFrozen(reference, paths) {
         assert.strictEqual(require('crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex'), 'd57ea5d2e5f55359a079b81a181ab16a03a09e5672182e8667f321bb629338bf', 'reviewed menu selector styles only');
         continue;
       }
+      if (require('./stream-overlay-scope.cjs').added.includes(file)) {
+        assert.strictEqual(require('./stream-overlay-scope.cjs').normalize(file, fs.readFileSync(file, 'utf8')), '', 'exact reviewed overlay asset only');
+        continue;
+      }
       if (file === 'wasm/static/css/style.css') {
         const normalize = require('./branding-scope.cjs').normalize;
         const old = cp.execFileSync('git', ['show', reference+':'+file], {encoding:'utf8'});

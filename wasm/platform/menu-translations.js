@@ -376,5 +376,21 @@ var MenuTranslations = [
   ["Guide remains unchanged; availability depends on the TV.", "Guide permanece sem alteração; a disponibilidade depende da TV.", "Guide no cambia; su disponibilidad depende del televisor."],
   ["Stereo [Unsupported]", "Estéreo [Não suportado]", "Estéreo [No compatible]"],
   ["5.1 Surround Sound [Unsupported]", "Surround 5.1 [Não suportado]", "Sonido envolvente 5.1 [No compatible]"],
-  ["7.1 Surround Sound [Unsupported]", "Surround 7.1 [Não suportado]", "Sonido envolvente 7.1 [No compatible]"]
+  ["7.1 Surround Sound [Unsupported]", "Surround 7.1 [Não suportado]", "Sonido envolvente 7.1 [No compatible]"],
+  ["Stream menu", "Menu do streaming", "Menú de transmisión"],
+  ["Volume", "Volume", "Volumen"],
+  ["Volume: {0}%", "Volume: {0}%", "Volumen: {0}%"],
+  ["Volume: muted", "Volume: mudo", "Volumen: silenciado"],
+  ["Volume: unavailable", "Volume indisponível", "Volumen no disponible"],
+  ["Statistics: On", "Estatísticas: ativadas", "Estadísticas: activadas"],
+  ["Statistics: Off", "Estatísticas: desativadas", "Estadísticas: desactivadas"],
+  ["Disconnect", "Desconectar", "Desconectar"],
+  ["End game on PC", "Encerrar jogo no PC", "Cerrar juego en el PC"],
+  ["Ending the game on the PC...", "Encerrando o jogo no PC...", "Cerrando el juego en el PC..."],
+  ["End the game on the PC?", "Encerrar o jogo no PC?", "¿Cerrar el juego en el PC?"],
+  ["The running game will be closed. Unsaved progress may be lost.", "O jogo em execução será fechado. Progresso não salvo pode ser perdido.", "El juego en ejecución se cerrará. Se puede perder el progreso no guardado."],
+  ["Controller disconnected", "Controle desconectado", "Mando desconectado"],
+  ["Controllers disconnected", "Controles desconectados", "Mandos desconectados"],
+  ["Could not close the game on the PC.", "Não foi possível encerrar o jogo no PC.", "No se pudo cerrar el juego en el PC."],
+  ["Could not stop the stream.", "Não foi possível encerrar o streaming.", "No se pudo detener la transmisión."]
 ];

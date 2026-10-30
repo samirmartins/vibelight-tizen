@@ -166,5 +166,5 @@ var MenuI18n = (function() {
     codes.forEach(function(code) { document.getElementById('language-' + code).onclick = function() { choose(code); }; });
     updateButton(); start();
   });
-  return { start: start, stop: stop, choose: choose, progressText: progressText, connectionDialog: connectionDialog, locale: function() { return locale; } };
+  return { start: start, stop: stop, choose: choose, progressText: progressText, connectionDialog: connectionDialog, text: text, locale: function() { return locale; } };
 })();

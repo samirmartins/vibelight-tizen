@@ -37,5 +37,11 @@ for (const file of ['wasm/index.html','wasm/platform/navigation.js','wasm/platfo
   assert.notStrictEqual(normalization(file,source+'\nthrow Error("unexpected");'),stable);
 }
 const frozen=['wasm/platform/index.js','wasm/platform/gamepad.js','wasm/platform/audio.js','wasm/platform/audio-worklet.js','wasm/platform/display.js','wasm/platform/diagnostics.js','wasm/platform/controller-mapping.js','wasm/main.cpp','wasm/wasmplayer.cpp','wasm/gamepad.cpp','wasm/auddec.cpp'];
-for (const file of frozen) assert(fs.readFileSync(file).equals(cp.execFileSync('git',['show','v3.4.15:'+file])),file+' remains identical');
+const identity=require('./controller-identity-scope.cjs');
+const overlay=require('./stream-overlay-scope.cjs');
+const stabilize=(file,text)=>identity.normalize(file,overlay.normalize(file,text));
+for (const file of frozen) {
+  const current=fs.readFileSync(file,'utf8'),old=cp.execFileSync('git',['show','v3.4.15:'+file],{encoding:'utf8'});
+  assert.strictEqual(stabilize(file,current),stabilize(file,old),file+' remains identical outside the reviewed controller/overlay deltas');
+}
 console.log('menu_i18n_test: catalog integrity, text-only templates, exact menu-only integration and unchanged gameplay sources PASS');

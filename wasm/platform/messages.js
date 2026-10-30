@@ -128,6 +128,10 @@ function handleMessage(msg) {
   // If it's a recognized event, notify the appropriate function
   if (msg.indexOf('streamTerminated: ') === 0) {
     SessionDiagnostics.finish(msg.replace('streamTerminated: ', 'Exit code '));
+    // Single owner for the end of a stream: releases the native mask and closes
+    // the system overlay before the one return below.
+    if (typeof StreamSession !== 'undefined') StreamSession.terminated();
+    else if (typeof StreamOverlay !== 'undefined') StreamOverlay.close(true);
     stopVideoPresentationObserver();
     // Reset the Web Audio scheduler so the next stream starts from a clean clock
     stopAudioScheduler(true);
@@ -175,6 +179,7 @@ function handleMessage(msg) {
     }, 1500);
   } else if (msg === 'Connection Established') {
     if (typeof AppLifecycle !== 'undefined' && (!isInGame || document.hidden)) return;
+    if (typeof StreamSession !== 'undefined') StreamSession.reset();
     SessionDiagnostics.connected();
     // Prepare the screen for video stream
     $('#loadingSpinner').css('display', 'none');
@@ -196,6 +201,16 @@ function handleMessage(msg) {
     // Show dialog message using the warning dialog
     warningDialog('Warning', msg.replace('DialogMsg: ', ''));
     if (typeof MenuI18n !== 'undefined' && document.getElementById('loadingSpinner').style.display !== 'none') MenuI18n.connectionDialog();
+  } else if (msg === 'guideButton') {
+    if (typeof StreamOverlay !== 'undefined' && isInGame && !document.hidden) StreamOverlay.toggle();
+  } else if (msg.indexOf('controllerLost: ') === 0) {
+    if (typeof StreamOverlay !== 'undefined') {
+      StreamOverlay.controllerLost(parseInt(msg.replace('controllerLost: ', ''), 10));
+    }
+  } else if (msg.indexOf('controllerFound: ') === 0) {
+    if (typeof StreamOverlay !== 'undefined') {
+      StreamOverlay.controllerFound(parseInt(msg.replace('controllerFound: ', ''), 10));
+    }
   } else if (msg === 'displayVideo') {
     // Show the video stream now
     $('#listener').addClass('fullscreen');
