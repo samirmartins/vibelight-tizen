@@ -122,15 +122,14 @@ for(const legacy of [true,false]){
  const game=fixture(legacy);game.c.isInGame=true;game.axis(.8);game.button(15,true);game.advance(1000);
  assert.strictEqual(game.moves.length,0,'no menu work during gameplay');
  const confirm=fixture(legacy);confirm.button(0,true);confirm.advance(200);
- assert.deepStrictEqual(confirm.moves,[['accept',166]],'confirm debounce preserved');
+ assert.deepStrictEqual(confirm.moves,[['accept',legacy?166:16]],'legacy debounce only on the old path');
 }
 const idle=fixture();idle.advance(10000);assert.strictEqual(idle.moves.length,0);assert.strictEqual(idle.timers.size,1);
 const accepting=fixture();accepting.button(0,true);
 for(let t=0;t<160;t+=16){accepting.axis(t%32?.79:.81);accepting.advance(t+16);}
-assert.strictEqual(accepting.moves.length,0,'analog noise does not change the selection during confirm debounce');
-accepting.advance(170);assert.deepStrictEqual(accepting.moves,[['accept',166]]);
+accepting.advance(170);assert.deepStrictEqual(accepting.moves,[['accept',16]],'immediate confirm; held noise stays suppressed');
 const cancelled=fixture();cancelled.button(0,true);cancelled.advance(20);cancelled.hide();cancelled.show();cancelled.advance(200);
-assert.strictEqual(cancelled.moves.length,0,'old library confirm does not run in a new visit');
+assert.deepStrictEqual(cancelled.moves,[['accept',16]],'confirm is not replayed after hide/show');
 for(const context of ['Settings','PCs','AddHostDialog','PairingDialog']) {
  const a=fixture(true),b=fixture();
  for(const f of [a,b]){f.c.ConsoleLibrary.visible=()=>false;f.c.isDialogOpen=context.endsWith('Dialog');}
@@ -179,7 +178,7 @@ assert.strictEqual(stack.moves.at(-1)[0],'PCs:back','confirm/back work after res
 const crossAction=fixture();crossAction.axis(.8);crossAction.button(0,true);crossAction.advance(200);
 crossAction.c.LibraryNavigation.viewChanged();
 for(let t=200;t<700;t+=16){crossAction.axis(t%32?.79:.81);crossAction.advance(t+16);}
-assert.deepStrictEqual(crossAction.moves,[['accept',166]],'held axis is suppressed after confirming a screen change');
+assert.deepStrictEqual(crossAction.moves,[['accept',16]],'held axis is suppressed after confirming a screen change');
 crossAction.axis(0);crossAction.advance(736);crossAction.axis(.8);crossAction.advance(752);
 assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
 // Freeze the historical navigation delta. Only the exact independently tested

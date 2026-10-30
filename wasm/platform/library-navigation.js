@@ -1,6 +1,6 @@
 // Shared menu-only directional input. The streaming publisher never uses this state.
 var LibraryNavigation = (function() {
-  var pads = Object.create(null), owner = null, direction = null, timer = null, epoch = 0, pendingAction = false;
+  var pads = Object.create(null), owner = null, direction = null, timer = null, epoch = 0;
   var activate = 0.5, release = 0.35, initialDelay = 350, repeatInterval = 100;
 
   function available() {
@@ -11,11 +11,11 @@ var LibraryNavigation = (function() {
     ++epoch;
     clearTimeout(timer); timer = null; direction = null; owner = null;
   }
-  function reset() { cancelRepeat(); pads = Object.create(null); pendingAction = false; }
+  function reset() { cancelRepeat(); pads = Object.create(null); }
   function viewChanged() {
     // Retain held directions as suppressed until release or a new direction.
     // A stick held at a view boundary must not immediately move its new menu.
-    cancelRepeat(); pendingAction = false;
+    cancelRepeat();
   }
   function disconnect(index) {
     delete pads[index];
@@ -78,18 +78,13 @@ var LibraryNavigation = (function() {
     var next = choose(pad, previous);
     pad.direction = next;
     if (action) {
+      // Gamepad events already carry edges; act in the same poll. The remote
+      // controller calls Navigation directly and keeps that behavior.
       viewChanged();
-      var actionToken = epoch;
-      pendingAction = true;
-      // Keep the existing confirm/back debounce; only directions are immediate.
-      delayedNavigation(function() {
-        if (actionToken !== epoch) return;
-        if (!available()) { reset(); return; }
-        pendingAction = false; Navigation[action]();
-      });
+      if (!available()) { reset(); return true; }
+      Navigation[action]();
       return true;
     }
-    if (pendingAction) return true;
     // A different pad's unchanged held direction/noise must not steal focus.
     if (owner !== index && (!next || next === previous)) return true;
     if (owner === index && next === direction) return true;

@@ -51,7 +51,8 @@ const remaining = changed.filter(file => {
   }
   return true;
 });
-assert.deepStrictEqual(remaining.sort(), files.filter(f => (f.startsWith('wasm/platform/') && !f.endsWith('/messages.js')) || f === 'wasm/main.cpp').sort());
+assert.deepStrictEqual(remaining.sort(), files.filter(f => (f.startsWith('wasm/platform/') && !f.endsWith('/messages.js')) || f === 'wasm/main.cpp')
+  .concat(['wasm/platform/library-navigation.js']).sort(), 'approved menu-navigation delta only');
 const html = fs.readFileSync('wasm/index.html', 'utf8');
 for (const file of ['docs/images/vibelight-code-mark.svg', 'docs/images/vibelight-code-logo.svg']) {
   const svg = fs.readFileSync(file, 'utf8');
