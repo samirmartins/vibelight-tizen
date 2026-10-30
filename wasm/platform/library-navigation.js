@@ -2,6 +2,9 @@
 var LibraryNavigation = (function() {
   var pads = Object.create(null), owner = null, direction = null, timer = null, epoch = 0;
   var activate = 0.5, release = 0.35, initialDelay = 350, repeatInterval = 100;
+  // Digital buttons mirror the stick hysteresis: act on the first press, then
+  // require a stable release before accepting another edge from the same pad.
+  var buttonRelease = 50;
 
   function available() {
     return !isInGame && !document.hidden &&
@@ -26,16 +29,36 @@ var LibraryNavigation = (function() {
     if (value < -activate) return -1;
     return Math.abs(value) > release && value * previous > 0 ? previous : 0;
   }
+  // One digital state for sticks and action buttons. A fresh press must follow
+  // a stable release; directional repeats keep their separate scheduling.
+  function digital(pad, index, pressed, now) {
+    var state = pad.buttons[index];
+    if (!state) state = pad.buttons[index] = {pressed: false, releasedAt: -1e9};
+    var fresh = false;
+    if (pressed) {
+      fresh = !state.pressed && now - state.releasedAt >= buttonRelease;
+      state.pressed = true;
+    } else {
+      state.pressed = false;
+      state.releasedAt = now;
+    }
+    return fresh;
+  }
   function choose(pad, current) {
-    var x = Number(!!pad.buttons[15]) - Number(!!pad.buttons[14]);
-    var y = Number(!!pad.buttons[13]) - Number(!!pad.buttons[12]);
-    var digital = pad.buttons[12] || pad.buttons[13] || pad.buttons[14] || pad.buttons[15];
-    if (!digital) { x = pad.x; y = pad.y; }
+    var x = Number(!!(pad.buttons[15] && pad.buttons[15].pressed)) -
+      Number(!!(pad.buttons[14] && pad.buttons[14].pressed));
+    var y = Number(!!(pad.buttons[13] && pad.buttons[13].pressed)) -
+      Number(!!(pad.buttons[12] && pad.buttons[12].pressed));
+    var digitalPressed = pad.buttons[12] && pad.buttons[12].pressed ||
+      pad.buttons[13] && pad.buttons[13].pressed ||
+      pad.buttons[14] && pad.buttons[14].pressed ||
+      pad.buttons[15] && pad.buttons[15].pressed;
+    if (!digitalPressed) { x = pad.x; y = pad.y; }
     var horizontal = x < 0 ? 'left' : x > 0 ? 'right' : null;
     var vertical = y < 0 ? 'up' : y > 0 ? 'down' : null;
     if (horizontal && vertical) {
       // Keep a stable axis near a diagonal, rather than alternating on noise.
-      if (digital) return current === vertical ? vertical : horizontal;
+      if (digitalPressed) return current === vertical ? vertical : horizontal;
       if (current === horizontal && Math.abs(pad.axes[1]) <= Math.abs(pad.axes[0]) + 0.15) return horizontal;
       if (current === vertical && Math.abs(pad.axes[0]) <= Math.abs(pad.axes[1]) + 0.15) return vertical;
       return Math.abs(pad.axes[0]) >= Math.abs(pad.axes[1]) ? horizontal : vertical;
@@ -58,16 +81,19 @@ var LibraryNavigation = (function() {
     var index = detail.padIndex === undefined ? 0 : detail.padIndex;
     var pad = pads[index];
     if (!pad) pad = pads[index] = {buttons: Object.create(null), axes: [0, 0], x: 0, y: 0};
-    var action = null;
+    var action = null, now = Date.now();
     // Resolve the complete poll before choosing a direction: release order is
     // not meaningful when left and right change together.
     detail.changes.forEach(function(change) {
       if (change.type === 'button') {
-        if (change.index >= 12 && change.index <= 15) pad.buttons[change.index] = !!change.pressed;
-        if (change.pressed) {
-          if (change.index === 0) action = 'accept';
-          else if (change.index === 1) action = 'back';
-          else if (change.index === 8 || change.index === 3) action = 'press';
+        if ((change.index >= 12 && change.index <= 15) ||
+            change.index === 0 || change.index === 1 || change.index === 3 || change.index === 8) {
+          var fresh = digital(pad, change.index, !!change.pressed, now);
+          if (change.pressed && fresh) {
+            if (change.index === 0) action = 'accept';
+            else if (change.index === 1) action = 'back';
+            else if (change.index === 3 || change.index === 8) action = 'press';
+          }
         }
       } else if (change.type === 'axis' && (change.index === 0 || change.index === 1)) {
         pad.axes[change.index] = Number.isFinite(change.value) ? change.value : 0;

@@ -124,6 +124,13 @@ for(const legacy of [true,false]){
  const confirm=fixture(legacy);confirm.button(0,true);confirm.advance(200);
  assert.deepStrictEqual(confirm.moves,[['accept',legacy?166:16]],'legacy debounce only on the old path');
 }
+for(const [button,action] of [[0,'accept'],[1,'back'],[3,'press'],[8,'press']]) {
+ const f=fixture();f.button(button,true);f.advance(16);f.c.LibraryNavigation.viewChanged();
+ f.button(button,false);f.advance(32);f.button(button,true);f.advance(48);
+ assert.deepStrictEqual(f.moves,[[action,16]],'bouncing press acts once on button '+button);
+ f.button(button,false);f.advance(64);f.advance(128);f.button(button,true);f.advance(144);
+ assert.deepStrictEqual(f.moves.map(m=>m[1]),[16,144],'stable release re-arms button '+button);
+}
 const idle=fixture();idle.advance(10000);assert.strictEqual(idle.moves.length,0);assert.strictEqual(idle.timers.size,1);
 const accepting=fixture();accepting.button(0,true);
 for(let t=0;t<160;t+=16){accepting.axis(t%32?.79:.81);accepting.advance(t+16);}
@@ -215,4 +222,4 @@ for(const [file,from,to]of [
  ['wasm/platform/navigation.js','viewStack.push(view);','viewStack.push(null);']]){
  assert.notStrictEqual(normalize(file,read(file).replace(from,to)),old(file),'neighboring mutation rejected');
 }
-console.log('library_navigation_test: real polling/listener and view stack; library/Settings/PCs/add-PC/pairing corrected, 350/100 ms single timer, hysteresis, reversal, two pads, modal transitions/held-axis suppression, stale callbacks, confirm/back, stop/start and frozen gameplay PASS (synthetic timing, not TV latency)');
+console.log('library_navigation_test: real polling/listener and view stack; library/Settings/PCs/add-PC/pairing corrected, 350/100 ms single timer, hysteresis, button bounce/release gate, reversal, two pads, modal transitions/held-axis suppression, stale callbacks, confirm/back, stop/start and frozen gameplay PASS (synthetic timing, not TV latency)');
