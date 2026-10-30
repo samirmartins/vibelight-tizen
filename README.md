@@ -56,6 +56,7 @@ The in-app *Game Mode* switch is separate; see the FAQ below.
 - **Controls:** rumble, saved button remapping and visual button testing.
 - **Library:** controller-first navigation, favorites, recent games, cached covers,
   Play, Resume and Wake PC.
+- **Languages:** English, Brazilian Portuguese and Spanish. Select from the header; your choice is saved across sessions.
 - **Diagnostics:** optional performance overlay and a local session report.
 
 ---
