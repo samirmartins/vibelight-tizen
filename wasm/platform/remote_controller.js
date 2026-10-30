@@ -1,5 +1,4 @@
 function remoteControllerHandler(e) {
-  isGamepadActive = false;
   const keyCode = e.keyCode;
 
   switch (keyCode) {

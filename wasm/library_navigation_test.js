@@ -33,7 +33,7 @@ function fixture(legacy=false) {
  const last=ui.indexOf('\n}\n\nfunction changeUiModeForWasmLoad',first);
  assert(first>0&&last>first);
  vm.runInContext(ui.slice(first,last),c);
- vm.runInContext(ui.slice(ui.indexOf('function repeatActionHandler()'),ui.indexOf('// Updates the host status indicator')),c);
+ if(legacy)vm.runInContext(ui.slice(ui.indexOf('function repeatActionHandler()'),ui.indexOf('// Updates the host status indicator')),c);
  c.menuController.startWatching();
  function advance(to) {
   let steps=0;
@@ -255,6 +255,8 @@ for(const file of paths){
   if(transport.files.includes(file))assert.strictEqual(transport.normalize(file,read(file)),old(file),'exact video/refresh delta: '+file);
   else if(require('./controller-identity-scope.cjs').files.includes(file))
     assert.strictEqual(require('./controller-identity-scope.cjs').normalize(file,read(file)),old(file),'exact tested controller identity delta: '+file);
+  else if(file==='wasm/platform/remote_controller.js')
+    assert.strictEqual(require('./stage5-scope.cjs').normalize(file,read(file)),old(file),'exact Stage 5 remote cleanup');
   else if(file==='wasm/platform/app-lifecycle.js'||file==='wasm/static/js/utils.js')
     assert.strictEqual(require('./stream-return-scope.cjs').normalize(file,read(file)),old(file),'exact tested stop-to-menu delta: '+file);
   else if (require('./frame-pacing-scope.cjs').files.includes(file))
@@ -268,7 +270,7 @@ for(const file of paths){
  assert.strictEqual(current,base,'runtime frozen outside library hooks: '+file);
 }
 for(const [file,from,to]of [
- ['wasm/platform/index.js','const changes = e.detail.changes;','const changes = [];'],
+ ['wasm/platform/index.js','LibraryNavigation.handle(e.detail);','LibraryNavigation.handle(null);'],
  ['wasm/platform/gamepad.js','setInterval(pollGamepads, 16)','setInterval(pollGamepads, 32)'],
  ['wasm/platform/console-library.js','epoch++;','epoch+=2;'],
  ['wasm/platform/navigation.js','viewStack.push(view);','viewStack.push(null);']]){

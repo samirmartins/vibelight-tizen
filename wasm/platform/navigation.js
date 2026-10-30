@@ -119,6 +119,15 @@ function unmark(target) {
   }
 }
 
+// Return a settings popup's option list without depending on Material's
+// generated wrapper depth.
+function menuItems(id) {
+  const opener = document.getElementById(id);
+  const option = opener && opener.closest ? opener.closest('.setting-option') : null;
+  const menu = option && option.querySelector ? option.querySelector('.mdl-menu') : null;
+  return menu ? Array.from(menu.children) : [];
+}
+
 // Get the current ID of a target element
 function elementId(target) {
   const element = resolveElement(target);
@@ -896,8 +905,7 @@ const Views = {
   SelectResolutionMenu: {
     isActive: () => isPopupMenuActive('videoResolutionMenu'),
     view: new ListView(() => 
-      document.getElementById('videoResolutionMenu')
-      .parentNode.children[3].children[1].children),
+      menuItems('videoResolutionMenu')),
     up: function() {
       this.view.prevOption();
     },
@@ -928,8 +936,7 @@ const Views = {
   SelectFramerateMenu: {
     isActive: () => isPopupMenuActive('videoFramerateMenu'),
     view: new ListView(() => 
-      document.getElementById('videoFramerateMenu')
-      .parentNode.children[3].children[1].children),
+      menuItems('videoFramerateMenu')),
     up: function() {
       this.view.prevOption();
     },
@@ -960,8 +967,7 @@ const Views = {
   SelectBitrateMenu: {
     isActive: () => isPopupMenuActive('videoBitrateMenu'),
     view: new ListView(() => 
-      document.getElementById('videoBitrateMenu')
-      .parentNode.children[3].children[1].children),
+      menuItems('videoBitrateMenu')),
     up: function() {},
     down: function() {},
     left: function() {
@@ -994,8 +1000,7 @@ const Views = {
   SelectAudioJitterMenu: {
     isActive: () => isPopupMenuActive('audioJitterMenu'),
     view: new ListView(() =>
-      document.getElementById('audioJitterMenu')
-      .parentNode.children[3].children[1].children),
+      menuItems('audioJitterMenu')),
     up: function() {},
     down: function() {},
     left: function() {
@@ -1149,8 +1154,7 @@ const Views = {
   SelectAudioMenu: {
     isActive: () => isPopupMenuActive('audioConfigMenu'),
     view: new ListView(() => 
-      document.getElementById('audioConfigMenu')
-      .parentNode.children[3].children[1].children),
+      menuItems('audioConfigMenu')),
     up: function() {
       this.view.prevOption();
     },
@@ -1223,8 +1227,7 @@ const Views = {
   SelectCodecMenu: {
     isActive: () => isPopupMenuActive('videoCodecMenu'),
     view: new ListView(() => 
-      document.getElementById('videoCodecMenu')
-      .parentNode.children[3].children[1].children),
+      menuItems('videoCodecMenu')),
     up: function() {
       this.view.prevOption();
     },

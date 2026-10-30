@@ -29,7 +29,10 @@ for (const [stored,language,expected] of [[null,'pt-BR','pt-BR'],[null,'es-ES','
 }
 const failedStorage={MenuTranslations:rows,navigator:{language:'es'},localStorage:{getItem(){throw Error('denied');}},document:{addEventListener(){}}};
 vm.runInNewContext(moduleSource,failedStorage);assert.strictEqual(failedStorage.MenuI18n.locale(),'es');
-const normalization = require('./menu-i18n-scope.cjs').normalize;
+const menuNormalize = require('./menu-i18n-scope.cjs').normalize;
+const normalization = (file, source) => file === 'wasm/platform/navigation.js'
+  ? menuNormalize(file, require('./stage5-scope.cjs').normalize(file, source))
+  : menuNormalize(file, source);
 for (const file of ['wasm/index.html','wasm/platform/navigation.js','wasm/platform/console-library.js','wasm/platform/messages.js','res/config.xml']) {
   const source=fs.readFileSync(file,'utf8');
   const stable=cp.execFileSync('git',['show','v3.4.15:'+file],{encoding:'utf8'});

@@ -4,7 +4,7 @@
 const crypto = require('crypto'), cp = require('child_process');
 const hashes = {
   'wasm/index.html': '63f4c643f409892980da63691994da51e8be5022cd52e0cb51a65ab35d3cf179',
-  'wasm/platform/index.js': '013cfd4f308968b910fd4b0b9bdba21b6c77ebe93a0b0a9673f7f5b047679b39',
+  'wasm/platform/index.js': '6b6462d99be75ed011412e4d2fb4966c705771314107f3826d40a7c043bcd30c',
   'wasm/platform/messages.js': 'b1d2d5ea9254bd5690e087d7b44da11992a3f769e9d8f50cd3a8300fa9bc32f2'
 };
 const assets = {

@@ -36,6 +36,11 @@ const remaining = changed.filter(file => {
     assert.strictEqual(identity.normalize(file,current),cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}),
       'exact independently tested controller identity integration: '+file);return false;
   }
+  if (file === 'wasm/platform/remote_controller.js') {
+    assert.strictEqual(require('./stage5-scope.cjs').normalize(file,current),
+      cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}), 'exact Stage 5 remote cleanup');
+    return false;
+  }
   const beforeReturn=require('./stream-return-scope.cjs').normalize(file,current);
   if(beforeReturn!==current&&!files.includes(file)&&!pacing.files.includes(file)) {
     assert.strictEqual(beforeReturn,cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}),

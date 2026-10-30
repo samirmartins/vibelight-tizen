@@ -11,7 +11,7 @@ const approved = {
   'wasm/moonlight_wasm.hpp': '7d84a39d58498bd4c19594cf0e790b5760f9abbcfffce44231b7617d5f70ff78',
   'wasm/wasmplayer.cpp': '39afb1eba49abf8d7382fbef4aff6626f28fedfada480b18c572e0af77a47b13',
   'wasm/platform/index.js': '0ccf8d8881bc2fa11284459ced437996b46d52dffec2efc82989e84b9785af5f',
-  'wasm/platform/navigation.js': '583841994ded672007d1f99b36c505ce0a7ac785c5dfa6ab0e98284bbe9eb036',
+  'wasm/platform/navigation.js': 'ed32854a2fda5851efde57690c53835ee1a005997b50239288d222a0da43e7eb',
   'wasm/index.html': 'be2139be88617be90d6bcc79eca945595e8d26000602429b42f34020eae367d1',
   'wasm/static/css/style.css': '9d766ee81d0a6d8cfeee0e62fcbc9489c8e6e12517b3c0fd141dcfd1af541e0c'
 };

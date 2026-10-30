@@ -139,7 +139,7 @@ assert.strictEqual(withoutLogs(between(now,'  // Reset the scheduler for the new
     "document.getElementById('quitAppDialogText').textContent = currentApp.title")));
 assert.strictEqual(withoutLogs(between(now,'  // Create the AudioContext here','\n}\n\nfunction startGame')),
   withoutLogs(between(old,'  // Create the AudioContext here','  // Reset the scheduler for the new stream')));
-assert.strictEqual(between(now,'function showStreamMode()','// Maximize the size').replace('  ConsoleLibrary.suspend();\n  clearTimeout(startupScanTimer);\n  repeatAction = null;\n  clearTimeout(repeatTimeout);\n  clearTimeout(navigationTimeout);\n',''),
+assert.strictEqual(between(now,'function showStreamMode()','// Maximize the size').replace('  ConsoleLibrary.suspend();\n  clearTimeout(startupScanTimer);\n  repeatAction = null;\n  clearTimeout(repeatTimeout);\n  clearTimeout(navigationTimeout);\n','').replace('  ConsoleLibrary.suspend();\n  clearTimeout(startupScanTimer);\n',''),
   between(old,'function showStreamMode()','// Maximize the size'));
 assert.strictEqual(between(now,'function fullscreenWasmModule()','// Start the given appID'),
   between(old,'function fullscreenWasmModule()','// Start the given appID'));
@@ -226,6 +226,8 @@ for (const file of files) {
   assert.strictEqual(withoutInputWake(current(file)), withoutInputWake(old(file)), file+' wake-only change');
  } else if (file === 'wasm/platform/menu-tools.js') {
   assert.strictEqual(require('./library-availability-scope.cjs').normalize(file,current(file)), old(file), file+' availability-probe opt-in only');
+ } else if (file === 'wasm/platform/remote_controller.js') {
+  assert.strictEqual(require('./stage5-scope.cjs').normalize(file,current(file)), old(file), file+' exact Stage 5 remote cleanup');
  } else assert.strictEqual(require('./audio-telemetry-scope.cjs').normalize(file,require('./controller-mapping-scope.cjs').normalize(file,current(file))), require('./audio-telemetry-scope.cjs').normalize(file,old(file)), file);
 }
 const index = current('wasm/platform/index.js'), indexOld = old('wasm/platform/index.js');

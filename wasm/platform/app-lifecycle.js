@@ -55,9 +55,6 @@ var AppLifecycle = (function() {
       // Invalidate menu work and pending user-launch continuations before JS
       // is frozen. Native visibility handling owns idempotent stream teardown.
       clearTimeout(startupScanTimer);
-      clearTimeout(repeatTimeout);
-      clearTimeout(navigationTimeout);
-      repeatAction = null;
       stopPollingHosts();
       stopSubnetScanner();
       WakeHost.cancel();

@@ -246,10 +246,6 @@ var ControllerMappingMenu = (function() {
     var initial = padsNow();
     for (var p=0;p<initial.length;p++) if (initial[p] && initial[p].connected) { exitPad = initial[p].index; break; }
     exitArmed = !circleHeld();
-    // The test consumes raw releases too; do not leave a menu repeat running.
-    clearTimeout(repeatTimeout); repeatTimeout = null;
-    clearTimeout(navigationTimeout); navigationTimeout = null;
-    repeatAction = null;
     var preview = draft.enabled ? draft.map.slice() : ControllerMapping.defaults().map;
     window.addEventListener('gamepadinputchanged',blockGamepad,true);
     window.addEventListener('keydown',blockTestKeys,true);

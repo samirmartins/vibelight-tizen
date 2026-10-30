@@ -36,24 +36,15 @@ var isInGame = false; // Flag indicating whether the game has started, initial v
 var isDialogOpen = false; // Flag indicating whether the dialog is open, initial value is false
 var isPairingInProgress = false; // Flag indicating whether a pairing process is in progress, initial value is false
 var wasPairingCanceled = false; // Flag indicating whether the current pairing process was canceled by the user, initial value is false
-var isGamepadActive = false; // Flag indicating whether the gamepad input is active, initial value is false
 var isClickPrevented = false; // Flag indicating whether the click event should be prevented, initial value is false
 var hostOpenRequest = null; // Deduplicate asynchronous PC opening, not just clicks.
 var resFpsWarning = false; // Flag indicating whether the video resolution and frame rate warning message has shown, initial value is false
 var bitrateWarning = false; // Flag indicating whether the video bitrate warning message has shown, initial value is false
 var audioWarning = false; // Flag indicating whether the audio configuration warning message has shown, initial value is false
 var codecWarning = false; // Flag indicating whether the video codec warning message has shown, initial value is false
-var repeatAction = null; // Flag indicating whether the repeat action is set, initial value is null
-var lastInvokeTime = 0; // Flag indicating the last invoke time, initial value is 0
-var repeatTimeout = null; // Flag indicating whether the repeat timeout is set, initial value is null
-var navigationTimeout = null; // Flag indicating whether the navigation timeout is set, initial value is null
 var startupScanTimer = 0;
 const BUILD_TYPE = '__BUILD_TYPE__'; // Placeholder for build type, which should be replaced during the build process
 const BUILD_COMMIT = '__BUILD_COMMIT__'; // Placeholder for build commit, which should be replaced during the build process
-const REPEAT_DELAY = 350; // Repeat delay set to 350ms (milliseconds)
-const REPEAT_INTERVAL = 100; // Repeat interval set to 100ms (milliseconds)
-const ACTION_THRESHOLD = 0.5; // Threshold for initial navigation set to 0.5
-const NAVIGATION_DELAY = 150; // Navigation delay set to 150ms (milliseconds)
 const DEFAULT_AUDIO_JITTER_MS = '100';
 const AUDIO_JITTER_DEFAULT_REVISION = 2;
 
@@ -115,80 +106,10 @@ function attachListeners() {
 
   Controller.startWatching();
   window.addEventListener('gamepadinputchanged', (e) => {
-    // While streaming, gamepad state is read by the native input thread and
-    // forwarded to the host directly. Running the UI navigation mapping here as
-    // well would burn main thread time on every stick movement, which shows up
-    // as dropped video frames.
-    if (isInGame) {
-      return;
-    }
-    isGamepadActive = true;
-    if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.handle(e.detail)) {
-      repeatAction = null; clearTimeout(repeatTimeout);
-      return;
-    }
-    const changes = e.detail.changes;
-    // Iterate through each change in the gamepad input
-    changes.forEach((change) => {
-      const { type, index, pressed, value } = change;
-      if (type === 'button') {
-        // Handle button mapping
-        const buttonMapping = {
-          0: () => delayedNavigation(() => Navigation.accept()),
-          1: () => delayedNavigation(() => Navigation.back()),
-          8: () => delayedNavigation(() => Navigation.press()),
-          3: () => delayedNavigation(() => Navigation.press()),
-        };
-        // Handle D-Pad mapping
-        const dPadMapping = {
-          12: () => Navigation.up(),
-          13: () => Navigation.down(),
-          14: () => Navigation.left(),
-          15: () => Navigation.right(),
-        };
-        // Handle button press
-        if (pressed) {
-          if (buttonMapping[index]) {
-            buttonMapping[index]();
-            // Clear repeat action and timeout for non-navigation buttons
-            repeatAction = null;
-            clearTimeout(repeatTimeout);
-          } else if (dPadMapping[index]) {
-            dPadMapping[index]();
-            // Set repeat action and timeout to the mapped D-Pad button
-            repeatAction = dPadMapping[index];
-            lastInvokeTime = Date.now();
-            repeatTimeout = setTimeout(() => requestAnimationFrame(repeatActionHandler), REPEAT_DELAY);
-          }
-        } else {
-          // Clear repeat action and timeout if button is released
-          repeatAction = null;
-          clearTimeout(repeatTimeout);
-        }
-      } else if (type === 'axis') {
-        // Handle axis mapping
-        const axisMapping = {
-          0: (value) => value < -ACTION_THRESHOLD ? (delayedNavigation(() => Navigation.left()), () => Navigation.left()) : 
-            value > ACTION_THRESHOLD ? (delayedNavigation(() => Navigation.right()), () => Navigation.right()) : null,
-          1: (value) => value < -ACTION_THRESHOLD ? (delayedNavigation(() => Navigation.up()), () => Navigation.up()) : 
-            value > ACTION_THRESHOLD ? (delayedNavigation(() => Navigation.down()), () => Navigation.down()) : null,
-        };
-        // Handle axis value
-        if (axisMapping[index]) {
-          const axisValue = axisMapping[index](value);
-          if (axisValue && Math.abs(value) > ACTION_THRESHOLD) {
-            // Set repeat action and timeout to the mapped axis
-            repeatAction = axisValue;
-            lastInvokeTime = Date.now();
-            repeatTimeout = setTimeout(() => requestAnimationFrame(repeatActionHandler), REPEAT_DELAY);
-          } else {
-            // Clear repeat action and timeout if axis is released
-            repeatAction = null;
-            clearTimeout(repeatTimeout);
-          }
-        }
-      }
-    });
+    // Streaming input belongs to the native thread; the menu handler owns the
+    // complete menu-only mapping, including repeats and release gates.
+    if (isInGame) return;
+    LibraryNavigation.handle(e.detail);
   });
 }
 
@@ -213,28 +134,6 @@ function getBuildVersion(version) {
   }
   // Return only the version number without any additional metadata for production builds
   return version;
-}
-
-// Handles repeated execution of the current action based on a specified interval
-function repeatActionHandler() {
-  // Check if repeat action is set and enough time has passed since the last invocation
-  if (repeatAction && Date.now() - lastInvokeTime > REPEAT_INTERVAL) {
-    repeatAction();
-    // Update the last invocation time
-    lastInvokeTime = Date.now();
-  }
-  // Check if repeat action is still set, then schedule the next execution frame
-  if (repeatAction) {
-    requestAnimationFrame(repeatActionHandler);
-  }
-}
-
-// Delays navigation-related callback execution after a specified delay
-function delayedNavigation(callback) {
-  // Clear any existing navigation timeout
-  clearTimeout(navigationTimeout);
-  // Set a new navigation timeout with the provided callback and delay
-  navigationTimeout = setTimeout(callback, NAVIGATION_DELAY);
 }
 
 // Updates the host status indicator based on the host's online and paired status
@@ -1734,9 +1633,6 @@ function showStreamMode() {
   stopSubnetScanner();
   ConsoleLibrary.suspend();
   clearTimeout(startupScanTimer);
-  repeatAction = null;
-  clearTimeout(repeatTimeout);
-  clearTimeout(navigationTimeout);
   $('#main-header').hide();
   $('#main-content').children().not('#listener, #loadingSpinner').hide();
   $('#main-content').addClass('fullscreen');
