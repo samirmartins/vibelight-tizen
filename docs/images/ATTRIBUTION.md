@@ -6,7 +6,8 @@ and no game developer endorses this fork.
 
 The original image files are retained without pixel changes in `open-games/`.
 The application's existing `object-fit: cover` scales and crops their visible
-area in `game-library.png` and `game-library-wake.png`; favorites, selection,
+area in `game-library.png`, `game-library-pt-br.png`, `game-library-es.png`
+and `game-library-wake.png`; favorites, selection,
 online Resume and offline Wake PC/Play are demonstration states.
 `settings.png`, `add-host.png` and `controller-mapping.png` contain only this
 application's interface. The VibeLight logos retain the original Moonlight
@@ -15,9 +16,11 @@ Editable app-logo sources are `vibelight-code-logo.svg` and `vibelight-code-mark
 The stacked README composition uses `vibelight-readme-logo.svg` and
 `vibelight-readme-logo-light.svg`; its light/dark PNGs preserve transparency and
 proportions, with the name below the original symbol.
-`interface.gif` combines Wake PC/Play, settings, Resume, the initial Add Host
-screen and controller button testing, with two seconds per frame. The five
-screen captures are retained as lossless 2048 × 1152 PNGs; the GIF is scaled to
+`interface.gif` shows Wake PC/Play, the Resume library in English, settings,
+the same library in Brazilian Portuguese, the initial Add Host screen, the
+library in Spanish and controller button testing, in that order, with two
+seconds per frame. The three language views are separated by other screens.
+The seven screen captures are retained as lossless 2048 × 1152 PNGs; the GIF is scaled to
 1920 × 1080. Its current controller-test capture includes cyan input highlights,
 the approved block layout and the CC0 artwork credited in
 [the application asset notice](../../wasm/static/res/controller-dualsense-LICENSE.txt).
@@ -41,7 +44,8 @@ the approved block layout and the CC0 artwork credited in
 
 ## Composite capture
 
-`game-library.png`, `game-library-wake.png` and `interface.gif` are distributed under [GPL-3.0](../../LICENSE), matching the
+`game-library.png`, `game-library-pt-br.png`, `game-library-es.png`,
+`game-library-wake.png` and `interface.gif` are distributed under [GPL-3.0](../../LICENSE), matching the
 application UI. The unchanged source images retain the licenses above.
 For the cropped CC BY-SA 3.0 material incorporated into the composite, the
 adaptation uses CC BY-SA 4.0 and its one-way GPLv3 compatibility. See
