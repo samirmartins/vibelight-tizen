@@ -201,6 +201,45 @@ for(let t=200;t<700;t+=16){crossAction.axis(t%32?.79:.81);crossAction.advance(t+
 assert.deepStrictEqual(crossAction.moves,[['accept',16]],'held axis is suppressed after confirming a screen change');
 crossAction.axis(0);crossAction.advance(736);crossAction.axis(.8);crossAction.advance(752);
 assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
+// New menu-only controls: filters, pages, help, guide and Nintendo A/B.
+{
+ const f=fixture();
+ let filters=0,pages=[],help=0,guide=0,changes=0;
+ const filterNodes={};
+ ['All','Favorites','Recent'].forEach((name,index)=>{
+  filterNodes['library'+name]={attrs:{'aria-pressed':index===0?'true':'false'},
+   getAttribute(name){return this.attrs[name]===undefined?null:this.attrs[name];},
+   click(){filters++;Object.keys(filterNodes).forEach(key=>{filterNodes[key].attrs['aria-pressed']=key==='library'+name?'true':'false';});}};
+ });
+ f.c.document.getElementById=id=>filterNodes[id]||null;
+ f.c.Views={Apps:{}};f.c.Navigation.change=()=>{changes++;};
+ f.c.ConsoleLibrary.move=(dx,dy)=>pages.push([dx,dy]);
+ f.c.ControllerIdentity={familyAt:()=> 'xbox',refreshPlayers(){},localizeGuide(){}};
+ f.c.QuickHelp={toggle(){help++;},open(){help++;},isOpen(){return false;}};
+ f.c.navigationGuideDialog=()=>{guide++;};
+ f.button(4,true);f.advance(16);f.button(4,false);f.advance(32);
+ f.button(5,true);f.advance(48);f.button(5,false);f.advance(64);
+ assert.strictEqual(filters,2,'LB/RB cycle the three library filters');
+ assert(changes>=2,'filtering returns to the Apps view');
+ f.button(6,true);f.advance(80);f.button(6,false);f.advance(96);
+ f.button(7,true);f.advance(112);f.button(7,false);f.advance(128);
+ assert.deepStrictEqual(pages.slice(-2),[[0,-2],[0,2]],'LT/RT page by two rows');
+ f.pads[0].axes[3]=0.8;f.advance(144);f.pads[0].axes[3]=0;f.advance(160);
+ f.pads[0].axes[3]=-0.8;f.advance(176);f.pads[0].axes[3]=0;f.advance(192);
+ assert.deepStrictEqual(pages.slice(-2),[[0,2],[0,-2]],'right stick pages once per push');
+ f.button(9,true);f.advance(208);f.button(9,false);f.advance(224);
+ f.button(16,true);f.advance(240);f.button(16,false);f.advance(256);
+ assert.strictEqual(help,1,'Start opens quick help');assert.strictEqual(guide,1,'Guide opens the guide');
+ f.c.isDialogOpen=true;
+ f.button(4,true);f.advance(272);f.button(4,false);f.advance(288);
+ assert.strictEqual(filters,2,'filters are inert while a dialog is open');
+ f.c.isDialogOpen=false;
+ f.c.ControllerIdentity={familyAt:()=> 'nintendo',refreshPlayers(){},localizeGuide(){}};
+ f.button(1,true);f.advance(304);f.button(1,false);f.advance(320);
+ f.button(0,true);f.advance(336);f.button(0,false);f.advance(352);
+ assert.deepStrictEqual(f.moves.filter(move=>move[0]==='accept').length,1,'Nintendo physical A accepts');
+ assert.deepStrictEqual(f.moves.filter(move=>move[0]==='back').length,1,'Nintendo physical B goes back');
+}
 // Freeze the historical navigation delta. Only the exact independently tested
 // video/refresh patch may differ in subsequent streaming versions.
 const normalize=require('./library-navigation-scope.cjs').normalize;
@@ -235,4 +274,4 @@ for(const [file,from,to]of [
  ['wasm/platform/navigation.js','viewStack.push(view);','viewStack.push(null);']]){
  assert.notStrictEqual(normalize(file,read(file).replace(from,to)),old(file),'neighboring mutation rejected');
 }
-console.log('library_navigation_test: real polling/listener and view stack; library/Settings/PCs/add-PC/pairing corrected, 350/100 ms single timer, hysteresis, button/D-pad bounce gate with preserved repeat cadence, reversal, two pads, modal transitions/held-axis suppression, stale callbacks, confirm/back, stop/start and frozen gameplay PASS (synthetic timing, not TV latency)');
+console.log('library_navigation_test: real polling/listener and view stack; library/Settings/PCs/add-PC/pairing corrected, 350/100 ms single timer, hysteresis, button/D-pad bounce gate with preserved repeat cadence, reversal, two pads, modal transitions/held-axis suppression, stale callbacks, confirm/back, Nintendo A/B, LB/RB filters, LT/RT/right-stick pages, Start/Guide help, stop/start and frozen gameplay PASS (synthetic timing, not TV latency)');

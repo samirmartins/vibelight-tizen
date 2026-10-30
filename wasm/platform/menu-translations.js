@@ -392,5 +392,22 @@ var MenuTranslations = [
   ["Controller disconnected", "Controle desconectado", "Mando desconectado"],
   ["Controllers disconnected", "Controles desconectados", "Mandos desconectados"],
   ["Could not close the game on the PC.", "Não foi possível encerrar o jogo no PC.", "No se pudo cerrar el juego en el PC."],
-  ["Could not stop the stream.", "Não foi possível encerrar o streaming.", "No se pudo detener la transmisión."]
+  ["Could not stop the stream.", "Não foi possível encerrar o streaming.", "No se pudo detener la transmisión."],
+  ["Quick help", "Ajuda rápida", "Ayuda rápida"],
+  ["Navigate", "Navegar", "Navegar"],
+  ["Accept", "Aceitar", "Aceptar"],
+  ["Library filters", "Filtros da biblioteca", "Filtros de la biblioteca"],
+  ["Page the library", "Paginar a biblioteca", "Paginar la biblioteca"],
+  ["Favorite game", "Jogo favorito", "Juego favorito"],
+  ["D-pad / Left stick", "Direcional / Analógico esquerdo", "Cruceta / Stick izquierdo"],
+  ["Filter the library: all games, favorites, recent.", "Filtre a biblioteca: todos, favoritos, recentes.", "Filtre la biblioteca: todos, favoritos, recientes."],
+  ["Page the library up or down.", "Avance ou volte uma página da biblioteca.", "Avance o retroceda una página de la biblioteca."],
+  ["Page the library.", "Paginar a biblioteca.", "Paginar la biblioteca."],
+  ["Open quick help.", "Abra a ajuda rápida.", "Abre la ayuda rápida."],
+  ["Open this guide.", "Abra este guia.", "Abre esta guía."],
+  ["— Filter the library: all games, favorites, recent.", "— Filtrar a biblioteca: todos, favoritos e recentes.", "— Filtrar la biblioteca: todos, favoritos y recientes."],
+  ["— Page the library up or down.", "— Avançar ou voltar uma página da biblioteca.", "— Avanzar o retroceder una página de la biblioteca."],
+  ["— Page the library.", "— Paginar a biblioteca.", "— Paginar la biblioteca."],
+  ["— Open quick help.", "— Abrir a ajuda rápida.", "— Abrir la ayuda rápida."],
+  ["— Open this guide.", "— Abrir este guia.", "— Abrir esta guía."]
 ];

@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="static/css/style.css">
   <link rel="stylesheet" href="static/css/menu-tools.css">
   <link rel="stylesheet" href="static/css/console-library.css">
+  <link rel="stylesheet" href="static/css/console-controls.css">
   <link rel="stylesheet" href="static/css/stream-overlay.css">
   <link rel="stylesheet" href="static/css/menu-i18n.css">
   <link rel="stylesheet" href="static/css/controller-mapping.css">
@@ -30,6 +31,7 @@
         <!-- Header logo and title -->
         <img src="static/res/vibelight-mark.png" id="header-logo" alt="">
         <span id="header-title" class="mdl-layout-title">VibeLight</span>
+        <div id="controllerPlayers" class="controller-players" role="status" aria-live="polite" hidden></div>
         <!-- Add spacer to align navigation to the right -->
         <div class="mdl-layout-spacer"></div>
         <!-- Navigation bar -->
@@ -439,6 +441,7 @@
   <script type="text/javascript" src="platform/common.js"></script>
   <script type="text/javascript" src="platform/display.js"></script>
   <script type="text/javascript" src="platform/gamepad.js"></script>
+  <script type="text/javascript" src="platform/controller-identity.js"></script>
   <script type="text/javascript" src="platform/library-navigation.js"></script>
   <script type="text/javascript" src="platform/controller-mapping.js"></script>
   <script type="text/javascript" src="platform/controller-mapping-menu.js"></script>
@@ -449,6 +452,7 @@
   <script type="text/javascript" src="platform/diagnostics.js"></script>
   <script type="text/javascript" src="platform/index.js"></script>
   <script type="text/javascript" src="platform/navigation.js"></script>
+  <script type="text/javascript" src="platform/quick-help.js"></script>
   <script type="text/javascript" src="platform/focus-manager.js"></script>
   <script type="text/javascript" src="platform/stream-session.js"></script>
   <script type="text/javascript" src="platform/stream-overlay.js"></script>
@@ -582,7 +586,7 @@
         </div>
         <div class="navGuideContainer">
           <span class="navGuideLabel navGuideGamepadColor"></span>
-          <span class="navGuideLabelText">Gamepad</span>&nbsp;(Xbox)
+          <span class="navGuideLabelText">Gamepad</span>&nbsp;<span id="navGuideFamily">(Xbox)</span>
         </div>
         <ul id="navGuideDialogText">
           <li class="navGuideDialogControls">
@@ -610,24 +614,40 @@
             — Scroll the mouse horizontally in emulation.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideGamepadText">X</span> / <span class="navGuideGamepadText">Y</span>
+            <span class="navGuideGamepadText" data-gamepad="face2">X</span> / <span class="navGuideGamepadText" data-gamepad="face3">Y</span>
             — Click the middle mouse button in emulation.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideRemoteText">SELECT</span> / <span class="navGuideKeyboardText">ENTER</span> / <span class="navGuideKeyboardText">SPACE</span> / <span class="navGuideGamepadText">A</span>
+            <span class="navGuideRemoteText">SELECT</span> / <span class="navGuideKeyboardText">ENTER</span> / <span class="navGuideKeyboardText">SPACE</span> / <span class="navGuideGamepadText" data-gamepad="accept">A</span>
             — Navigate to the next view, select the current item, enable or disable settings, load the app or game list, start the streaming session, and click the left mouse button in emulation.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideRemoteText">RETURN</span> / <span class="navGuideKeyboardText">ESC</span> / <span class="navGuideGamepadText">B</span>
+            <span class="navGuideRemoteText">RETURN</span> / <span class="navGuideKeyboardText">ESC</span> / <span class="navGuideGamepadText" data-gamepad="back">B</span>
             — Return to the previous view, close any active menu or dialog, cancel the operation, exit the application with confirmation, and click the right mouse button in emulation.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideGamepadText">LEFT BUMPER</span>
+            <span class="navGuideGamepadText" data-gamepad="lb">LEFT BUMPER</span>
             — Click the left mouse button in emulation.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideGamepadText">RIGHT BUMPER</span>
+            <span class="navGuideGamepadText" data-gamepad="rb">RIGHT BUMPER</span>
             — Click the right mouse button in emulation.
+          </li>
+          <li class="navGuideDialogControls">
+            <span class="navGuideGamepadText" data-gamepad="lb">LB</span> / <span class="navGuideGamepadText" data-gamepad="rb">RB</span>
+            — Filter the library: all games, favorites, recent.
+          </li>
+          <li class="navGuideDialogControls">
+            <span class="navGuideGamepadText" data-gamepad="lt">LT</span> / <span class="navGuideGamepadText" data-gamepad="rt">RT</span>
+            — Page the library up or down.
+          </li>
+          <li class="navGuideDialogControls">
+            <span class="navGuideGamepadText">R-STICK UP</span> / <span class="navGuideGamepadText">R-STICK DOWN</span>
+            — Page the library.
+          </li>
+          <li class="navGuideDialogControls">
+            <span class="navGuideGamepadText" data-gamepad="start">START</span>
+            — Open quick help. <span class="navGuideGamepadText" data-gamepad="guide">GUIDE</span> — Open this guide.
           </li>
           <li class="navGuideDialogControls">
             <span class="navGuideRemoteText">VOLUME UP</span> / <span class="navGuideKeyboardText">F9</span> / <span class="navGuideRemoteText">VOLUME DOWN</span> /
@@ -635,19 +655,19 @@
             — Adjust the TV volume: increase, decrease, or mute.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideRemoteText">CHANNEL UP</span> / <span class="navGuideKeyboardText">F11</span> / <span class="navGuideGamepadText">SELECT</span>
+            <span class="navGuideRemoteText">CHANNEL UP</span> / <span class="navGuideKeyboardText">F11</span> / <span class="navGuideGamepadText" data-gamepad="select">SELECT</span>
             — Switch the mode of the IP address field, and open the host PC menu.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideRemoteText">CHANNEL DOWN</span> / <span class="navGuideKeyboardText">F12</span> / <span class="navGuideGamepadText">START</span>
+            <span class="navGuideRemoteText">CHANNEL DOWN</span> / <span class="navGuideKeyboardText">F12</span> / <span class="navGuideGamepadText" data-gamepad="start">START</span>
             — Set focus to the current item, and press &amp; hold for 1 second to toggle mouse emulation for the gamepad.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideRemoteText">RED</span> / <span class="navGuideKeyboardText">F1</span> / <span class="navGuideKeyboardText">CTRL + ALT + SHIFT + Q</span> / <span class="navGuideGamepadText">SELECT + START + LB + RB</span>
+            <span class="navGuideRemoteText">RED</span> / <span class="navGuideKeyboardText">F1</span> / <span class="navGuideKeyboardText">CTRL + ALT + SHIFT + Q</span> / <span class="navGuideGamepadText"><span data-gamepad="select">SELECT</span> + <span data-gamepad="start">START</span> + <span data-gamepad="lb">LB</span> + <span data-gamepad="rb">RB</span></span>
             — Stop the streaming session.
           </li>
           <li class="navGuideDialogControls">
-            <span class="navGuideRemoteText">YELLOW</span> / <span class="navGuideKeyboardText">F3</span> / <span class="navGuideKeyboardText">CTRL + ALT + SHIFT + S</span> / <span class="navGuideGamepadText">SELECT + LB + RB + X</span>
+            <span class="navGuideRemoteText">YELLOW</span> / <span class="navGuideKeyboardText">F3</span> / <span class="navGuideKeyboardText">CTRL + ALT + SHIFT + S</span> / <span class="navGuideGamepadText"><span data-gamepad="select">SELECT</span> + <span data-gamepad="lb">LB</span> + <span data-gamepad="rb">RB</span> + <span data-gamepad="face2">X</span></span>
             — Toggle the performance statistics overlay.
           </li>
         </ul>

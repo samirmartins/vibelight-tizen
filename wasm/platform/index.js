@@ -1424,6 +1424,7 @@ function navigationGuideDialog() {
   navGuideDialog.showModal();
   isDialogOpen = true;
   Navigation.push(Views.NavigationGuideDialog);
+  if (typeof ControllerIdentity !== 'undefined') ControllerIdentity.localizeGuide();
 
   // Close the dialog if the Close button is pressed
   $('#closeNavGuide').off('click');
