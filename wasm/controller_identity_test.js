@@ -74,7 +74,8 @@ class MoonlightInstance {public:void PollGamepads();void HandleGamepadInputState
 void stopStream(){} void toggleStats(){} void PostToJs(std::string){}
 int emscripten_futex_wake(void*,int){return 0;} int emscripten_futex_wait(void*,uint32_t,double){return 0;}
 struct Event {int kind,id,mask,type,buttons,lt=0,rt=0,x=0,y=0,rx=0,ry=0;};
-std::vector<Event> events;bool failArrival=false,failRelease=false;
+std::vector<Event> events;std::vector<std::string> posts;bool failArrival=false,failRelease=false;
+void PostToJsAsync(const std::string& message){posts.push_back(message);}
 extern "C" int LiSendControllerArrivalEvent(uint8_t id,uint16_t mask,uint8_t type,uint32_t,uint16_t caps){
  if(failArrival){failArrival=false;return -1;}events.push_back({1,id,mask,type,caps});return 0;
 }
@@ -88,11 +89,12 @@ extern "C" int LiSendMouseButtonEvent(char,int){return 0;}
 `;
 const body=native.replace(/^#include[^\n]*\n/gm,'');
 const tests=`
-void publish(MoonlightInstance& app,int owner,int type=2,bool second=false,int buttons=0,int secondOwner=1,int secondType=3) {
+void publish(MoonlightInstance& app,int owner,int type=2,bool second=false,int buttons=0,int secondOwner=1,int secondType=3,int special=0,int backStart=0) {
  GamepadSnapshot s{};s.numGamepads=4;s.pads[0].connected=owner!=0;s.pads[0].controllerType=type;
  std::memcpy(reinterpret_cast<char*>(&s.pads[0])+12,&owner,4);s.pads[0].numButtons=17;
  s.pads[0].capabilities=LI_CCAP_ANALOG_TRIGGERS|LI_CCAP_RUMBLE;
- s.pads[0].digitalButton[0]=buttons;
+ s.pads[0].digitalButton[0]=buttons;s.pads[0].digitalButton[16]=special;
+ s.pads[0].digitalButton[8]=backStart;s.pads[0].digitalButton[9]=backStart;
  s.pads[0].axis[0]=.125f;s.pads[0].axis[1]=-.5f;s.pads[0].axis[2]=.25f;s.pads[0].axis[3]=-.75f;
  s.pads[0].analogButton[6]=.25f;s.pads[0].analogButton[7]=.75f;
  if(second){s.pads[1]=s.pads[0];s.pads[1].connected=1;s.pads[1].digitalButton[0]=0;const int32_t other=secondOwner;std::memcpy(reinterpret_cast<char*>(&s.pads[1])+12,&other,4);s.pads[1].controllerType=secondType;}
@@ -110,8 +112,12 @@ int main(int argc,char** argv) {
    return 0;
  }
  publish(app,1,2,true);assert(events.size()==4);assert(events[0].kind==1&&events[0].type==2);
+ assert(std::count(posts.begin(),posts.end(),"controllerFound: 0")==1);
+ assert(std::count(posts.begin(),posts.end(),"controllerFound: 1")==1);
  auto n=events.size();publish(app,1,2,true);assert(events.size()==n);
  publish(app,2,1,true);assert(events.size()==n+3);
+ assert(std::count(posts.begin(),posts.end(),"controllerLost: 0")==1);
+ assert(std::count(posts.begin(),posts.end(),"controllerFound: 0")==2);
  assert(events[n].kind==2&&events[n].id==0&&events[n].mask==2&&events[n].buttons==0);
  assert(events[n+1].kind==1&&events[n+1].id==0&&events[n+1].type==1);
  assert(events[n+2].kind==2&&events[n+2].id==0);
@@ -145,7 +151,29 @@ int main(int argc,char** argv) {
  publish(app,0,2,true);n=events.size();publish(app,6,2,true);assert(events.size()==n+2);
  app.HandleGamepadInputState(false,false);events.clear();publish(app,6,2,true);
  assert(events[0].kind==1&&!(events[0].buttons&LI_CCAP_RUMBLE));
- std::cout<<"controller identity native: ordered release/arrival, two slots, same-family replacement, failed enqueue, idle and rumble OFF PASS\\n";
+ // Guide is edge-latched; Back+Start is an independent fallback. Both are
+ // consumed: the host sees a neutral packet, never the system gesture.
+ posts.clear();publish(app,6,2,true,0,1,3,0,0);publish(app,6,2,true,0,1,3,0,0);
+ n=events.size();publish(app,6,2,true,0,1,3,1);
+ assert(std::count(posts.begin(),posts.end(),"guideButton")==2);
+ assert(events.size()==n+2&&events[n].buttons==0&&events[n+1].buttons==0);
+ const auto size=events.size();publish(app,6,2,true,0,1,3,1);
+ assert(posts.size()==2);assert(events.size()==size);
+ publish(app,6,2,true,0,1,3,0);publish(app,6,2,true,0,1,3,0);
+ publish(app,6,2,true,0,1,3,1);assert(posts.size()==4);
+ publish(app,6,2,true,0,1,3,0);publish(app,6,2,true,0,1,3,0);
+ publish(app,6,2,true,0,1,3,0,0);publish(app,6,2,true,0,1,3,0,0);
+ n=events.size();publish(app,6,2,true,0,1,3,0,1);
+ assert(posts.size()==6);
+ assert(events.size()==n+2&&events[n].buttons==0&&events[n+1].buttons==0);
+ publish(app,6,2,true,0,1,3,0,0);publish(app,6,2,true,0,1,3,0,0);
+ // Suppression releases both pads exactly once and holds neutral until resumed.
+ setInputSuppressed(1);n=events.size();publish(app,6,2,true,1);
+ assert(events.size()==n+2&&events[n].buttons==0&&events[n+1].buttons==0);
+ n=events.size();publish(app,6,2,true,0);assert(events.size()==n);
+ setInputSuppressed(0);publish(app,6,2,true,1);
+ assert(events.size()==n+2&&events[n].buttons==A_FLAG&&events[n+1].buttons==0);
+ std::cout<<"controller identity native: ordered release/arrival, two slots, same-family replacement, failed enqueue, idle, rumble OFF, Guide/fallback and neutral suppression PASS\\n";
 }
 `;
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'controller-identity-'));
@@ -162,7 +190,7 @@ try {
    'const short retainedMask = activeGamepadMask & ~replacedMask;'));
  assert.notStrictEqual(cp.spawnSync(unsafe,[],{stdio:'pipe'}).status,0,'negative control must detect retirement of another channel owner');
  const old=cp.execFileSync('git',['show','0b77114:wasm/gamepad.cpp'],{encoding:'utf8'});
- const baseline=build('baseline',old);
+ const baseline=build('baseline',old+'\nextern "C" void setInputSuppressed(int) {}\n');
  assert.strictEqual(cp.execFileSync(bin,['healthy'],{encoding:'utf8'}),cp.execFileSync(baseline,['healthy'],{encoding:'utf8'}),'healthy input event trace matches previous code exactly');
  assert.strictEqual(cp.execFileSync(baseline,['replacement'],{encoding:'utf8'}),'0','baseline misses same-family replacement');
  assert.strictEqual(cp.execFileSync(bin,['replacement'],{encoding:'utf8'}),'3','replacement releases, announces and resends current state');

@@ -102,6 +102,13 @@ static std::atomic<uint32_t> s_gamepadSession{0};
 // True only while an unchanged snapshot still needs time-based work: a held
 // stick driving mouse emulation or the one-second mouse-mode long press.
 static std::atomic<bool> s_inputNeedsTimedWake{false};
+// Set only by the system overlay. Native input remains the single writer of
+// host packets, so suppression is one atomic neutral transition, not a JS race.
+static std::atomic<bool> s_inputSuppressed{false};
+
+extern "C" EMSCRIPTEN_KEEPALIVE void setInputSuppressed(int suppressed) {
+  s_inputSuppressed.store(suppressed != 0, std::memory_order_release);
+}
 
 // Copies a coherent snapshot. Every payload word is accessed atomically on
 // both sides of the WASM heap; the sequence word detects an update that began
@@ -223,6 +230,7 @@ void MoonlightInstance::HandleGamepadInputState(bool rumbleFeedback, bool mouseE
   mouseEmulationSwitch = mouseEmulation;
   mouseEmulationActive = false;
   s_inputNeedsTimedWake.store(false, std::memory_order_release);
+  s_inputSuppressed.store(false, std::memory_order_release);
   s_gamepadSession.fetch_add(1, std::memory_order_release);
 }
 
@@ -259,6 +267,7 @@ void MoonlightInstance::PollGamepads() {
   static ControllerPacketState lastPacket[kMaxSnapshotPads] = {};
   static bool packetValid[kMaxSnapshotPads] = {};
   static bool comboTriggered[kMaxSnapshotPads] = {};
+  static bool guideLatched[kMaxSnapshotPads] = {};
   static bool longPressLatched[kMaxSnapshotPads] = {};
   static std::chrono::steady_clock::time_point playPressedAt[kMaxSnapshotPads] = {};
   static unsigned char mouseButtonMask = 0;
@@ -273,6 +282,7 @@ void MoonlightInstance::PollGamepads() {
     std::memset(lastPacket, 0, sizeof(lastPacket));
     std::memset(packetValid, 0, sizeof(packetValid));
     std::memset(comboTriggered, 0, sizeof(comboTriggered));
+    std::memset(guideLatched, 0, sizeof(guideLatched));
     std::memset(longPressLatched, 0, sizeof(longPressLatched));
     for (auto& pressedAt : playPressedAt) {
       pressedAt = {};
@@ -320,7 +330,9 @@ void MoonlightInstance::PollGamepads() {
         lastConnectedMask &= ~bit;
         packetValid[gamepadID] = false;
         comboTriggered[gamepadID] = false;
+        guideLatched[gamepadID] = false;
         longPressLatched[gamepadID] = false;
+        PostToJsAsync("controllerLost: " + std::to_string(gamepadID));
         playPressedAt[gamepadID] = {};
       }
     }
@@ -338,6 +350,7 @@ void MoonlightInstance::PollGamepads() {
         lastConnectedMask |= bit;
         lastConnectionGeneration[gamepadID] = gamepad.connectionGeneration;
         packetValid[gamepadID] = false;
+        PostToJsAsync("controllerFound: " + std::to_string(gamepadID));
       }
     }
   }
@@ -364,6 +377,32 @@ void MoonlightInstance::PollGamepads() {
       ClampAxis(gamepad.axis[GamepadAxis::RightX]) * 32767.0f));
     packet.rightStickY = static_cast<short>(std::lround(
       -ClampAxis(gamepad.axis[GamepadAxis::RightY]) * 32767.0f));
+
+    const bool suppressed = s_inputSuppressed.load(std::memory_order_acquire);
+    if (suppressed) {
+      guideLatched[gamepadID] = false;
+      // One neutral packet releases held gameplay/mouse input atomically. Later
+      // identical packets are suppressed by the existing packetValid path.
+      packet = {};
+    } else {
+      // Guide is normally button 16. Back+Start is a separate fallback, not a
+      // replacement for the existing four-button stop and stats combinations.
+      // The system gesture is consumed: while it is held the host receives a
+      // neutral packet, so the PC does not also open its own overlay or read a
+      // partially released fallback as a fresh Start press.
+      const bool specialHeld = (packet.buttonFlags & SPECIAL_FLAG) != 0;
+      const bool backStartCombo = packet.buttonFlags == (BACK_FLAG | PLAY_FLAG);
+      if (!guideLatched[gamepadID] && (specialHeld || backStartCombo)) {
+        guideLatched[gamepadID] = true;
+        PostToJsAsync("guideButton");
+      }
+      if (guideLatched[gamepadID]) {
+        if (!specialHeld && (packet.buttonFlags & (BACK_FLAG | PLAY_FLAG)) == 0) {
+          guideLatched[gamepadID] = false;
+        }
+        packet = {};
+      }
+    }
 
     // Check if the current button flags match the defined button combination on the gamepad
     if (packet.buttonFlags == STOP_STREAM_BUTTONS) {
