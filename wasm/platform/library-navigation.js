@@ -1,6 +1,6 @@
 // Shared menu-only directional input. The streaming publisher never uses this state.
 var LibraryNavigation = (function() {
-  var pads = Object.create(null), owner = null, direction = null, timer = null, epoch = 0;
+  var pads = Object.create(null), owner = null, direction = null, timer = null, epoch = 0, nextRepeatAt = 0;
   var activate = 0.5, release = 0.35, initialDelay = 350, repeatInterval = 100;
   // Digital buttons mirror the stick hysteresis: act on the first press, then
   // require a stable release before accepting another edge from the same pad.
@@ -14,11 +14,12 @@ var LibraryNavigation = (function() {
     ++epoch;
     clearTimeout(timer); timer = null; direction = null; owner = null;
   }
-  function reset() { cancelRepeat(); pads = Object.create(null); }
+  function reset() { cancelRepeat(); nextRepeatAt = 0; pads = Object.create(null); }
   function viewChanged() {
     // Retain held directions as suppressed until release or a new direction.
     // A stick held at a view boundary must not immediately move its new menu.
     cancelRepeat();
+    nextRepeatAt = 0;
   }
   function disconnect(index) {
     delete pads[index];
@@ -71,7 +72,10 @@ var LibraryNavigation = (function() {
       timer = null;
       if (!available()) { reset(); return; }
       Navigation[direction]();
-      if (token === epoch && available()) schedule(repeatInterval, token);
+      if (token === epoch && available()) {
+        nextRepeatAt += repeatInterval;
+        schedule(repeatInterval, token);
+      }
       else if (token === epoch) reset();
     }, delay);
   }
@@ -81,7 +85,7 @@ var LibraryNavigation = (function() {
     var index = detail.padIndex === undefined ? 0 : detail.padIndex;
     var pad = pads[index];
     if (!pad) pad = pads[index] = {buttons: Object.create(null), axes: [0, 0], x: 0, y: 0};
-    var action = null, now = Date.now();
+    var action = null, dpadBounce = false, now = Date.now();
     // Resolve the complete poll before choosing a direction: release order is
     // not meaningful when left and right change together.
     detail.changes.forEach(function(change) {
@@ -89,7 +93,9 @@ var LibraryNavigation = (function() {
         if ((change.index >= 12 && change.index <= 15) ||
             change.index === 0 || change.index === 1 || change.index === 3 || change.index === 8) {
           var fresh = digital(pad, change.index, !!change.pressed, now);
-          if (change.pressed && fresh) {
+          if (change.index >= 12 && change.index <= 15) {
+            if (change.pressed && !fresh) dpadBounce = true;
+          } else if (change.pressed && fresh) {
             if (change.index === 0) action = 'accept';
             else if (change.index === 1) action = 'back';
             else if (change.index === 3 || change.index === 8) action = 'press';
@@ -111,15 +117,33 @@ var LibraryNavigation = (function() {
       Navigation[action]();
       return true;
     }
+    // A contact bounce repeats the direction that was already held. Resume the
+    // planned cadence instead of emitting a second step or stealing focus.
+    if (dpadBounce && next && next === pad.lastDirection) {
+      if (owner !== null && owner !== index) return true;
+      if (owner === index && timer) return true;
+      // A view change cancelled the cadence: keep the held direction suppressed.
+      if (!nextRepeatAt) return true;
+      cancelRepeat();
+      owner = index; direction = next;
+      var resumeAt = Math.max(nextRepeatAt, now + repeatInterval);
+      nextRepeatAt = resumeAt;
+      schedule(resumeAt - now, epoch);
+      return true;
+    }
     // A different pad's unchanged held direction/noise must not steal focus.
     if (owner !== index && (!next || next === previous)) return true;
     if (owner === index && next === direction) return true;
     cancelRepeat();
     if (!next) return true;
     owner = index; direction = next;
+    pad.lastDirection = next;
     var token = epoch;
     Navigation[direction]();
-    if (token === epoch && available()) schedule(initialDelay, token);
+    if (token === epoch && available()) {
+      nextRepeatAt = now + initialDelay;
+      schedule(initialDelay, token);
+    }
     else if (token === epoch) reset();
     return true;
   }

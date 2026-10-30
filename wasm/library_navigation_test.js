@@ -131,6 +131,19 @@ for(const [button,action] of [[0,'accept'],[1,'back'],[3,'press'],[8,'press']]) 
  f.button(button,false);f.advance(64);f.advance(128);f.button(button,true);f.advance(144);
  assert.deepStrictEqual(f.moves.map(m=>m[1]),[16,144],'stable release re-arms button '+button);
 }
+const dpadBounce=fixture();dpadBounce.button(15,true);dpadBounce.advance(16);
+dpadBounce.button(15,false);dpadBounce.advance(32);dpadBounce.button(15,true);dpadBounce.advance(48);
+dpadBounce.advance(400);
+assert.deepStrictEqual(dpadBounce.moves.map(m=>m[1]),[16,366],'D-pad bounce resumes the planned repeat');
+const dpadView=fixture();dpadView.button(15,true);dpadView.advance(16);dpadView.c.LibraryNavigation.viewChanged();
+dpadView.button(15,false);dpadView.advance(32);dpadView.button(15,true);dpadView.advance(48);
+dpadView.advance(1000);assert.deepStrictEqual(dpadView.moves,[['right',16]],'held D-pad stays suppressed after a view change');
+const dpadAgain=fixture();dpadAgain.button(15,true);dpadAgain.advance(16);
+dpadAgain.button(15,false);dpadAgain.advance(32);dpadAgain.advance(100);dpadAgain.button(15,true);dpadAgain.advance(116);
+assert.deepStrictEqual(dpadAgain.moves.map(m=>m[1]),[16,112],'stable release re-arms the D-pad');
+const dpadOther=fixture();dpadOther.button(15,true);dpadOther.advance(16);
+dpadOther.button(15,false);dpadOther.advance(32);dpadOther.button(14,true);dpadOther.advance(48);
+assert.deepStrictEqual(dpadOther.moves.map(m=>[m[0],m[1]]),[['right',16],['left',48]],'a new direction is not delayed');
 const idle=fixture();idle.advance(10000);assert.strictEqual(idle.moves.length,0);assert.strictEqual(idle.timers.size,1);
 const accepting=fixture();accepting.button(0,true);
 for(let t=0;t<160;t+=16){accepting.axis(t%32?.79:.81);accepting.advance(t+16);}
@@ -222,4 +235,4 @@ for(const [file,from,to]of [
  ['wasm/platform/navigation.js','viewStack.push(view);','viewStack.push(null);']]){
  assert.notStrictEqual(normalize(file,read(file).replace(from,to)),old(file),'neighboring mutation rejected');
 }
-console.log('library_navigation_test: real polling/listener and view stack; library/Settings/PCs/add-PC/pairing corrected, 350/100 ms single timer, hysteresis, button bounce/release gate, reversal, two pads, modal transitions/held-axis suppression, stale callbacks, confirm/back, stop/start and frozen gameplay PASS (synthetic timing, not TV latency)');
+console.log('library_navigation_test: real polling/listener and view stack; library/Settings/PCs/add-PC/pairing corrected, 350/100 ms single timer, hysteresis, button/D-pad bounce gate with preserved repeat cadence, reversal, two pads, modal transitions/held-axis suppression, stale callbacks, confirm/back, stop/start and frozen gameplay PASS (synthetic timing, not TV latency)');
