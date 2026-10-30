@@ -199,6 +199,7 @@ function fixture(options = {}) {
     assert.deepStrictEqual(f.calls.suppressed, [1, 0]);
     assert.strictEqual(f.frames.size, 0);
     assert.strictEqual(f.timers.size, 0);
+    assert(f.document.getElementById('wasm_module').focused > 0, 'keyboard focus returns to the stream canvas');
   }
 
   {

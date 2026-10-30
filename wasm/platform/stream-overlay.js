@@ -17,6 +17,7 @@ var StreamOverlay = (function() {
   var confirmText = null, noticeEl = null;
   var actionButtons = [], confirmButtons = [];
   var frameHandle = 0, releaseTimer = 0, nextRefresh = 0, lastToggleAt = 0;
+  var resumeFocus = false;
   var pads = Object.create(null), lost = Object.create(null);
   var errorText = '';
 
@@ -237,6 +238,14 @@ var StreamOverlay = (function() {
     frameHandle = 0;
   }
 
+  function focusCanvas() {
+    if (typeof isInGame !== 'undefined' && !isInGame) return;
+    var canvas = document.getElementById('wasm_module');
+    if (canvas && typeof canvas.focus === 'function') {
+      try { canvas.focus(); } catch (e) {}
+    }
+  }
+
   function finishClose() {
     closing = false;
     open = false;
@@ -246,6 +255,10 @@ var StreamOverlay = (function() {
       releaseTimer = 0;
     }
     setSuppressed(0);
+    if (resumeFocus) {
+      resumeFocus = false;
+      focusCanvas();
+    }
     notice();
   }
 
@@ -264,6 +277,7 @@ var StreamOverlay = (function() {
     confirmBox.hidden = true;
     open = true;
     pads = Object.create(null);
+    resumeFocus = false;
     setSuppressed(1);
     FocusManager.open(actionButtons, 0);
     refresh();
@@ -292,6 +306,7 @@ var StreamOverlay = (function() {
       confirm = false;
       busy = false;
       errorText = '';
+      resumeFocus = false;
       root.hidden = true;
       noticeEl.hidden = true;
       lost = Object.create(null);
@@ -311,6 +326,7 @@ var StreamOverlay = (function() {
     confirmBox.hidden = true;
     FocusManager.close();
     closing = true;
+    resumeFocus = true;
     startFrames();
     if (releaseTimer) clearTimeout(releaseTimer);
     releaseTimer = setTimeout(function() {
