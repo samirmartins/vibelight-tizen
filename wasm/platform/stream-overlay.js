@@ -221,7 +221,7 @@ var StreamOverlay = (function() {
     setText(status, busy ? translate('Ending the game on the PC...') : translate(errorText));
     setText(hint, translate('Disconnect keeps the game on the PC.') + ' ' +
       translate('End game closes it on the PC.') + '\n' +
-      translate('Volume: Left/Right adjusts; A toggles mute.'));
+      translate('Volume: Left/Right adjusts; Confirm toggles mute.'));
     if (hint) hint.hidden = confirm;
     var defs = actions();
     for (var i = 0; i < defs.length && i < actionButtons.length; i++) {

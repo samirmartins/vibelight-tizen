@@ -412,7 +412,7 @@ var MenuTranslations = [
   ["— Open this guide.", "— Abrir este guia.", "— Abrir esta guía."],
   ["Disconnect keeps the game on the PC.", "Desconectar mantém o jogo no PC.", "Desconectar mantiene el juego en el PC."],
   ["End game closes it on the PC.", "Encerrar fecha o jogo no PC.", "Cerrar juego lo cierra en el PC."],
-  ["Volume: Left/Right adjusts; A toggles mute.", "Volume: Esquerda/Direita ajusta; A liga/desliga o mudo.", "Volumen: Izquierda/Derecha ajusta; A activa/desactiva el silencio."],
+  ["Volume: Left/Right adjusts; Confirm toggles mute.", "Volume: Esquerda/Direita ajusta; Confirmar alterna o mudo.", "Volumen: Izquierda/Derecha ajusta; Confirmar alterna el silencio."],
   ["Controller disconnected. Reconnect it.", "Controle desconectado. Reconecte-o.", "Mando desconectado. Vuelve a conectarlo."],
   ["Controllers disconnected. Reconnect them.", "Controles desconectados. Reconecte-os.", "Mandos desconectados. Vuelve a conectarlos."],
   ["Controller {0}", "Controle {0}", "Mando {0}"],
