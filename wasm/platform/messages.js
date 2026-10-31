@@ -203,14 +203,6 @@ function handleMessage(msg) {
     if (typeof MenuI18n !== 'undefined' && document.getElementById('loadingSpinner').style.display !== 'none') MenuI18n.connectionDialog();
   } else if (msg === 'guideButton') {
     if (typeof StreamOverlay !== 'undefined' && isInGame && !document.hidden) StreamOverlay.toggle();
-  } else if (msg.indexOf('controllerLost: ') === 0) {
-    if (typeof StreamOverlay !== 'undefined') {
-      StreamOverlay.controllerLost(parseInt(msg.replace('controllerLost: ', ''), 10));
-    }
-  } else if (msg.indexOf('controllerFound: ') === 0) {
-    if (typeof StreamOverlay !== 'undefined') {
-      StreamOverlay.controllerFound(parseInt(msg.replace('controllerFound: ', ''), 10));
-    }
   } else if (msg === 'displayVideo') {
     // Show the video stream now
     $('#listener').addClass('fullscreen');

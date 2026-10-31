@@ -14,11 +14,11 @@ var StreamOverlay = (function() {
   var built = false, open = false, closing = false, busy = false, confirm = false;
   var maskState = 0;
   var root = null, title = null, status = null, list = null, hint = null, confirmBox = null;
-  var confirmText = null, noticeEl = null;
-  var actionButtons = [], confirmButtons = [];
+  var confirmText = null;
+  var actionButtons = [], actionLabels = [], confirmButtons = [];
   var frameHandle = 0, releaseTimer = 0, nextRefresh = 0, lastToggleAt = 0;
   var resumeFocus = false;
-  var pads = Object.create(null), lost = Object.create(null);
+  var pads = Object.create(null);
   var errorText = '';
 
   function translate(value) {
@@ -148,19 +148,23 @@ var StreamOverlay = (function() {
 
   function actions() {
     return [
-      {id: 'resume', label: function() { return translate('Resume'); },
+      {id: 'resume', icon: 'play_arrow', label: function() { return translate('Resume'); },
+       meta: 'Back to the game', primary: true,
        run: function() { close(); }},
-      {id: 'volume', label: volumeLabel,
+      {id: 'volume', icon: 'volume_up', label: volumeLabel, meta: 'Left/Right adjusts',
        adjust: function(delta) { adjustVolume(delta); },
        run: toggleMute},
-      {id: 'stats', label: statsLabel, run: toggleStats},
-      {id: 'disconnect', label: function() { return translate('Disconnect'); },
+      {id: 'stats', icon: 'bar_chart', label: statsLabel, meta: 'Show or hide',
+       run: toggleStats},
+      {id: 'disconnect', icon: 'link_off', label: function() { return translate('Disconnect'); },
+       meta: 'Keeps the game on the PC',
        run: function() {
          if (typeof StreamSession === 'undefined' || !StreamSession.disconnect()) {
            failed('Could not stop the stream.');
          }
        }},
-      {id: 'end', label: function() { return translate('End game on PC'); },
+      {id: 'end', icon: 'power_settings_new', label: function() { return translate('End game on PC'); },
+       meta: 'Closes the game on the PC', danger: true,
        run: askEndGame}
     ];
   }
@@ -173,27 +177,56 @@ var StreamOverlay = (function() {
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
     panel.setAttribute('aria-labelledby', 'streamOverlayTitle');
-    title = create('h3', 'streamOverlayTitle', 'stream-overlay-title');
-    status = create('div', 'streamOverlayStatus', 'stream-overlay-status');
+    var header = create('div', 'streamOverlayHeader', 'streamOverlayHeader');
+    var heading = create('div', 'streamOverlayHeading', 'streamOverlayHeading');
+    heading.appendChild(create('span', 'streamOverlayEyebrow', 'streamOverlayEyebrow', 'VIBELIGHT'));
+    title = create('h3', 'streamOverlayTitle', 'streamOverlayTitle');
+    heading.appendChild(title);
+    var guide = create('div', 'streamOverlayGuide', 'streamOverlayGuide');
+    var guideIcon = create('i', null, 'material-icons', 'sports_esports');
+    guideIcon.setAttribute('aria-hidden', 'true');
+    guide.appendChild(guideIcon);
+    guide.appendChild(create('span', null, null, translate('Guide closes')));
+    header.appendChild(heading);
+    header.appendChild(guide);
+    status = create('div', 'streamOverlayStatus', 'streamOverlayStatus');
     status.setAttribute('aria-live', 'polite');
-    list = create('div', 'streamOverlayActions', 'stream-overlay-actions');
-    hint = create('p', 'streamOverlayHint', 'stream-overlay-hint');
+    list = create('div', 'streamOverlayActions', 'streamOverlayActions');
+    hint = create('p', 'streamOverlayHint', 'streamOverlayHint');
     var defs = actions();
     actionButtons = [];
+    actionLabels = [];
     for (var i = 0; i < defs.length; i++) {
-      var button = create('button', 'streamOverlay-' + defs[i].id, 'console-button');
+      var classes = 'console-button streamOverlayAction';
+      if (defs[i].primary) classes += ' streamOverlayPrimary';
+      if (defs[i].danger) classes += ' streamOverlayDanger';
+      var button = create('button', 'streamOverlay-' + defs[i].id, classes);
       button.setAttribute('type', 'button');
       button.setAttribute('data-action', defs[i].id);
+      var iconWrap = create('span', null, 'streamOverlayIcon');
+      var icon = create('i', null, 'material-icons', defs[i].icon);
+      icon.setAttribute('aria-hidden', 'true');
+      iconWrap.appendChild(icon);
+      var copy = create('span', null, 'streamOverlayCopy');
+      var label = create('span', 'streamOverlay-' + defs[i].id + '-label', 'streamOverlayLabel');
+      var meta = create('span', 'streamOverlay-' + defs[i].id + '-meta', 'streamOverlayMeta',
+        translate(defs[i].meta));
+      copy.appendChild(label);
+      copy.appendChild(meta);
+      button.appendChild(iconWrap);
+      button.appendChild(copy);
       list.appendChild(button);
       actionButtons.push(button);
+      actionLabels.push(label);
     }
-    confirmBox = create('div', 'streamOverlayConfirm', 'stream-overlay-confirm');
+    confirmBox = create('div', 'streamOverlayConfirm', 'streamOverlayConfirm');
     confirmBox.hidden = true;
-    confirmText = create('p', 'streamOverlayConfirmText', 'stream-overlay-confirm-text');
-    var confirmActions = create('div', null, 'stream-overlay-confirm-actions');
+    confirmText = create('p', 'streamOverlayConfirmText', 'streamOverlayConfirmText');
+    var confirmActions = create('div', 'streamOverlayConfirmActions', 'streamOverlayConfirmActions');
     confirmButtons = [];
     ['Yes', 'No'].forEach(function(label) {
-      var button = create('button', 'streamOverlayConfirm' + label, 'console-button');
+      var button = create('button', 'streamOverlayConfirm' + label,
+        'console-button streamOverlayConfirmButton');
       button.setAttribute('type', 'button');
       button.textContent = label;
       confirmActions.appendChild(button);
@@ -201,17 +234,13 @@ var StreamOverlay = (function() {
     });
     confirmBox.appendChild(confirmText);
     confirmBox.appendChild(confirmActions);
-    panel.appendChild(title);
+    panel.appendChild(header);
     panel.appendChild(status);
     panel.appendChild(list);
     panel.appendChild(hint);
     panel.appendChild(confirmBox);
     root.appendChild(panel);
     document.body.appendChild(root);
-
-    noticeEl = create('div', 'streamOverlayNotice', 'stream-overlay-notice');
-    noticeEl.hidden = true;
-    document.body.appendChild(noticeEl);
     built = true;
   }
 
@@ -219,13 +248,16 @@ var StreamOverlay = (function() {
     if (!built || (!open && !closing)) return;
     setText(title, translate('Stream menu'));
     setText(status, busy ? translate('Ending the game on the PC...') : translate(errorText));
-    setText(hint, translate('Disconnect keeps the game on the PC.') + ' ' +
-      translate('End game closes it on the PC.') + '\n' +
-      translate('Volume: Left/Right adjusts; Confirm toggles mute.'));
+    setText(hint, translate('Volume: Left/Right adjusts; Confirm toggles mute.'));
     if (hint) hint.hidden = confirm;
     var defs = actions();
     for (var i = 0; i < defs.length && i < actionButtons.length; i++) {
-      setText(actionButtons[i], defs[i].label());
+      var label = defs[i].label();
+      setText(actionLabels[i], label);
+      if (actionButtons[i]) {
+        actionButtons[i].setAttribute('aria-label',
+          label + (defs[i].meta ? '. ' + translate(defs[i].meta) : ''));
+      }
     }
     setText(confirmText, translate('End the game on the PC?') + ' ' +
       translate('The running game will be closed. Unsaved progress may be lost.'));
@@ -265,7 +297,6 @@ var StreamOverlay = (function() {
       resumeFocus = false;
       focusCanvas();
     }
-    notice();
   }
 
   function openMenu() {
@@ -314,8 +345,6 @@ var StreamOverlay = (function() {
       errorText = '';
       resumeFocus = false;
       root.hidden = true;
-      noticeEl.hidden = true;
-      lost = Object.create(null);
       FocusManager.close();
       finishClose();
       return true;
@@ -529,29 +558,6 @@ var StreamOverlay = (function() {
     if ((open || closing) && !frameHandle) frameHandle = window.requestAnimationFrame(tick);
   }
 
-  function notice() {
-    if (!noticeEl) return;
-    var count = Object.keys(lost).length;
-    if (!count || (typeof isInGame !== 'undefined' && !isInGame)) {
-      noticeEl.hidden = true;
-      return;
-    }
-    noticeEl.textContent = translate(count === 1
-      ? 'Controller disconnected. Reconnect it.' : 'Controllers disconnected. Reconnect them.');
-    noticeEl.hidden = false;
-  }
-
-  function controllerLost(index) {
-    if (!built) build();
-    lost[index] = true;
-    notice();
-  }
-
-  function controllerFound(index) {
-    delete lost[index];
-    notice();
-  }
-
   document.addEventListener('visibilitychange', function() {
     if (!document.hidden) return;
     close(true);
@@ -565,8 +571,6 @@ var StreamOverlay = (function() {
     busy: busyState,
     failed: failed,
     refresh: refresh,
-    controllerLost: controllerLost,
-    controllerFound: controllerFound,
     release: function() { setSuppressed(0); },
     isOpen: function() { return open; },
     config: function() { return config; },

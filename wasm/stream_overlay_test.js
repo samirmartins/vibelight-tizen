@@ -151,11 +151,16 @@ function fixture(options = {}) {
     assert.deepStrictEqual(f.calls.suppressed, [1]);
     assert.strictEqual(f.frames.size, 1);
     assert.strictEqual(f.document.getElementById('streamOverlay').hidden, false);
-    assert.strictEqual(f.text('streamOverlay-resume'), 'Retomar', 'bundled pt-BR label');
-    assert.strictEqual(f.text('streamOverlay-disconnect'), 'Desconectar');
-    assert(f.text('streamOverlayHint').includes('Desconectar mantém o jogo no PC.'));
+    assert.strictEqual(f.text('streamOverlay-resume-label'), 'Retomar', 'bundled pt-BR label');
+    assert.strictEqual(f.text('streamOverlay-resume-meta'), 'Voltar ao jogo');
+    assert(f.c.document.getElementById('streamOverlay-resume').className.includes('streamOverlayPrimary'));
+    assert(f.c.document.getElementById('streamOverlay-end').className.includes('streamOverlayDanger'));
+    assert.strictEqual(f.text('streamOverlay-disconnect-label'), 'Desconectar');
+    assert.strictEqual(f.text('streamOverlay-disconnect-meta'), 'Mantém o jogo no PC');
     assert(f.text('streamOverlayHint').includes('Volume: Esquerda/Direita ajusta'));
-    assert.strictEqual(f.text('streamOverlay-end'), 'Encerrar jogo no PC');
+    assert(f.text('streamOverlayHint').includes('Confirmar alterna o mudo'));
+    assert.strictEqual(f.text('streamOverlay-end-label'), 'Encerrar jogo no PC');
+    assert.strictEqual(f.text('streamOverlay-end-meta'), 'Fecha o jogo no PC');
     f.step(); // prime the pad without acting on a held button
 
     // Navigation wraps and repeats without an interval timer.
@@ -176,7 +181,7 @@ function fixture(options = {}) {
     assert.strictEqual(f.calls.toggleStats, 1);
     f.document.getElementById('performanceStatsSwitch').checked = true;
     f.c.StreamOverlay.refresh();
-    assert.strictEqual(f.text('streamOverlay-stats'), 'Estatísticas: ativadas');
+    assert.strictEqual(f.text('streamOverlay-stats-label'), 'Estatísticas: ativadas');
 
     // Volume step comes from the overlay config and mute is visible.
     f.c.FocusManager.select(1);
@@ -186,7 +191,7 @@ function fixture(options = {}) {
     f.press({0: true});
     f.release();
     assert.strictEqual(f.c.tizen.tvaudiocontrol.muted, true);
-    assert.strictEqual(f.text('streamOverlay-volume'), 'Volume: mudo');
+    assert.strictEqual(f.text('streamOverlay-volume-label'), 'Volume: mudo');
     f.press({0: true});
     f.release();
     assert.strictEqual(f.c.tizen.tvaudiocontrol.muted, false);
@@ -224,18 +229,6 @@ function fixture(options = {}) {
     f.press({8: true, 9: true});
     f.release();
     assert.strictEqual(f.c.StreamOverlay.isOpen(), false, 'Back+Start fallback closes the menu');
-  }
-
-  {
-    const f = fixture();
-    f.c.StreamOverlay.controllerLost(0);
-    assert.strictEqual(f.document.getElementById('streamOverlayNotice').hidden, false);
-    assert.strictEqual(f.document.getElementById('streamOverlayNotice').textContent, 'Controle desconectado. Reconecte-o.');
-    f.c.StreamOverlay.controllerLost(1);
-    assert.strictEqual(f.document.getElementById('streamOverlayNotice').textContent, 'Controles desconectados. Reconecte-os.');
-    f.c.StreamOverlay.controllerFound(0);
-    f.c.StreamOverlay.controllerFound(1);
-    assert.strictEqual(f.document.getElementById('streamOverlayNotice').hidden, true);
   }
 
   {
@@ -382,9 +375,7 @@ function fixture(options = {}) {
       $() { return {css() { return this; }, removeClass() { return this; }, addClass() { return this; }, prop() { return false; }}; },
       showApps() { calls.showApps = (calls.showApps || 0) + 1; },
       StreamOverlay: {
-        toggle() { calls.toggled++; },
-        controllerLost(value) { calls.lost.push(value); },
-        controllerFound(value) { calls.found.push(value); }
+        toggle() { calls.toggled++; }
       },
       StreamSession: {terminated() { calls.terminated++; }},
       setTimeout() { return 1; },
@@ -399,8 +390,8 @@ function fixture(options = {}) {
     c.handleMessage('controllerFound: 2');
     c.handleMessage('streamTerminated: 0');
     assert.strictEqual(calls.toggled, 1);
-    assert.deepStrictEqual(calls.lost, [2]);
-    assert.deepStrictEqual(calls.found, [2]);
+    assert.strictEqual(typeof c.StreamOverlay.controllerLost, 'undefined',
+      'the lost-controller notice is gone');
     assert.strictEqual(calls.terminated, 1);
     assert.strictEqual(calls.showApps, 1, 'the termination handler still owns the single return');
     c.isInGame = false;
@@ -408,5 +399,5 @@ function fixture(options = {}) {
     assert.strictEqual(calls.toggled, 1, 'Guide is inert outside a stream');
   }
 
-  console.log('stream_overlay_test: atomic mask, Guide/fallback, pt-BR labels, navigation, volume, stats, disconnect, confirmed end-on-PC, lost-controller notice, config and message dispatch PASS (synthetic inputs)');
+  console.log('stream_overlay_test: atomic mask, Guide/fallback, pt-BR labels, navigation, volume, stats, disconnect, confirmed end-on-PC, styled action cards, config and message dispatch PASS (synthetic inputs)');
 })().catch(error => { console.error(error); process.exitCode = 1; });
