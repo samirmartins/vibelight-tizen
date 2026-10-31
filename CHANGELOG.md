@@ -60,6 +60,25 @@ that reason: the two lines are separate and should never be read as one.
 - Normal and ForceGM remain the same application code; only package metadata,
   signatures and the Game Mode request differ
 
+## v4.0.0
+
+### Improved
+- Adds persistent English, Portuguese (Brazil) and Spanish selection to the
+  menu, with flags and a saved language preference
+- Translates launch, progress, dialog and menu text without localizing live
+  gameplay content, game titles or host-provided text
+- Keeps the existing application identity, settings and streaming behavior
+  while the language change applies to the visible interface
+
+## v3.4.15
+
+### Improved
+- Adds a release notice that checks the latest published version and shows it
+  in the menu when a newer release is available
+- Uses a larger VibeLight splash logo during startup
+- Prepares the 3.4.15 package without changing streaming, controller or saved
+  settings behavior
+
 ## v3.4.14
 
 ### Improved
