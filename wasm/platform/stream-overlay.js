@@ -19,6 +19,7 @@ var StreamOverlay = (function() {
   var frameHandle = 0, releaseTimer = 0, nextRefresh = 0, lastToggleAt = 0;
   var resumeFocus = false;
   var pads = Object.create(null);
+  var muteState = null;
   var errorText = '';
 
   function translate(value) {
@@ -84,11 +85,20 @@ var StreamOverlay = (function() {
     return null;
   }
 
+  function mutedNow() {
+    if (muteState !== null) return muteState;
+    var control = volumeApi();
+    try {
+      if (control && typeof control.getMute === 'function') return !!control.getMute();
+    } catch (e) {}
+    return false;
+  }
+
   function volumeLabel() {
     var control = volumeApi();
     if (!control) return translate('Volume: unavailable');
     try {
-      if (typeof control.getMute === 'function' && control.getMute()) return translate('Volume: muted');
+      if (mutedNow()) return translate('Volume: muted');
       if (typeof control.getVolume === 'function') {
         var level = Number(control.getVolume());
         if (isFinite(level)) return translate('Volume: ' + Math.round(level) + '%');
@@ -110,8 +120,9 @@ var StreamOverlay = (function() {
     var control = volumeApi();
     if (!control || !delta) return;
     try {
-      if (typeof control.getMute === 'function' && control.getMute() && typeof control.setMute === 'function') {
+      if (mutedNow() && typeof control.setMute === 'function') {
         control.setMute(false);
+        muteState = false;
       }
       if (typeof control.getVolume === 'function' && typeof control.setVolume === 'function') {
         var current = Number(control.getVolume());
@@ -129,12 +140,13 @@ var StreamOverlay = (function() {
 
   function toggleMute() {
     var control = volumeApi();
-    if (!control) return;
+    if (!control || typeof control.setMute !== 'function') return;
+    var next = !mutedNow();
     try {
-      if (typeof control.setMute === 'function') {
-        var muted = typeof control.getMute === 'function' && control.getMute();
-        control.setMute(!muted);
-      }
+      control.setMute(next);
+      // Some TV firmware reports the old mute state right after setMute.
+      // Keep the requested state so the next Confirm can always reverse it.
+      muteState = next;
     } catch (e) {}
     refresh();
   }
@@ -306,6 +318,7 @@ var StreamOverlay = (function() {
     if (typeof StreamSession !== 'undefined' && StreamSession.isPending()) return false;
     config = loadConfig();
     build();
+    muteState = null;
     errorText = '';
     busy = false;
     confirm = false;

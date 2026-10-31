@@ -97,7 +97,15 @@ function pad(index, id) {
 
   f.c.ControllerIdentity.refreshPlayers();
   assert.strictEqual(f.badge.hidden, false);
-  assert.strictEqual(f.badge.textContent, 'Controller 1 · Xbox | Controller 2 · Nintendo');
+  assert.strictEqual(f.badge.textContent, 'Controller 1 · Xbox | Controller 2 · Switch');
+  f.c.MenuI18n = {text(value) { return value.replace('Controller', 'Mando'); }};
+  f.c.ControllerIdentity.refreshPlayers();
+  assert.strictEqual(f.badge.textContent, 'Mando 1 · Xbox | Mando 2 · Switch', 'badge follows a language change');
+  f.c.MenuI18n = {text(value) { return value.replace('Controller', 'Controle'); }};
+  f.c.ControllerIdentity.refreshPlayers();
+  assert.strictEqual(f.badge.textContent, 'Controle 1 · Xbox | Controle 2 · Switch');
+  f.c.MenuI18n = {text(value) { return value; }};
+  f.c.ControllerIdentity.refreshPlayers();
   f.c.isInGame = true;
   f.c.ControllerIdentity.refreshPlayers();
   assert.strictEqual(f.badge.hidden, true, 'no player badge during a stream');

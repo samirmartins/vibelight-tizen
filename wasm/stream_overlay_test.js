@@ -196,6 +196,25 @@ function fixture(options = {}) {
     f.release();
     assert.strictEqual(f.c.tizen.tvaudiocontrol.muted, false);
 
+    // Some TV firmware keeps reporting the old mute state after setMute.
+    {
+      const f = fixture();
+      f.setPad({});
+      f.c.StreamOverlay.open();
+      f.step();
+      f.c.tizen.tvaudiocontrol.getMute = () => false;
+      f.c.FocusManager.select(1);
+      f.press({0: true});
+      f.release();
+      assert.strictEqual(f.c.tizen.tvaudiocontrol.muted, true, 'first Confirm mutes');
+      assert.strictEqual(f.text('streamOverlay-volume-label'), 'Volume: mudo');
+      f.press({0: true});
+      f.release();
+      assert.strictEqual(f.c.tizen.tvaudiocontrol.muted, false, 'second Confirm unmutes despite stale getMute');
+      assert.strictEqual(f.text('streamOverlay-volume-label'), 'Volume: 30%');
+      f.c.StreamOverlay.close(true);
+    }
+
     // Closing keeps the mask until the pad is neutral, then stops the frame loop.
     f.c.FocusManager.select(0);
     f.press({0: true});

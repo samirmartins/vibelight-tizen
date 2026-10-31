@@ -163,7 +163,7 @@ var LibraryNavigation = (function() {
       }
     });
     pad.x = axis(pad.axes[0], pad.x); pad.y = axis(pad.axes[1], pad.y);
-    var rightDir = pad.axes[3] > 0.6 ? 1 : pad.axes[3] < -0.6 ? -1 : 0;
+    var rightDir = pad.axes[2] > 0.6 ? 1 : pad.axes[2] < -0.6 ? -1 : 0;
     if (rightDir && rightDir !== pad.rightDir) extra = function() { pageStep(rightDir); };
     pad.rightDir = rightDir;
     var previous = pad.direction || null;

@@ -15,9 +15,13 @@ for (const row of rows) {
   }
 }
 const nativeStages = [...fs.readFileSync('moonlight-common-c/src/Connection.c','utf8').match(/stageNames\[STAGE_MAX\] = \{([\s\S]*?)\};/)[1].matchAll(/"([^"]+)"/g)].map(m => 'Starting '+m[1]+'...').sort();
+const pairing = 'If your host PC is running VibeShine (recommended) or Sunshine (all GPUs), open the VibeShine or Sunshine web interface to enter the PIN.';
+assert(fs.readFileSync('wasm/platform/index.js','utf8').includes(pairing), 'pairing copy names VibeShine');
+assert(rows.some(row => row[0] === pairing), 'pairing copy has translations');
 const moduleSource = fs.readFileSync('wasm/platform/menu-i18n.js','utf8');
 assert(!/setTimeout|setInterval|requestAnimationFrame|fetch\(|XMLHttpRequest|addEventListener\(['"](?:keydown|mousemove|gamepad)/.test(moduleSource));
 assert(moduleSource.includes('observer.disconnect(); observer.takeRecords();'));
+assert(moduleSource.includes('ControllerIdentity.refreshPlayers()'));
 assert(moduleSource.includes('if (!running || codes.indexOf(value) === -1) return;'));
 for (const [stored,language,expected] of [[null,'pt-BR','pt-BR'],[null,'es-ES','es'],[null,'de-DE','en'],['en','pt-BR','en'],['es','pt-BR','es'],['corrupt','pt-BR','pt-BR']]) {
   const sandbox={MenuTranslations:rows,navigator:{language},localStorage:{getItem(){return stored;}},document:{addEventListener(){}}};

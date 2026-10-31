@@ -74,7 +74,7 @@ var ControllerIdentity = (function() {
   function familyName(family) {
     if (family === 'xbox') return 'Xbox';
     if (family === 'playstation') return 'PlayStation';
-    if (family === 'nintendo') return 'Nintendo';
+    if (family === 'nintendo') return 'Switch';
     return translate('Gamepad');
   }
 

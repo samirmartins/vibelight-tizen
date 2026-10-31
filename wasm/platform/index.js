@@ -697,7 +697,7 @@ function pairingDialog(nvhttpHost, onSuccess, onFailure) {
     // Change the dialog text element to include the random PIN number
     $('#pairingDialogText').html(
       'Please enter the following PIN on the target PC: ' + randomNumber + '<br><br>' +
-      'If your host PC is running Sunshine (all GPUs), navigate to the Sunshine Web UI to enter the PIN.<br><br>' +
+      'If your host PC is running VibeShine (recommended) or Sunshine (all GPUs), open the VibeShine or Sunshine web interface to enter the PIN.<br><br>' +
       'Alternatively, if your host PC has NVIDIA GameStream (NVIDIA-only), navigate to the GeForce Experience to enter the PIN.<br><br>' +
       'This dialog will close once the pairing is complete.'
     );

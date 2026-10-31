@@ -98,7 +98,7 @@ var MenuTranslations = [
   ["Continue", "Continuar", "Continuar"],
   ["Pairing", "Pareamento", "Emparejamiento"],
   ["Please enter the following PIN on the target PC: XXXX", "Insira o seguinte PIN no PC: XXXX", "Introduce el siguiente PIN en el PC: XXXX"],
-  ["If your host PC is running Sunshine (all GPUs), navigate to the Sunshine Web UI to enter the PIN.", "Se o PC usa Sunshine (qualquer GPU), abra a interface web do Sunshine para inserir o PIN.", "Si el PC usa Sunshine (cualquier GPU), abre la interfaz web de Sunshine para introducir el PIN."],
+  ["If your host PC is running VibeShine (recommended) or Sunshine (all GPUs), open the VibeShine or Sunshine web interface to enter the PIN.", "Se o PC usa VibeShine (recomendado) ou Sunshine (qualquer GPU), abra a interface web do VibeShine ou do Sunshine para inserir o PIN.", "Si el PC usa VibeShine (recomendado) o Sunshine (cualquier GPU), abre la interfaz web de VibeShine o Sunshine para introducir el PIN."],
   ["Alternatively, if your host PC has NVIDIA GameStream (NVIDIA-only), navigate to the GeForce Experience to enter the PIN.", "Se o PC usa NVIDIA GameStream (somente NVIDIA), abra o GeForce Experience para inserir o PIN.", "Si el PC usa NVIDIA GameStream (solo NVIDIA), abre GeForce Experience para introducir el PIN."],
   ["This dialog will close once the pairing is complete.", "Esta janela fechará quando o pareamento terminar.", "Esta ventana se cerrará al terminar el emparejamiento."],
   ["Delete Host", "Excluir PC", "Eliminar PC"],

@@ -5,7 +5,7 @@ var ControllerTuning = (function() {
   var key = 'moonlight.controller-tuning.v1';
   var DEADZONES = [0, 0.05, 0.1, 0.15, 0.2, 0.25];
   var CURVES = [1, 0.75, 1.5, 2];
-  var THRESHOLDS = [0, 0.05, 0.1, 0.15, 0.2];
+  var THRESHOLDS = [0, 0.05, 0.1, 0.15, 0.2, 0.25];
 
   function defaults() {
     return {version: 1, enabled: false, deadzone: 0, curve: 1,

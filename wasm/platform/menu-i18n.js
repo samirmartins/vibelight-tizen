@@ -108,7 +108,9 @@ var MenuI18n = (function() {
     if (!running || codes.indexOf(value) === -1) return;
     locale = value;
     try { localStorage.setItem(key, locale); } catch (e) { /* Session-only fallback. */ }
-    prepareProgress(); updateButton(); refresh(); close();
+    prepareProgress(); updateButton(); refresh();
+    if (typeof ControllerIdentity !== 'undefined') ControllerIdentity.refreshPlayers();
+    close();
   }
   function focusChoice(delta) {
     selected = (selected + delta + codes.length) % codes.length;
@@ -138,6 +140,7 @@ var MenuI18n = (function() {
     if (running || typeof isInGame !== 'undefined' && isInGame || document.hidden) return;
     running = true;
     refresh();
+    if (typeof ControllerIdentity !== 'undefined') ControllerIdentity.refreshPlayers();
     if (!observer) observer = new MutationObserver(function(records) {
       // Observe menu text only; no polling, animation frame, or stream hooks.
       records.forEach(function(record) {
