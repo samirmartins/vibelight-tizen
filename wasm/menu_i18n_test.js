@@ -27,6 +27,15 @@ for (const [stored,language,expected] of [[null,'pt-BR','pt-BR'],[null,'es-ES','
   const progress=sandbox.MenuI18n.progressText['Starting RTSP handshake...'];
   assert.strictEqual(progress,expected==='pt-BR'?'Iniciando negociação RTSP...':expected==='es'?'Iniciando negociación RTSP...':'Starting RTSP handshake...');
 }
+{
+  const numbering={MenuTranslations:rows,navigator:{language:'pt-BR'},localStorage:{getItem(){return null;}},document:{addEventListener(){}}};
+  vm.runInNewContext(moduleSource,numbering);
+  assert.strictEqual(numbering.MenuI18n.text('Controller 1'),'Controle 1');
+  assert.strictEqual(numbering.MenuI18n.text('Controller 4'),'Controle 4');
+  const spanish={MenuTranslations:rows,navigator:{language:'es'},localStorage:{getItem(){return null;}},document:{addEventListener(){}}};
+  vm.runInNewContext(moduleSource,spanish);
+  assert.strictEqual(spanish.MenuI18n.text('Controller 2'),'Mando 2');
+}
 const failedStorage={MenuTranslations:rows,navigator:{language:'es'},localStorage:{getItem(){throw Error('denied');}},document:{addEventListener(){}}};
 vm.runInNewContext(moduleSource,failedStorage);assert.strictEqual(failedStorage.MenuI18n.locale(),'es');
 const menuNormalize = require('./menu-i18n-scope.cjs').normalize;
