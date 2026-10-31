@@ -429,6 +429,7 @@ var MenuTranslations = [
   ["Quick help", "Ajuda rápida", "Ayuda rápida"],
   ["— Open this guide. In a game, press the same button to open the stream menu.", "— Abrir este guia. No jogo, pressione o mesmo botão para abrir o menu do streaming.", "— Abrir esta guía. En el juego, pulsa el mismo botón para abrir el menú de transmisión."],
   ["Game menu", "Menu no jogo", "Menú en el juego"],
+  ["— In a game, open the stream menu.", "— No jogo, abra o menu do streaming.", "— En el juego, abre el menú de transmisión."],
   ["In a game, the same button opens the stream menu.", "No jogo, o mesmo botão abre o menu do streaming.", "En el juego, el mismo botón abre el menú de transmisión."],
   ["Navigate", "Navegar", "Navegar"],
   ["Accept", "Aceitar", "Aceptar"],

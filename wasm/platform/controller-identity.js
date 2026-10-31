@@ -137,9 +137,23 @@ var ControllerIdentity = (function() {
       if (list && !hint) {
         hint = document.createElement('li');
         hint.id = 'navGuideInGameHint';
+        hint.className = 'navGuideDialogControls';
+        var key = document.createElement('span');
+        key.id = 'navGuideInGameKey';
+        key.className = 'navGuideGamepadText';
+        key.setAttribute('data-gamepad', 'guide');
+        var text = document.createElement('span');
+        text.id = 'navGuideInGameText';
+        hint.appendChild(key);
+        hint.appendChild(text);
         list.appendChild(hint);
       }
-      if (hint) hint.textContent = translate('In a game, the same button opens the stream menu.');
+      if (hint) {
+        var hintKey = document.getElementById('navGuideInGameKey');
+        var hintText = document.getElementById('navGuideInGameText');
+        if (hintKey) hintKey.textContent = set.guide;
+        if (hintText) hintText.textContent = ' ' + translate('— In a game, open the stream menu.');
+      }
     }
   }
 

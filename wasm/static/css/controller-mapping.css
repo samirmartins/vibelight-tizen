@@ -26,7 +26,7 @@
 .cm-art-wrap img { display:block; max-width:100%; max-height:46vh; width:auto; height:auto; filter:drop-shadow(0 16px 22px rgba(0,0,0,.55)); }
 .cm-hotspots { position:absolute; inset:0; }
 #controllerMappingDialog .cm-hotspot { position:absolute !important; transform:translate(-50%,-50%); padding:0; min-height:0 !important; border:2px solid transparent !important; border-radius:50% !important; background:transparent !important; }
-.cm-hotspot:hover { border-color:rgba(99,227,244,.5) !important; }
+#controllerMappingDialog .cm-hotspot:hover, #controllerMappingDialog .cm-hotspot:focus { outline:none !important; border-color:transparent !important; background:transparent !important; }
 .cm-hotspot.cm-selected, .cm-hotspot.cm-pressed { border-color:transparent !important; background:transparent !important; }
 .cm-hotspot.cm-selected::after, .cm-hotspot.cm-pressed::after { content:''; position:absolute; left:50%; top:50%; width:150%; padding-bottom:150%; transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; }
 .cm-hotspot.cm-selected::after { border:3px solid #63e3f4; background:rgba(99,227,244,.08); box-shadow:0 0 18px rgba(99,227,244,.85), inset 0 0 10px rgba(99,227,244,.25); }

@@ -22,8 +22,9 @@ that reason: the two lines are separate and should never be read as one.
 - Adds per-family button mapping for Xbox, PlayStation and Switch, with
   independent profiles and a visual editor: family tabs, 3D controller artwork,
   aligned hotspots, selected-button inspector, target chooser, button test and
-  a compact analog drawer. The PlayStation profile keeps its current layout;
-  the Switch profile shows A↔B and X↔Y
+  a compact analog drawer. The PlayStation profile keeps its current layout and
+  remains editable; the Switch profile uses the layout reported by the system
+  with no default swaps
 - Adds LB/RB library filters, LT/RT and horizontal right-stick paging, Start
   quick help and Guide navigation guide. Quick help and the guide use the
   controller that actually opened them
@@ -55,8 +56,8 @@ that reason: the two lines are separate and should never be read as one.
 - Guide is the only in-stream menu gesture; the Start+Select fallback was
   removed from native input, the overlay, help, guide and documentation
 - The button mapping editor changed from a single global list to three family
-  profiles, with the PlayStation profile left unchanged and Switch showing its
-  A↔B/X↔Y position mapping
+  profiles, with the PlayStation profile editable and Switch using the layout
+  reported by the system without default swaps
 - Normal and ForceGM remain the same application code; only package metadata,
   signatures and the Game Mode request differ
 

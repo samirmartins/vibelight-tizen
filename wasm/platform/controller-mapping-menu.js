@@ -16,7 +16,7 @@ var ControllerMappingMenu = (function() {
     nintendo: {
       name: 'Switch', image: 'static/res/controller-switch.png',
       source: ['B','A','Y','X','L','R','ZL','ZR','Minus','Plus','L3','R3','↑','↓','←','→','Home','Capture','Mute'],
-      target: ['A','B','X','Y','L','R','ZL','ZR','Minus','Plus','L3','R3','↑','↓','←','→','Home']
+      target: ['B','A','Y','X','L','R','ZL','ZR','Minus','Plus','L3','R3','↑','↓','←','→','Home']
     }
   };
   // Centers are percentages of the artwork; sizes are percentages of its width.
@@ -224,7 +224,6 @@ var ControllerMappingMenu = (function() {
       '<button type="button" id="cm-change" class="cm-primary">Change</button></div>'+
       '<div class="cm-map-row cm-map-actions"><button type="button" id="cm-test" class="cm-ghost">Test buttons</button></div></div>'+
       '<div class="cm-changed"><h3 id="cm-changed-title">Changes in this profile</h3><div id="cm-changes" class="cm-chips"></div></div>'+
-      '<p id="cm-note" class="cm-note">This profile applies only to this controller family. PlayStation and Xbox profiles stay independent; the PlayStation profile is not changed.</p>'+
       '</div><div id="cm-choice" class="cm-choice" hidden><div class="cm-eyebrow">CHOOSE GAME BUTTON</div>'+
       '<p class="cm-note">The other assignment swaps automatically.</p><div id="cm-targets" class="cm-targets"></div>'+
       '<button type="button" id="cm-choice-cancel" class="cm-ghost">Back</button></div></aside></div>'+
