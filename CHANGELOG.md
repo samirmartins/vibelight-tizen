@@ -10,23 +10,55 @@ that reason: the two lines are separate and should never be read as one.
 ## v4.1.0
 
 ### Improved
-- Adds an in-stream system overlay opened with Guide: Resume,
-  TV volume, performance statistics, Disconnect (game stays on the PC) and a
-  confirmed End game on PC. The menu uses icon cards and starts the end-game
-  confirmation on No; a disconnected controller no longer adds a prompt
-- Uses the detected Xbox, PlayStation or Nintendo family for menu glyphs and
-  physical accept/back buttons, with a read-only Controller 1–4 badge
-- Adds per-family button mapping (Xbox, PlayStation and Switch), a visual editor
-  with family artwork and hotspots, and independent profiles. The PlayStation
-  profile keeps the current layout; the Switch profile shows A↔B and X↔Y
-- Adds LB/RB library filters, LT/RT and right-stick paging, Start quick help and
-  Guide navigation guide. Guide is the only in-stream menu gesture; the old
-  Start+Select fallback was removed
-- Adds optional analog tuning for deadzone, response curve, per-stick inversion,
-  stick swap and trigger threshold; the default response is unchanged and the
-  setting applies to the next stream
+- Adds an in-stream system overlay opened with Guide: Resume, TV volume,
+  performance statistics, Disconnect (the game stays on the PC) and a confirmed
+  End game on PC. The menu uses icon cards, keeps the selected action visible
+  and starts the end-game confirmation on No
+- Removes the lost-controller prompt: a dead battery or disconnect no longer
+  adds an extra message before pausing, and the game keeps running
+- Uses the detected Xbox, PlayStation or Nintendo family for menu glyphs,
+  physical accept/back buttons, quick help and the full navigation guide. A
+  read-only badge shows Controller 1–4 with a visible separator
+- Adds per-family button mapping for Xbox, PlayStation and Switch, with
+  independent profiles and a visual editor: family tabs, 3D controller artwork,
+  aligned hotspots, selected-button inspector, target chooser, button test and
+  a compact analog drawer. The PlayStation profile keeps its current layout;
+  the Switch profile shows A↔B and X↔Y
+- Adds LB/RB library filters, LT/RT and horizontal right-stick paging, Start
+  quick help and Guide navigation guide. Quick help and the guide use the
+  controller that actually opened them
+- Adds optional analog tuning for deadzone, response curve, per-stick X/Y
+  inversion, stick swap and trigger threshold. The default response is
+  unchanged, all controls apply to the next stream, and deadzone/trigger
+  threshold both reach 25%
+- Recommends VibeShine as the preferred host in the pairing dialog while
+  keeping Sunshine and NVIDIA GameStream instructions
 - Removes the unused menu repeat path and resolves settings popup options
   without relying on Material's generated DOM depth
+
+### Fixed
+- The stream overlay now follows the Nintendo physical A/B buttons instead of
+  treating them as the Xbox layout
+- Horizontal right-stick paging reads the correct axis instead of the vertical
+  stick axis
+- Confirm can mute and unmute the TV even when the firmware keeps reporting the
+  previous mute state
+- The Controller 1–4 badge follows language changes and restarts instead of
+  keeping the previous language
+- Button mapping no longer applies one global layout to every connected
+  controller; Xbox, PlayStation and Switch keep separate profiles
+- The pairing dialog now names VibeShine, and the end-game confirmation no
+  longer defaults to Yes
+- The controller badge refreshes when returning from a stream
+
+### Changed
+- Guide is the only in-stream menu gesture; the Start+Select fallback was
+  removed from native input, the overlay, help, guide and documentation
+- The button mapping editor changed from a single global list to three family
+  profiles, with the PlayStation profile left unchanged and Switch showing its
+  A↔B/X↔Y position mapping
+- Normal and ForceGM remain the same application code; only package metadata,
+  signatures and the Game Mode request differ
 
 ## v3.4.14
 
