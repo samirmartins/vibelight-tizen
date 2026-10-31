@@ -240,6 +240,18 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
  assert.deepStrictEqual(f.moves.filter(move=>move[0]==='accept').length,1,'Nintendo physical A accepts');
  assert.deepStrictEqual(f.moves.filter(move=>move[0]==='back').length,1,'Nintendo physical B goes back');
 }
+// Controller mapping test mode suspends the menu reader; raw input is inert.
+{
+ const f=fixture();
+ f.c.LibraryNavigation.suspend();
+ assert.strictEqual(f.c.LibraryNavigation.isSuspended(),true);
+ f.button(0,true);f.advance(16);f.button(0,false);f.advance(32);
+ assert.strictEqual(f.moves.length,0,'suspended menu ignores raw buttons');
+ f.c.LibraryNavigation.resume();
+ assert.strictEqual(f.c.LibraryNavigation.isSuspended(),false);
+ f.button(0,true);f.advance(48);f.button(0,false);f.advance(64);
+ assert.deepStrictEqual(f.moves.map(move=>move[0]),['accept']);
+}
 // Freeze the historical navigation delta. Only the exact independently tested
 // video/refresh patch may differ in subsequent streaming versions.
 const normalize=require('./library-navigation-scope.cjs').normalize;

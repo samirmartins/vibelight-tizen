@@ -1,13 +1,14 @@
 // Shared menu-only directional input. The streaming publisher never uses this state.
 var LibraryNavigation = (function() {
   var pads = Object.create(null), owner = null, direction = null, timer = null, epoch = 0, nextRepeatAt = 0;
+  var suspended = false;
   var activate = 0.5, release = 0.35, initialDelay = 350, repeatInterval = 100;
   // Digital buttons mirror the stick hysteresis: act on the first press, then
   // require a stable release before accepting another edge from the same pad.
   var buttonRelease = 50;
 
   function available() {
-    return !isInGame && !document.hidden &&
+    return !suspended && !isInGame && !document.hidden &&
       (typeof Navigation.isRunning !== 'function' || Navigation.isRunning());
   }
   function cancelRepeat() {
@@ -15,6 +16,9 @@ var LibraryNavigation = (function() {
     clearTimeout(timer); timer = null; direction = null; owner = null;
   }
   function reset() { cancelRepeat(); nextRepeatAt = 0; pads = Object.create(null); }
+  function suspend() { suspended = true; reset(); }
+  function resume() { suspended = false; reset(); }
+  function isSuspended() { return suspended; }
   function viewChanged() {
     // Retain held directions as suppressed until release or a new direction.
     // A stick held at a view boundary must not immediately move its new menu.
@@ -206,5 +210,6 @@ var LibraryNavigation = (function() {
     else if (token === epoch) reset();
     return true;
   }
-  return {handle: handle, reset: reset, disconnect: disconnect, viewChanged: viewChanged};
+  return {handle: handle, reset: reset, suspend: suspend, resume: resume,
+    isSuspended: isSuspended, disconnect: disconnect, viewChanged: viewChanged};
 })();

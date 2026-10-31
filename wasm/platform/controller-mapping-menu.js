@@ -233,10 +233,11 @@ var ControllerMappingMenu = (function() {
     el('cm-exit-hint').hidden = true; resetArt();
     el('cm-test').textContent = 'Test buttons';
     el('cm-axes').textContent = 'Sticks: original axes, sensitivity and range.';
+    if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.resume) LibraryNavigation.resume();
     render(); setStatus('Test finished. Menu navigation stays on the original layout.');
   }
   function startTest() {
-    if (typeof LibraryNavigation !== 'undefined') LibraryNavigation.reset();
+    if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.suspend) LibraryNavigation.suspend();
     clearTestInput();
     pointerUntil = 0;
     window.addEventListener('mousemove',observePointer,true);
@@ -309,5 +310,5 @@ var ControllerMappingMenu = (function() {
     dialog.oncancel = function(event) { event.preventDefault(); view.back(); };
     document.addEventListener('visibilitychange',hidden);
   }
-  return {open:open};
+  return {open:open, isTesting:function(){return testing;}};
 })();

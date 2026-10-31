@@ -1,7 +1,7 @@
 'use strict';
 // Only these reviewed diagnostic bytes may be reversed for historical contracts.
 const hashes = {
-  'wasm/platform/controller-mapping-menu.js': '3b2f029a99085e30e0ef9011c08ae537855070cd854d6de38286006893f39241',
+  'wasm/platform/controller-mapping-menu.js': 'f0ff46403e3b8b06ad6545ba07f1a9fda04a5c09b85df0d3be80f1f444cef0b8',
   'wasm/static/css/controller-mapping.css': '83306f7ef23f9b5ef94e8680061e9277ecfbd199200104e8795c871daaa59ed4'
 };
 function normalize(file, source) {
