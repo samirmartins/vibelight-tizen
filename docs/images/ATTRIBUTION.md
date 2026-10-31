@@ -25,6 +25,16 @@ The seven screen captures are retained as lossless 2048 × 1152 PNGs; the GIF is
 the approved block layout and the CC0 artwork credited in
 [the application asset notice](../../wasm/static/res/controller-dualsense-LICENSE.txt).
 
+## Controller artwork source
+
+`controller-art-source.png` is the original controller sheet supplied by the
+project owner. The owner generated it with an AI tool whose terms permit this
+use and confirmed permission to distribute it with VibeLight. Brand logos were
+removed before use. The application uses the cropped transparent copies
+`wasm/static/res/controller-ps5.png`, `controller-switch.png` and
+`controller-xbox.png`; the source sheet is not shipped inside the WGT. This
+artwork is not covered by the source-code license.
+
 ## Source images
 
 | Local file | Game / credit | Source and license |
