@@ -7,6 +7,22 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## v4.1.0
+
+### Improved
+- Adds an in-stream system overlay opened with Guide or Back+Start: Resume,
+  TV volume, performance statistics, Disconnect (game stays on the PC) and a
+  confirmed End game on PC, plus a controller-lost notice
+- Uses the detected Xbox, PlayStation or Nintendo family for menu glyphs and
+  physical accept/back buttons, with a read-only P1–P4 badge
+- Adds LB/RB library filters, LT/RT and right-stick paging, Start quick help and
+  Guide navigation guide
+- Adds optional analog tuning for deadzone, response curve, per-stick inversion,
+  stick swap and trigger threshold; the default response is unchanged and the
+  setting applies to the next stream
+- Removes the unused menu repeat path and resolves settings popup options
+  without relying on Material's generated DOM depth
+
 ## v3.4.14
 
 ### Improved
