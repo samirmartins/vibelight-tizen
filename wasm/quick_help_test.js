@@ -30,6 +30,7 @@ function fixture() {
       addEventListener(name, handler) { (events[name] = events[name] || []).push(handler); }
     },
     MenuI18n: {text: value => value},
+    ConsoleLibrary: {visible: () => true},
     ControllerIdentity: {
       primaryFamily: () => 'playstation',
       labels: () => ({accept: '✕', back: '○', face2: '□', face3: '△', lb: 'L1', rb: 'R1',
@@ -105,6 +106,16 @@ function fixture() {
   f.events.visibilitychange.forEach(handler => handler());
   assert.strictEqual(f.c.QuickHelp.isOpen(), false, 'hidden window closes the help');
   assert.strictEqual(f.c.isDialogOpen, false);
+
+  {
+    const g = fixture();
+    g.c.ConsoleLibrary = {visible: () => false};
+    assert.strictEqual(g.c.QuickHelp.open(), true);
+    const rows = g.find('quickHelpRows').children;
+    assert.strictEqual(rows.length, 6, 'Settings help omits library-only rows');
+    assert(!rows.map(row => row.children.map(child => child.textContent).join('=')).join('\n').includes('Library filters'));
+    g.c.QuickHelp.close();
+  }
 
   const source = fs.readFileSync('wasm/platform/quick-help.js', 'utf8');
   assert(!/setTimeout|setInterval|requestAnimationFrame/.test(source), 'no timers or frame loop');

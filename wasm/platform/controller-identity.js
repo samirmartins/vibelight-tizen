@@ -66,12 +66,16 @@ var ControllerIdentity = (function() {
     return list.length ? list[0].family : 'unknown';
   }
 
+  function translate(value) {
+    return typeof MenuI18n !== 'undefined' && typeof MenuI18n.text === 'function'
+      ? MenuI18n.text(value) : value;
+  }
+
   function familyName(family) {
     if (family === 'xbox') return 'Xbox';
     if (family === 'playstation') return 'PlayStation';
     if (family === 'nintendo') return 'Nintendo';
-    return typeof MenuI18n !== 'undefined' && typeof MenuI18n.text === 'function'
-      ? MenuI18n.text('Gamepad') : 'Gamepad';
+    return translate('Gamepad');
   }
 
   function labels(family) {
@@ -104,7 +108,7 @@ var ControllerIdentity = (function() {
       return;
     }
     var text = list.map(function(pad) {
-      return 'P' + pad.player + ' · ' + familyName(pad.family);
+      return translate('Controller ' + pad.player) + ' · ' + familyName(pad.family);
     }).join('   ');
     if (node.textContent !== text) node.textContent = text;
     node.hidden = false;

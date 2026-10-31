@@ -56,6 +56,8 @@ function fixture() {
 function pad(index=0){return {index,connected:true,axes:[0,0,0,0],buttons:Array.from({length:18},()=>({pressed:false,value:0}))};}
 function button(p,index,pressed){p.buttons[index]={pressed,value:Number(pressed)};}
 const f=fixture(),p=pad();f.setPads([p]);f.open();
+f.node('cm-analog').onclick();
+assert.strictEqual(f.c.document.activeElement.id,'cm-tuning-enabled','analog shortcut reaches the section');
 assert.strictEqual(f.node('cm-tuning-enabled').textContent,'Analog tuning: OFF');
 assert.strictEqual(f.node('cm-deadzone').disabled,true,'tuning buttons are inert while off');
 f.node('cm-tuning-enabled').onclick();

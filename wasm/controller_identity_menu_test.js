@@ -97,7 +97,7 @@ function pad(index, id) {
 
   f.c.ControllerIdentity.refreshPlayers();
   assert.strictEqual(f.badge.hidden, false);
-  assert.strictEqual(f.badge.textContent, 'P1 · Xbox   P2 · Nintendo');
+  assert.strictEqual(f.badge.textContent, 'Controller 1 · Xbox   Controller 2 · Nintendo');
   f.c.isInGame = true;
   f.c.ControllerIdentity.refreshPlayers();
   assert.strictEqual(f.badge.hidden, true, 'no player badge during a stream');
@@ -117,7 +117,7 @@ function pad(index, id) {
 
   f.setPads([pad(0, 'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)')]);
   f.dispatch('gamepadconnected', {index: 0});
-  assert.strictEqual(f.badge.textContent, 'P1 · PlayStation');
+  assert.strictEqual(f.badge.textContent, 'Controller 1 · PlayStation');
   f.c.ControllerIdentity.localizeGuide();
   assert.strictEqual(f.spans.accept.textContent, '✕');
   assert.strictEqual(f.spans.back.textContent, '○');

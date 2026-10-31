@@ -60,9 +60,12 @@ var QuickHelp = (function() {
     addRow('Navigate', translate('D-pad / Left stick'));
     addRow('Accept', labels.accept);
     addRow('Back', labels.back);
-    addRow('Library filters', labels.lb + ' / ' + labels.rb);
-    addRow('Page the library', labels.lt + ' / ' + labels.rt);
-    addRow('Favorite game', labels.face2);
+    // Library-only shortcuts stay out of Settings, where they do nothing.
+    if (typeof ConsoleLibrary !== 'undefined' && ConsoleLibrary.visible()) {
+      addRow('Library filters', labels.lb + ' / ' + labels.rb);
+      addRow('Page the library', labels.lt + ' / ' + labels.rt);
+      addRow('Favorite game', labels.face2);
+    }
     addRow('Quick help', labels.start);
     addRow('Navigation guide', labels.guide);
     addRow('Close', labels.back);

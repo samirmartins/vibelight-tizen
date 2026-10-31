@@ -153,6 +153,8 @@ function fixture(options = {}) {
     assert.strictEqual(f.document.getElementById('streamOverlay').hidden, false);
     assert.strictEqual(f.text('streamOverlay-resume'), 'Retomar', 'bundled pt-BR label');
     assert.strictEqual(f.text('streamOverlay-disconnect'), 'Desconectar');
+    assert(f.text('streamOverlayHint').includes('Desconectar mantém o jogo no PC.'));
+    assert(f.text('streamOverlayHint').includes('Volume: Esquerda/Direita ajusta'));
     assert.strictEqual(f.text('streamOverlay-end'), 'Encerrar jogo no PC');
     f.step(); // prime the pad without acting on a held button
 
@@ -228,9 +230,9 @@ function fixture(options = {}) {
     const f = fixture();
     f.c.StreamOverlay.controllerLost(0);
     assert.strictEqual(f.document.getElementById('streamOverlayNotice').hidden, false);
-    assert.strictEqual(f.document.getElementById('streamOverlayNotice').textContent, 'Controle desconectado');
+    assert.strictEqual(f.document.getElementById('streamOverlayNotice').textContent, 'Controle desconectado. Reconecte-o.');
     f.c.StreamOverlay.controllerLost(1);
-    assert.strictEqual(f.document.getElementById('streamOverlayNotice').textContent, 'Controles desconectados');
+    assert.strictEqual(f.document.getElementById('streamOverlayNotice').textContent, 'Controles desconectados. Reconecte-os.');
     f.c.StreamOverlay.controllerFound(0);
     f.c.StreamOverlay.controllerFound(1);
     assert.strictEqual(f.document.getElementById('streamOverlayNotice').hidden, true);
@@ -333,6 +335,24 @@ function fixture(options = {}) {
     assert.strictEqual(f.calls.suppressed[f.calls.suppressed.length - 1], 0);
   }
 
+  {
+    // Nintendo reports physical A on button 1 and B on button 0.
+    const f = fixture();
+    f.c.ControllerIdentity = {familyAt: () => 'nintendo'};
+    f.setPad({});
+    assert.strictEqual(f.c.StreamOverlay.open(), true);
+    f.step();
+    f.c.FocusManager.select(1);
+    f.press({1: true});
+    assert.strictEqual(f.c.tizen.tvaudiocontrol.muted, true, 'physical A activates the selected action');
+    assert.strictEqual(f.c.StreamOverlay.isOpen(), true);
+    f.release();
+    f.press({0: true});
+    f.release();
+    assert.strictEqual(f.c.StreamOverlay.isOpen(), false, 'physical B closes the menu');
+    assert.deepStrictEqual(f.calls.suppressed, [1, 0]);
+  }
+
   const source = fs.readFileSync('wasm/platform/stream-overlay.js', 'utf8');
   assert(!/setInterval/.test(source), 'no interval while streaming');
   assert(!/requestAnimationFrame/.test(source.split('function startFrames')[0]), 'no frame loop before the menu opens');
@@ -341,6 +361,7 @@ function fixture(options = {}) {
     indexSource.indexOf('function showAppsMode()'), indexSource.indexOf('// Show the Apps grid'));
   assert(showAppsMode.includes('StreamOverlay.close(true)'), 'every menu return closes the overlay');
   assert(showAppsMode.includes('StreamSession.reset()'), 'every menu return clears a pending stop');
+  assert(showAppsMode.includes('ControllerIdentity.refreshPlayers()'), 'every menu return refreshes the player badge');
 
   // Thin message dispatch: the native signals are the only entry points.
   {

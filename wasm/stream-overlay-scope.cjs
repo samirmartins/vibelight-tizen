@@ -4,11 +4,11 @@
 const crypto = require('crypto'), cp = require('child_process');
 const hashes = {
   'wasm/index.html': '63f4c643f409892980da63691994da51e8be5022cd52e0cb51a65ab35d3cf179',
-  'wasm/platform/index.js': '6b6462d99be75ed011412e4d2fb4966c705771314107f3826d40a7c043bcd30c',
+  'wasm/platform/index.js': '7b2ae3e8fe66e8d18e37165d75f9ee10b4f08460763a20b6aba5ef71a80e95e7',
   'wasm/platform/messages.js': 'b1d2d5ea9254bd5690e087d7b44da11992a3f769e9d8f50cd3a8300fa9bc32f2'
 };
 const assets = {
-  'wasm/static/css/stream-overlay.css': 'b0433353a4c3ba73a8c8964ba4e51fc97ceddaca66c8d950f2e23aea3c6c0d46',
+  'wasm/static/css/stream-overlay.css': '15f16c9c6d120cd3106557f7445274ee418996ff13cf20ab9fdfd0ae3cf506c9',
   'wasm/static/css/console-controls.css': 'd2eb2817113d1c2bda345eb9d72d3ff01d17708e46d9bc10b9325989f64cca1b'
 };
 function normalize(file, source) {

@@ -73,3 +73,10 @@
   font-size: 20px;
   pointer-events: none;
 }
+#streamOverlayHint {
+  margin: 10px 0 0;
+  color: #b9c6da;
+  font-size: 17px;
+  line-height: 1.35;
+  white-space: pre-line;
+}

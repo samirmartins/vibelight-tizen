@@ -146,7 +146,7 @@ var ControllerMappingMenu = (function() {
       '<span class="cm-label cm-l2">L2</span><span class="cm-label cm-l1">L1</span><span class="cm-label cm-l3">L3</span>'+
       '<span class="cm-label cm-r2">R2</span><span class="cm-label cm-r1">R1</span><span class="cm-label cm-r3">R3</span></div>'+
       '<p class="cm-credit">Art: Xelu (CC0) · Input Overlay preset by Caro</p>'+
-      '<h3 id="cm-selected"></h3><p id="cm-detail"></p><div class="cm-actions">'+button('cm-change','Change')+button('cm-test','Test buttons')+'</div>'+
+      '<h3 id="cm-selected"></h3><p id="cm-detail"></p><div class="cm-actions">'+button('cm-change','Change')+button('cm-test','Test buttons')+button('cm-analog','Analog controls')+'</div>'+
       '<p id="cm-axes">Sticks: original axes, sensitivity and range.</p></section>'+
       '<section class="cm-assignments" aria-label="Button assignments"><p id="cm-list-title">Physical button → game input</p><div id="cm-rows"></div></section></div>'+
       '<section class="cm-tuning" aria-label="Analog controls"><h3>Analog controls</h3><div class="cm-tuning-grid">'+
@@ -171,6 +171,7 @@ var ControllerMappingMenu = (function() {
     el('cm-test').onclick = function() {
       if (testing) { stopTest(); focus('cm-test'); } else startTest();
     };
+    el('cm-analog').onclick = function() { focus('cm-tuning-enabled'); };
     el('cm-reset').onclick = function() {
       var enabled = draft.enabled, tuningEnabled = tuning.enabled;
       draft = ControllerMapping.defaults(); draft.enabled = enabled;
@@ -181,7 +182,14 @@ var ControllerMappingMenu = (function() {
     el('cm-save').onclick = function() {
       if (!ControllerMapping.save(draft)) { setStatus('Could not save. Check storage and try again; your previous layout is unchanged.'); return; }
       if (!ControllerTuning.save(tuning)) { setStatus('Could not save the analog response. Check storage and try again.'); return; }
+      var saved = tuning.enabled
+        ? 'Analog tuning saved. It applies to the next stream.'
+        : 'Controller settings saved.';
       close();
+      if (typeof snackbarLog === 'function') {
+        snackbarLog(typeof MenuI18n !== 'undefined' && typeof MenuI18n.text === 'function'
+          ? MenuI18n.text(saved) : saved);
+      }
     };
     dialog.addEventListener('keydown',function(event) {
       var direction = {ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[event.key];
@@ -214,7 +222,7 @@ var ControllerMappingMenu = (function() {
       };
       rows.appendChild(node);
     });
-    ['cm-enabled','cm-reset','cm-save'].forEach(function(id) { el(id).disabled = testing; });
+    ['cm-enabled','cm-reset','cm-save','cm-analog'].forEach(function(id) { el(id).disabled = testing; });
     renderTuning();
   }
   function blockGamepad(event) {

@@ -13,7 +13,7 @@ var StreamOverlay = (function() {
   var config = {volumeStep: DEFAULT_STEP};
   var built = false, open = false, closing = false, busy = false, confirm = false;
   var maskState = 0;
-  var root = null, title = null, status = null, list = null, confirmBox = null;
+  var root = null, title = null, status = null, list = null, hint = null, confirmBox = null;
   var confirmText = null, noticeEl = null;
   var actionButtons = [], confirmButtons = [];
   var frameHandle = 0, releaseTimer = 0, nextRefresh = 0, lastToggleAt = 0;
@@ -177,6 +177,7 @@ var StreamOverlay = (function() {
     status = create('div', 'streamOverlayStatus', 'stream-overlay-status');
     status.setAttribute('aria-live', 'polite');
     list = create('div', 'streamOverlayActions', 'stream-overlay-actions');
+    hint = create('p', 'streamOverlayHint', 'stream-overlay-hint');
     var defs = actions();
     actionButtons = [];
     for (var i = 0; i < defs.length; i++) {
@@ -203,6 +204,7 @@ var StreamOverlay = (function() {
     panel.appendChild(title);
     panel.appendChild(status);
     panel.appendChild(list);
+    panel.appendChild(hint);
     panel.appendChild(confirmBox);
     root.appendChild(panel);
     document.body.appendChild(root);
@@ -217,6 +219,10 @@ var StreamOverlay = (function() {
     if (!built || (!open && !closing)) return;
     setText(title, translate('Stream menu'));
     setText(status, busy ? translate('Ending the game on the PC...') : translate(errorText));
+    setText(hint, translate('Disconnect keeps the game on the PC.') + ' ' +
+      translate('End game closes it on the PC.') + '\n' +
+      translate('Volume: Left/Right adjusts; A toggles mute.'));
+    if (hint) hint.hidden = confirm;
     var defs = actions();
     for (var i = 0; i < defs.length && i < actionButtons.length; i++) {
       setText(actionButtons[i], defs[i].label());
@@ -448,8 +454,12 @@ var StreamOverlay = (function() {
       var pad = padsNow[i];
       if (!pad || !pad.connected) continue;
       var state = pads[pad.index];
-      if (!state) {
-        state = pads[pad.index] = {buttons: Object.create(null), primed: false};
+      if (!state || state.id !== String(pad.id || '')) {
+        state = pads[pad.index] = {
+          id: String(pad.id || ''),
+          family: typeof ControllerIdentity !== 'undefined' ? ControllerIdentity.familyAt(pad.index) : 'unknown',
+          buttons: Object.create(null), primed: false
+        };
         sample(state, pad);
         state.direction = directionOf(state);
         // A direction already held when the menu opens stays inert until it is
@@ -464,8 +474,12 @@ var StreamOverlay = (function() {
       var guide = state.buttons[16] || (state.buttons[8] && state.buttons[9]);
       if (guide && !(previous[16] || (previous[8] && previous[9]))) { close(); return; }
       if (busy) continue;
-      if (state.buttons[1] && !previous[1]) { back(); return; }
-      if (state.buttons[0] && !previous[0]) { accept(); return; }
+      // Physical accept/back follow the connected family, matching the menu and
+      // the quick-help glyphs (Nintendo reports A on button 1 and B on button 0).
+      var acceptIndex = state.family === 'nintendo' ? 1 : 0;
+      var backIndex = state.family === 'nintendo' ? 0 : 1;
+      if (state.buttons[backIndex] && !previous[backIndex]) { back(); return; }
+      if (state.buttons[acceptIndex] && !previous[acceptIndex]) { accept(); return; }
       var direction = directionOf(state);
       if (direction !== state.direction) {
         state.direction = direction;
@@ -521,7 +535,8 @@ var StreamOverlay = (function() {
       noticeEl.hidden = true;
       return;
     }
-    noticeEl.textContent = translate(count === 1 ? 'Controller disconnected' : 'Controllers disconnected');
+    noticeEl.textContent = translate(count === 1
+      ? 'Controller disconnected. Reconnect it.' : 'Controllers disconnected. Reconnect them.');
     noticeEl.hidden = false;
   }
 

@@ -1559,6 +1559,7 @@ function showAppsMode() {
   $('#wasm_module').css('display', 'none');
 
   isInGame = false;
+  if (typeof ControllerIdentity !== 'undefined') ControllerIdentity.refreshPlayers();
   SessionDiagnostics.finish('Returned to menu');
   // A failed launch can return here without ever creating a native stream, so
   // there may be no cleanup callback to close the gesture-created context.
