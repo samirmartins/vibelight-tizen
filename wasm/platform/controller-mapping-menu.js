@@ -19,28 +19,6 @@ var ControllerMappingMenu = (function() {
       target: ['B','A','Y','X','L','R','ZL','ZR','Minus','Plus','L3','R3','↑','↓','←','→','Home']
     }
   };
-  // Centers are percentages of the artwork; sizes are percentages of its width.
-  var hotspots = {
-    xbox: [
-      [0,75.7,43.4,8],[1,82.5,32.7,8],[2,68.5,32.7,8],[3,75.5,22.4,8],
-      [4,34.0,13.1,10],[5,75.7,13.1,10],[6,32.0,5.8,9],[7,77.7,5.8,9],
-      [8,42.7,29.2,8],[9,55.3,29.2,8],[10,30.1,32.1,10],[11,75.7,52.5,10],
-      [12,30.1,45.2,7],[13,30.1,59.8,7],[14,25.2,52.5,7],[15,35.0,52.5,7]
-    ],
-    playstation: [
-      [0,79.2,39.8,8],[1,87.1,30.4,8],[2,72.3,31.0,8],[3,75.6,22.1,8],
-      [4,36.6,16.2,10],[5,90.1,16.2,10],[6,34.7,7.4,9],[7,92.1,7.4,9],
-      [8,63.4,17.7,8],[9,77.2,17.7,8],[10,58.4,56.0,10],[11,80.2,56.0,10],
-      [12,32.7,31.0,7],[13,32.7,48.7,7],[14,26.7,39.8,7],[15,38.6,39.8,7]
-    ],
-    nintendo: [
-      [0,77.0,45.3,8],[1,83.9,35.3,8],[2,69.9,34.7,8],[3,77.0,24.9,8],
-      [4,34.4,16.7,10],[5,73.7,16.7,10],[6,32.4,9.1,9],[7,75.6,9.1,9],
-      [8,37.3,18.2,8],[9,66.8,18.2,8],[10,31.4,33.4,10],[11,74.7,56.2,10],
-      [12,37.3,51.7,7],[13,37.3,63.8,7],[14,33.4,57.8,7],[15,41.3,57.8,7]
-    ]
-  };
-
   var root, dialog, draft, tuning, family = 'xbox', selected = 0, choosing = false, testing = false;
   var focused = 'cm-family-xbox', statusText = '', testInput = null;
 
@@ -121,20 +99,18 @@ var ControllerMappingMenu = (function() {
     el('cm-tuning-enabled').disabled = testing;
     el('cm-analog-state').textContent = translate(tuning.enabled ? 'Enabled' : 'Disabled');
   }
-  function renderHotspots() {
-    var wrap = el('cm-hotspots');
-    wrap.textContent = '';
-    hotspots[family].forEach(function(item) {
-      var index = item[0], button = document.createElement('button');
-      button.type = 'button'; button.id = 'cm-hs-' + index;
-      button.className = 'cm-hotspot' + (selected === index ? ' cm-selected' : '') + (testing ? ' cm-testing' : '');
-      button.style.left = item[1] + '%'; button.style.top = item[2] + '%';
-      button.style.width = item[3] + '%'; button.style.paddingBottom = item[3] + '%';
-      button.setAttribute('aria-label', sourceText(index));
-      button.title = sourceText(index);
-      button.onclick = function() { selected = index; render(); focus('cm-hs-' + index); };
-      wrap.appendChild(button);
-    });
+  function renderKeys() {
+    var box = el('cm-key-grid');
+    box.textContent = '';
+    for (var i = 0; i < 16; i++) {
+      var key = document.createElement('button');
+      key.type = 'button'; key.id = 'cm-key-' + i;
+      key.className = 'cm-key' + (selected === i ? ' cm-selected' : '') + (testing ? ' cm-testing' : '');
+      key.textContent = faceText(sourceText(i));
+      key.setAttribute('aria-label', sourceText(i));
+      key.onclick = (function(index) { return function() { selected = index; render(); focus('cm-key-' + index); }; })(i);
+      box.appendChild(key);
+    }
   }
   function pairText(i) {
     var s = sourceText(i), t = targetText(profile().map[i]);
@@ -181,7 +157,7 @@ var ControllerMappingMenu = (function() {
     el('cm-profile-title').textContent = profiles[family].name;
     el('cm-art').src = profiles[family].image;
     el('cm-art').alt = profiles[family].name;
-    renderHotspots();
+    renderKeys();
     el('cm-selected').textContent = sourceText(selected);
     el('cm-selected-detail').textContent = profiles[family].name + ' · ' + translate('Physical button');
     el('cm-face').textContent = faceText(source(selected));
@@ -212,8 +188,8 @@ var ControllerMappingMenu = (function() {
       '<p id="cm-status" role="status"></p>'+
       '<div class="cm-body"><section class="cm-stage"><div class="cm-stage-head"><strong id="cm-profile-title">Xbox</strong>'+
       '<span id="cm-connection">Independent profile</span></div>'+
-      '<div class="cm-art-wrap" id="cm-art-wrap"><img id="cm-art" alt="">'+
-      '<div id="cm-hotspots" class="cm-hotspots"></div></div>'+
+      '<div class="cm-art-wrap" id="cm-art-wrap"><img id="cm-art" alt=""></div>'+
+      '<div id="cm-key-grid" class="cm-key-grid"></div>'+
       '<p class="cm-stage-foot">Click a button or use the direction pad.</p></section>'+
       '<aside class="cm-inspector"><div id="cm-inspector-main">'+
       '<div class="cm-eyebrow" id="cm-selected-label">SELECTED BUTTON</div>'+
@@ -272,7 +248,7 @@ var ControllerMappingMenu = (function() {
   function selectFamily(next) {
     if (!profiles[next]) return;
     family = next; selected = 1; choosing = false;
-    render(); focus('cm-family-' + next);
+    render(); focus('cm-key-1');
   }
   function startTest() {
     if (testing) return;
@@ -282,7 +258,7 @@ var ControllerMappingMenu = (function() {
       var changes = event && event.detail && event.detail.changes || [];
       changes.forEach(function(change) {
         if (change.type !== 'button' || change.index < 0 || change.index > 15) return;
-        var node = el('cm-hs-' + change.index);
+        var node = el('cm-key-' + change.index);
         if (node) node.classList.toggle('cm-pressed', !!change.pressed);
       });
     };
@@ -296,7 +272,7 @@ var ControllerMappingMenu = (function() {
     if (testInput) window.removeEventListener('gamepadinputchanged', testInput, true);
     testInput = null;
     if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.resume) LibraryNavigation.resume();
-    hotspots[family].forEach(function(item) { var node = el('cm-hs-' + item[0]); if (node) node.classList.remove('cm-pressed'); });
+    for (var i = 0; i < 16; i++) { var node = el('cm-key-' + i); if (node) node.classList.remove('cm-pressed'); }
     render(); setStatus('Test finished. Menu navigation stays on the original layout.');
   }
   function hidden() { if (document.hidden) close(); }
@@ -330,7 +306,7 @@ var ControllerMappingMenu = (function() {
     openUtilityDialog('controllerMappingDialog', ['cm-family-xbox','cm-cancel'], 'cm-cancel');
     document.addEventListener('visibilitychange', hidden);
     Navigation.change(view);
-    focus('cm-hs-1');
+    focus('cm-key-1');
   }
   return {open:open, isTesting:function() { return testing; }};
 })();

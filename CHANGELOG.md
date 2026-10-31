@@ -21,10 +21,10 @@ that reason: the two lines are separate and should never be read as one.
   read-only badge shows Controller 1–4 with a visible separator
 - Adds per-family button mapping for Xbox, PlayStation and Switch, with
   independent profiles and a visual editor: family tabs, 3D controller artwork,
-  aligned hotspots, selected-button inspector, target chooser, button test and
-  a compact analog drawer. The PlayStation profile keeps its current layout and
-  remains editable; the Switch profile uses the layout reported by the system
-  with no default swaps
+  a compact physical-button grid, selected-button inspector, target chooser,
+  button test and a compact analog drawer. The PlayStation profile keeps its
+  current layout and remains editable; the Switch profile uses the layout
+  reported by the system with no default swaps
 - Adds LB/RB library filters, LT/RT and horizontal right-stick paging, Start
   quick help and Guide navigation guide. Quick help and the guide use the
   controller that actually opened them

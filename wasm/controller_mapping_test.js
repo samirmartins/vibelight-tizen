@@ -93,7 +93,7 @@ for(const file of ['wasm/platform/index.js','wasm/platform/navigation.js','wasm/
  assert.strictEqual(scope.normalize(file,current),expected,file+' approved mapping integration');
  assert.notStrictEqual(scope.normalize(file,current+'\n// unexpected change'),expected,'negative scope fixture');
 }
-for(const id of ['cm-family-xbox','cm-family-playstation','cm-family-nintendo','cm-hotspots','cm-targets','cm-analog-row','cm-analog-panel'])
+for(const id of ['cm-family-xbox','cm-family-playstation','cm-family-nintendo','cm-key-grid','cm-targets','cm-analog-row','cm-analog-panel'])
  assert(menu.includes(id),'new editor '+id);
 assert(!menu.includes('cm-rows'),'old dense assignment table removed');
 console.log('controller_mapping_test: per-family profiles, validation, v1 migration, three-family snapshots, shortcuts and editor scope OK');
