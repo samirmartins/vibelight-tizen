@@ -487,21 +487,16 @@ void MoonlightInstance::PollGamepads() {
       // identical packets are suppressed by the existing packetValid path.
       packet = {};
     } else {
-      // Guide is normally button 16. Back+Start is a separate fallback, not a
-      // replacement for the existing four-button stop and stats combinations.
-      // The system gesture is consumed: while it is held the host receives a
-      // neutral packet, so the PC does not also open its own overlay or read a
-      // partially released fallback as a fresh Start press.
+      // Guide is normally button 16 and is the only in-stream system gesture.
+      // While it is held the host receives a neutral packet, so the PC does not
+      // also open its own overlay.
       const bool specialHeld = (packet.buttonFlags & SPECIAL_FLAG) != 0;
-      const bool backStartCombo = packet.buttonFlags == (BACK_FLAG | PLAY_FLAG);
-      if (!guideLatched[gamepadID] && (specialHeld || backStartCombo)) {
+      if (!guideLatched[gamepadID] && specialHeld) {
         guideLatched[gamepadID] = true;
         PostToJsAsync("guideButton");
       }
       if (guideLatched[gamepadID]) {
-        if (!specialHeld && (packet.buttonFlags & (BACK_FLAG | PLAY_FLAG)) == 0) {
-          guideLatched[gamepadID] = false;
-        }
+        if (!specialHeld) guideLatched[gamepadID] = false;
         packet = {};
       }
     }

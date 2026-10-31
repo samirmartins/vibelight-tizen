@@ -10,13 +10,18 @@ that reason: the two lines are separate and should never be read as one.
 ## v4.1.0
 
 ### Improved
-- Adds an in-stream system overlay opened with Guide or Back+Start: Resume,
+- Adds an in-stream system overlay opened with Guide: Resume,
   TV volume, performance statistics, Disconnect (game stays on the PC) and a
-  confirmed End game on PC, plus a controller-lost notice
+  confirmed End game on PC. The menu uses icon cards and starts the end-game
+  confirmation on No; a disconnected controller no longer adds a prompt
 - Uses the detected Xbox, PlayStation or Nintendo family for menu glyphs and
-  physical accept/back buttons, with a read-only P1–P4 badge
+  physical accept/back buttons, with a read-only Controller 1–4 badge
+- Adds per-family button mapping (Xbox, PlayStation and Switch), a visual editor
+  with family artwork and hotspots, and independent profiles. The PlayStation
+  profile keeps the current layout; the Switch profile shows A↔B and X↔Y
 - Adds LB/RB library filters, LT/RT and right-stick paging, Start quick help and
-  Guide navigation guide
+  Guide navigation guide. Guide is the only in-stream menu gesture; the old
+  Start+Select fallback was removed
 - Adds optional analog tuning for deadzone, response curve, per-stick inversion,
   stick swap and trigger threshold; the default response is unchanged and the
   setting applies to the next stream

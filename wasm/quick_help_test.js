@@ -33,8 +33,12 @@ function fixture() {
     ConsoleLibrary: {visible: () => true},
     ControllerIdentity: {
       primaryFamily: () => 'playstation',
-      labels: () => ({accept: '✕', back: '○', face2: '□', face3: '△', lb: 'L1', rb: 'R1',
-        lt: 'L2', rt: 'R2', select: 'Create', start: 'Options', guide: 'PS'})
+      familyAt: index => index === 2 ? 'nintendo' : 'playstation',
+      labels: family => family === 'nintendo'
+        ? {accept: 'A', back: 'B', face2: 'Y', face3: 'X', lb: 'L', rb: 'R', lt: 'ZL', rt: 'ZR',
+           select: 'Minus', start: 'Plus', guide: 'HOME'}
+        : {accept: '✕', back: '○', face2: '□', face3: '△', lb: 'L1', rb: 'R1',
+           lt: 'L2', rt: 'R2', select: 'Create', start: 'Options', guide: 'PS'}
     },
     focusElement(element) { calls.focus++; calls.focused = element; },
     mark() { calls.mark++; },
@@ -68,7 +72,7 @@ function fixture() {
   assert.strictEqual(f.calls.push.length, 1);
   assert.strictEqual(f.calls.focus, 1);
   const rows = f.find('quickHelpRows').children;
-  assert.strictEqual(rows.length, 9);
+  assert.strictEqual(rows.length, 10);
   const text = rows.map(row => row.children.map(child => child.textContent).join('=')).join('\n');
   assert(text.includes('Accept=✕'), 'accept glyph follows the family');
   assert(text.includes('Back=○'), 'back glyph follows the family');
@@ -76,6 +80,7 @@ function fixture() {
   assert(text.includes('Page the library=L2 / R2'));
   assert(text.includes('Favorite game=□'));
   assert(text.includes('Quick help=Options'));
+  assert(text.includes('Game menu=PS'));
   assert(text.includes('Navigation guide=PS'));
   assert(text.includes('Navigate=D-pad / Left stick'));
 
@@ -109,10 +114,20 @@ function fixture() {
 
   {
     const g = fixture();
+    assert.strictEqual(g.c.QuickHelp.open(2), true, 'controller 2 opens the help');
+    const rows = g.find('quickHelpRows').children;
+    const text = rows.map(row => row.children.map(child => child.textContent).join('=')).join('\n');
+    assert(text.includes('Accept=A'), 'controller 2 Nintendo glyphs are used');
+    assert(text.includes('Game menu=HOME'));
+    g.c.QuickHelp.close();
+  }
+
+  {
+    const g = fixture();
     g.c.ConsoleLibrary = {visible: () => false};
     assert.strictEqual(g.c.QuickHelp.open(), true);
     const rows = g.find('quickHelpRows').children;
-    assert.strictEqual(rows.length, 6, 'Settings help omits library-only rows');
+    assert.strictEqual(rows.length, 7, 'Settings help omits library-only rows');
     assert(!rows.map(row => row.children.map(child => child.textContent).join('=')).join('\n').includes('Library filters'));
     g.c.QuickHelp.close();
   }

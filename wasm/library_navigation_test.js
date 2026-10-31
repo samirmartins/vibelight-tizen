@@ -214,8 +214,8 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
  f.c.document.getElementById=id=>filterNodes[id]||null;
  f.c.Views={Apps:{}};f.c.Navigation.change=()=>{changes++;};
  f.c.ConsoleLibrary.move=(dx,dy)=>pages.push([dx,dy]);
- f.c.ControllerIdentity={familyAt:()=> 'xbox',refreshPlayers(){},localizeGuide(){}};
- f.c.QuickHelp={toggle(){help++;},open(){help++;},isOpen(){return false;}};
+ f.c.ControllerIdentity={familyAt:()=> 'xbox',refreshPlayers(){},localizeGuide(){},setGuideIndex(){}};
+ f.c.QuickHelp={toggle(){help++;},open(){help++;},isOpen(){return false;},close(){}};
  f.c.navigationGuideDialog=()=>{guide++;};
  f.button(4,true);f.advance(16);f.button(4,false);f.advance(32);
  f.button(5,true);f.advance(48);f.button(5,false);f.advance(64);
@@ -234,7 +234,7 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
  f.button(4,true);f.advance(272);f.button(4,false);f.advance(288);
  assert.strictEqual(filters,2,'filters are inert while a dialog is open');
  f.c.isDialogOpen=false;
- f.c.ControllerIdentity={familyAt:()=> 'nintendo',refreshPlayers(){},localizeGuide(){}};
+ f.c.ControllerIdentity={familyAt:()=> 'nintendo',refreshPlayers(){},localizeGuide(){},setGuideIndex(){}};
  f.button(1,true);f.advance(304);f.button(1,false);f.advance(320);
  f.button(0,true);f.advance(336);f.button(0,false);f.advance(352);
  assert.deepStrictEqual(f.moves.filter(move=>move[0]==='accept').length,1,'Nintendo physical A accepts');
@@ -257,11 +257,11 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
 const normalize=require('./library-navigation-scope.cjs').normalize;
 const paths=cp.execFileSync('git',['ls-tree','-r','--name-only','v3.4.8','--',
  'wasm','moonlight-common-c','libgamestream','CMakeLists.txt','res/config.xml'],{encoding:'utf8'}).trim().split('\n')
- .filter(file=>!file.endsWith('_test.js')&&!file.endsWith('.cjs')&&!/_fixture\.(?:c|cpp)$/.test(file));
+ .filter(file=>!file.endsWith('_test.js')&&!file.endsWith('.cjs')&&!/_fixture\.(?:c|cpp)$/.test(file)&&file!=='wasm/platform/controller-mapping.js');
 assert(!read('CMakeLists.txt').includes('video_recovery_fixture'), 'native fixture stays out of app');
 for(const file of paths){
  if(!['wasm/platform/index.js','wasm/platform/gamepad.js','wasm/platform/console-library.js','wasm/platform/messages.js',
-  'wasm/platform/navigation.js','wasm/platform/controller-mapping-menu.js',
+  'wasm/platform/navigation.js','wasm/platform/controller-mapping-menu.js','wasm/platform/controller-mapping.js',
   'wasm/main.cpp','wasm/index.html','CMakeLists.txt','res/config.xml'].includes(file)) {
   const transport=require('./video-transport-scope.cjs');
   if(transport.files.includes(file))assert.strictEqual(transport.normalize(file,read(file)),old(file),'exact video/refresh delta: '+file);

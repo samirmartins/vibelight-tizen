@@ -123,8 +123,18 @@ function pad(index, id) {
   assert.strictEqual(f.spans.guide.textContent, 'Guide');
   assert.strictEqual(f.family.textContent, '(Xbox)');
 
-  f.setPads([pad(0, 'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)')]);
+  f.setPads([pad(0, 'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)'),
+    pad(2, 'Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)')]);
   f.dispatch('gamepadconnected', {index: 0});
+  f.dispatch('gamepadconnected', {index: 2});
+  f.c.ControllerIdentity.setGuideIndex(2);
+  f.c.ControllerIdentity.localizeGuide();
+  assert.strictEqual(f.spans.accept.textContent, 'A', 'controller 2 guide uses Nintendo accept');
+  assert.strictEqual(f.spans.back.textContent, 'B', 'controller 2 guide uses Nintendo back');
+  assert.strictEqual(f.spans.guide.textContent, 'HOME', 'controller 2 guide uses Home');
+  assert.strictEqual(f.family.textContent, '(Switch)');
+  f.setPads([pad(0, 'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)')]);
+  f.c.ControllerIdentity.refreshPlayers();
   assert.strictEqual(f.badge.textContent, 'Controller 1 · PlayStation');
   f.c.ControllerIdentity.localizeGuide();
   assert.strictEqual(f.spans.accept.textContent, '✕');

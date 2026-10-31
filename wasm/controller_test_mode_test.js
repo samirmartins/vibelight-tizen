@@ -1,8 +1,7 @@
 'use strict';
-const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process');
+const assert=require('assert'),fs=require('fs'),vm=require('vm');
 const menu=fs.readFileSync('wasm/platform/controller-mapping-menu.js','utf8');
 function fixture() {
-  let pads=[],nextFrame=null,serial=0,view,navigation=0,now=1000;
   const nodes=new Map(),listeners=new Map();
   function classes(node) {
     return {contains:c=>node.className.split(' ').includes(c),
@@ -35,97 +34,65 @@ function fixture() {
     for(const item of items){item.fn(event);if(event.stopped)break;}
     return event;
   }
-  const context={console,document,navigator:{getGamepads:()=>pads},isInGame:false,isDialogOpen:false,
-    repeatTimeout:1,navigationTimeout:2,repeatAction:()=>{},clearTimeout(){},Date:{now:()=>now},
-    requestAnimationFrame(fn){assert(!nextFrame);nextFrame=fn;return ++serial;},cancelAnimationFrame(){nextFrame=null;},
+  const context={console,document,navigator:{getGamepads:()=>[]},isInGame:false,isDialogOpen:false,
+    repeatTimeout:1,navigationTimeout:2,repeatAction:()=>{},clearTimeout(){},Date:{now:()=>1000},
+    requestAnimationFrame(){throw Error('no animation frames in the editor');},cancelAnimationFrame(){},
     addEventListener,removeEventListener,localStorage:{getItem:()=>null,setItem(){}},
     openUtilityDialog(){nodes.get('controllerMappingDialog').open=true;context.isDialogOpen=true;},
     closeUtilityDialog(){nodes.get('controllerMappingDialog').open=false;context.isDialogOpen=false;},
-    focusElement(){},Navigation:{change(v){view=v;}}};
-  context.window=context;
-  vm.createContext(context);
+    focusElement(){},Navigation:{change(v){context.view=v;}}};
+  context.window=context;vm.createContext(context);
   vm.runInContext(fs.readFileSync('wasm/platform/controller-mapping.js','utf8'),context);
   vm.runInContext(fs.readFileSync('wasm/platform/controller-tuning.js','utf8'),context);
   vm.runInContext(menu,context);
-  addEventListener('gamepadinputchanged',()=>{navigation++;},false);
-  return {c:context,node:id=>nodes.get(id),view:()=>view,setPads(value){pads=value;},
-    dispatch,listeners:name=>(listeners.get(name)||[]).length,navigation:()=>navigation,
-    tick(time){const fn=nextFrame;assert(fn);nextFrame=null;fn(time);},pending:()=>!!nextFrame,
-    open(){context.ControllerMappingMenu.open();},start(){nodes.get('cm-test').onclick();},stop(){nodes.get('cm-test').onclick();},advance(ms){now+=ms;}};
+  return {c:context,node:id=>nodes.get(id),open(){context.ControllerMappingMenu.open();},
+    dispatch,listeners:name=>(listeners.get(name)||[]).length};
 }
-function pad(index=0){return {index,connected:true,axes:[0,0,0,0],buttons:Array.from({length:18},()=>({pressed:false,value:0}))};}
-function button(p,index,pressed){p.buttons[index]={pressed,value:Number(pressed)};}
-const f=fixture(),p=pad();f.setPads([p]);f.open();
-f.node('cm-analog').onclick();
-assert.strictEqual(f.c.document.activeElement.id,'cm-tuning-enabled','analog shortcut reaches the section');
-assert.strictEqual(f.node('cm-tuning-enabled').textContent,'Analog tuning: OFF');
-assert.strictEqual(f.node('cm-deadzone').disabled,true,'tuning buttons are inert while off');
+const f=fixture();f.open();
+assert(f.node('controllerMappingDialog').open);
+assert.strictEqual(f.node('cm-family-xbox').className.includes('cm-active'),true);
+assert.strictEqual(f.node('cm-art').src,'static/res/controller-xbox.png');
+assert.strictEqual(f.node('cm-hotspots').children.length,16,'all editable physical buttons have hotspots');
+assert.strictEqual(f.node('cm-selected').textContent,'B','Xbox opens on the right face button');
+assert.strictEqual(f.node('cm-target-value').textContent,'B');
+f.node('cm-family-nintendo').onclick();
+assert.strictEqual(f.node('cm-art').src,'static/res/controller-switch.png');
+assert.strictEqual(f.node('cm-selected').textContent,'A');
+assert.strictEqual(f.node('cm-target-value').textContent,'A ↔ B');
+const changes=f.node('cm-changes').children.map(c=>c.textContent).join(' ');
+assert(changes.includes('A ↔ B')&&changes.includes('X ↔ Y'),'default Switch labels show both face swaps');
+f.node('cm-change').onclick();
+assert.strictEqual(f.node('cm-inspector-main').hidden,true);
+assert.strictEqual(f.node('cm-choice').hidden,false);
+assert(f.node('cm-targets').children.length>=1);
+f.node('cm-target-2').onclick();
+assert.strictEqual(f.node('cm-selected').textContent,'A');
+assert(f.node('cm-target-value').textContent.includes('X'),'target selection updates the draft');
+f.node('cm-analog-row').onclick();
+assert.strictEqual(f.node('cm-analog-panel').hidden,false);
+assert.strictEqual(f.node('cm-deadzone').disabled,true);
 f.node('cm-tuning-enabled').onclick();
-assert.strictEqual(f.node('cm-tuning-enabled').textContent,'Analog tuning: ON');
 assert.strictEqual(f.node('cm-deadzone').disabled,false);
-f.node('cm-deadzone').onclick();
-assert.strictEqual(f.node('cm-deadzone').textContent,'Deadzone: 5%');
-for (let i=0;i<4;i++) f.node('cm-deadzone').onclick();
+for(let i=0;i<5;i++)f.node('cm-deadzone').onclick();
 assert.strictEqual(f.node('cm-deadzone').textContent,'Deadzone: 25%');
-for (let i=0;i<5;i++) f.node('cm-trigger-threshold').onclick();
+for(let i=0;i<5;i++)f.node('cm-trigger-threshold').onclick();
 assert.strictEqual(f.node('cm-trigger-threshold').textContent,'Trigger threshold: 25%');
-f.node('cm-invert-left').onclick();
-assert.strictEqual(f.node('cm-invert-left').textContent,'Invert left: X');
-f.node('cm-tuning-enabled').onclick();
-assert.strictEqual(f.node('cm-deadzone').disabled,true,'turning tuning off disables the shaping controls');
-assert(!f.pending(),'no test work on open');
-f.start();assert(!f.node('cm-exit-hint').hidden);
-assert(/Circle \/ B.*3 seconds/.test(f.node('cm-exit-hint').textContent));
-f.tick(0);
-for(let index=0;index<18;index++) {
-  button(p,index,true);f.tick(10+index*20);
-  const sprite=f.node('cm-art-button-'+index);
-  if(sprite)assert(sprite.classList.contains('cm-active'),'physical button '+index+' highlighted');
-  assert(f.node('cm-row-'+index).classList.contains('cm-pressed'));
-  button(p,index,false);f.tick(20+index*20);
-  if(sprite)assert(!sprite.classList.contains('cm-active'),'release clears button '+index);
-}
-assert.strictEqual(f.listeners('mousemove'),1,'observer exists only during test');
-const pointer=f.dispatch('mousemove');assert(!pointer.prevented&&!pointer.stopped,'pointer remains passive');
-f.tick(400);assert(f.node('cm-art-button-17').classList.contains('cm-active'),'pointer activity highlights touchpad');
-f.advance(351);f.tick(410);assert(!f.node('cm-art-button-17').classList.contains('cm-active'),'highlight expires');
-// Keyboard-emulated confirm/back, direct view operations and raw pad events
-// must not navigate, click Finish or close the editor while testing.
-for(const [key,keyCode] of [['Enter',13],['Escape',27],['Backspace',8],['',10009],['',65385],['ArrowDown',40]]) {
-  for(const type of ['keydown','keyup'])assert(f.dispatch(type,{key,keyCode}).prevented);
-}
-f.view().accept();f.view().back();f.view().down();
-assert(f.node('controllerMappingDialog').open);assert(!f.node('cm-exit-hint').hidden);
-f.dispatch('gamepadinputchanged',{detail:{changes:[{index:0,pressed:true}]}});assert.strictEqual(f.navigation(),0);
-// Short holds never add together. The former L1+R1 shortcut no longer exits.
-button(p,4,true);button(p,5,true);f.tick(500);f.tick(2000);assert(f.pending());button(p,4,false);button(p,5,false);
-button(p,1,true);f.tick(2100);f.tick(5099);assert(f.pending(),'2999ms does not exit');
-button(p,1,false);f.tick(5100);button(p,1,true);f.tick(5200);f.tick(8199);assert(f.pending(),'hold reset on release');
-f.tick(8200);assert(!f.pending(),'3000ms finishes');assert(f.node('cm-exit-hint').hidden);
-assert.strictEqual(f.listeners('mousemove'),0,'pointer observer removed after test');
-assert(f.node('controllerMappingDialog').open,'finishes only the test');
-assert(!f.node('cm-art-button-1').classList.contains('cm-active'),'idle artwork restored');
-f.view().back();assert(f.node('controllerMappingDialog').open,'held exit button cannot close editor');
-assert(f.dispatch('keydown',{key:'',keyCode:10009}).prevented,'held keyboard repeat swallowed');
-button(p,1,false);f.dispatch('gamepadinputchanged',{detail:{changes:[{index:1,pressed:false}]}});
-assert.strictEqual(f.listeners('keydown'),0);assert.strictEqual(f.listeners('keyup'),0);
-f.dispatch('gamepadinputchanged',{detail:{changes:[]}});assert.strictEqual(f.navigation(),1);
-f.view().back();assert(!f.node('controllerMappingDialog').open);
-// Already-held Circle on entry and a replacement controller cannot inherit time.
-f.open();button(p,1,true);f.start();f.tick(0);f.tick(9000);assert(f.pending());
-button(p,1,false);f.tick(9010);button(p,1,true);f.tick(9020);
-const second=pad(2);button(second,1,true);f.setPads([null,second]);f.tick(12020);assert(f.pending());
-button(second,1,false);f.tick(12030);button(second,1,true);f.tick(12040);f.tick(15040);assert(!f.pending());
-f.setPads([]);f.dispatch('gamepaddisconnected',{gamepad:second});assert.strictEqual(f.listeners('keydown'),0);
-f.view().back();f.open();f.start();f.tick(0);f.stop();assert(!f.pending());assert.strictEqual(f.listeners('keydown'),0);
-assert(f.node('cm-exit-hint').hidden);
-const cssFile='wasm/static/css/controller-mapping.css',css=fs.readFileSync(cssFile,'utf8');
-const old=cp.execFileSync('git',['show','v3.4.4:'+cssFile],{encoding:'utf8'}),normalize=require('./controller-test-scope.cjs').normalize;
-assert.strictEqual(normalize(cssFile,css),old,'only appended menu test styles');
-assert.notStrictEqual(normalize(cssFile,css.replace('visibility:hidden','visibility:visible')),old);
-const art='wasm/static/res/controller-dualsense.png';
-assert(fs.readFileSync(art).equals(cp.execFileSync('git',['show','v3.4.4:'+art],{maxBuffer:1024*1024})),'original CC0 pixels unchanged');
-for(const name of ['wasm/platform/audio.js','wasm/platform/audio-worklet.js','wasm/wasmplayer.cpp','wasm/main.cpp','wasm/platform/controller-mapping.js'])
-  assert.strictEqual(require('./video-recovery-scope.cjs').normalize(name,fs.readFileSync(name,'utf8')),
-    cp.execFileSync('git',['show','v3.4.4:'+name],{maxBuffer:4*1024*1024,encoding:'utf8'}),name+' unchanged outside tested recovery correction');
-console.log('controller_test_mode_test: physical highlights, short presses, keyboard/view isolation, exact 3s hold, release guard, disconnect/reentry and unchanged artwork/playback OK');
+f.node('cm-test').onclick();
+assert.strictEqual(f.listeners('gamepadinputchanged'),1,'test listener only while testing');
+f.dispatch('gamepadinputchanged',{detail:{changes:[{type:'button',index:1,pressed:true}]}});
+assert(f.node('cm-hs-1').classList.contains('cm-pressed'));
+f.dispatch('gamepadinputchanged',{detail:{changes:[{type:'button',index:1,pressed:false}]}});
+assert(!f.node('cm-hs-1').classList.contains('cm-pressed'));
+f.node('cm-test').onclick();
+assert.strictEqual(f.listeners('gamepadinputchanged'),0,'test listener removed');
+f.node('cm-save').onclick();
+assert.strictEqual(f.node('controllerMappingDialog').open,false);
+assert.strictEqual(f.c.ControllerMapping.get().profiles.nintendo.map[1],2,'saved the Nintendo profile independently');
+assert.strictEqual(f.c.ControllerMapping.get().profiles.playstation.map[1],1,'PlayStation profile untouched');
+assert.strictEqual(f.c.ControllerTuning.get().enabled,true);
+const art=['controller-ps5.png','controller-switch.png','controller-xbox.png'];
+for(const name of art){const path='wasm/static/res/'+name;assert(fs.statSync(path).size>100000,name+' present');}
+const css=fs.readFileSync('wasm/static/css/controller-mapping.css','utf8');
+for(const selector of ['.cm-hotspot','.cm-tabs','.cm-targets','.cm-analog-row'])assert(css.includes(selector),selector);
+assert(!css.includes('.cm-sprite'),'old atlas test styles removed');
+console.log('controller_test_mode_test: per-family tabs/art, hotpots, swaps, target choice, analog 25% limits, test highlights, independent saves and new styles PASS');

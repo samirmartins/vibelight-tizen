@@ -514,8 +514,8 @@ var StreamOverlay = (function() {
       var previous = Object.create(null);
       for (var button = 0; button < 17; button++) previous[button] = !!state.buttons[button];
       sample(state, pad);
-      var guide = state.buttons[16] || (state.buttons[8] && state.buttons[9]);
-      if (guide && !(previous[16] || (previous[8] && previous[9]))) { close(); return; }
+      var guide = state.buttons[16];
+      if (guide && !previous[16]) { close(); return; }
       if (busy) continue;
       // Physical accept/back follow the connected family, matching the menu and
       // the quick-help glyphs (Nintendo reports A on button 1 and B on button 0).

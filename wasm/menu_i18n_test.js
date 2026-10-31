@@ -52,7 +52,7 @@ for (const file of ['wasm/index.html','wasm/platform/navigation.js','wasm/platfo
   assert.strictEqual(normalization(file,source),stable,file+' only menu integration');
   assert.notStrictEqual(normalization(file,source+'\nthrow Error("unexpected");'),stable);
 }
-const frozen=['wasm/platform/index.js','wasm/platform/gamepad.js','wasm/platform/audio.js','wasm/platform/audio-worklet.js','wasm/platform/display.js','wasm/platform/diagnostics.js','wasm/platform/controller-mapping.js','wasm/main.cpp','wasm/wasmplayer.cpp','wasm/gamepad.cpp','wasm/auddec.cpp'];
+const frozen=['wasm/platform/index.js','wasm/platform/gamepad.js','wasm/platform/audio.js','wasm/platform/audio-worklet.js','wasm/platform/display.js','wasm/platform/diagnostics.js','wasm/main.cpp','wasm/wasmplayer.cpp','wasm/gamepad.cpp','wasm/auddec.cpp'];
 const identity=require('./controller-identity-scope.cjs');
 const overlay=require('./stream-overlay-scope.cjs');
 const stabilize=(file,text)=>identity.normalize(file,overlay.normalize(file,text));

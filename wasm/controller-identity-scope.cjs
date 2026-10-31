@@ -6,7 +6,8 @@ const crypto=require('crypto'),cp=require('child_process');
 const hashes={
  'wasm/gamepad.cpp':[
    'afe07efc33c548a98d23f358d9fc90f87f410c06c2ab6d9de8ae38b07b9b6633',
-   'c203b4051f2785b11dd98fccb3181994d44df87a6f1f9297884cc63e7fa89f3c'
+   'c203b4051f2785b11dd98fccb3181994d44df87a6f1f9297884cc63e7fa89f3c',
+   'bd383117062ef5e54bb5b4976a4245c5ec7a8282aaec0983834f2a841bc6891d'
  ],
  'wasm/platform/gamepad.js':'c07128fd51010e07797679663c17cc6536d2cbffe06fab40e6955ada1eef091a'
 };

@@ -3,6 +3,7 @@
 // frame loop or network work exists here.
 var ControllerIdentity = (function() {
   var cache = Object.create(null);
+  var guideIndex = null;
   var FAMILIES = ['xbox', 'playstation', 'nintendo'];
 
   function detect(value) {
@@ -114,9 +115,13 @@ var ControllerIdentity = (function() {
     node.hidden = false;
   }
 
-  function localizeGuide() {
+  function setGuideIndex(index) { guideIndex = typeof index === 'number' ? index : null; }
+
+  function localizeGuide(index) {
     if (typeof document.querySelectorAll !== 'function') return;
-    var family = primaryFamily(), set = labels(family);
+    var selectedIndex = typeof index === 'number' ? index : guideIndex;
+    var family = typeof selectedIndex === 'number' ? familyAt(selectedIndex) : primaryFamily(), set = labels(family);
+    guideIndex = null;
     var nodes = document.querySelectorAll('#navGuideDialogText [data-gamepad]');
     for (var i = 0; i < nodes.length; i++) {
       var key = nodes[i].getAttribute('data-gamepad');
@@ -125,6 +130,16 @@ var ControllerIdentity = (function() {
     var familyNode = document.getElementById('navGuideFamily');
     if (familyNode) {
       familyNode.textContent = family === 'unknown' ? '' : '(' + familyName(family) + ')';
+    }
+    if (typeof document.getElementById === 'function' && typeof document.createElement === 'function') {
+      var list = document.getElementById('navGuideDialogText');
+      var hint = document.getElementById('navGuideInGameHint');
+      if (list && !hint) {
+        hint = document.createElement('li');
+        hint.id = 'navGuideInGameHint';
+        list.appendChild(hint);
+      }
+      if (hint) hint.textContent = translate('In a game, the same button opens the stream menu.');
     }
   }
 
@@ -146,6 +161,7 @@ var ControllerIdentity = (function() {
     acceptButton: acceptButton,
     backButton: backButton,
     refreshPlayers: refreshPlayers,
-    localizeGuide: localizeGuide
+    localizeGuide: localizeGuide,
+    setGuideIndex: setGuideIndex
   };
 })();

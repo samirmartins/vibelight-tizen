@@ -1,41 +1,69 @@
-/* Scoped editor styling; no existing settings, library or gameplay selectors. */
-.cm-overlay { position:fixed; inset:0; z-index:10000; align-items:center; justify-content:center; background:rgba(0,0,0,.8); }
-#controllerMappingDialog { box-sizing:border-box; position:relative; margin:auto; padding:1.4vw 1.8vw; width:94vw; max-width:1800px; max-height:94vh; overflow-y:auto; border:2px solid #46dce2; border-radius:14px; color:#eef4fa; background:#142237; font:clamp(14px,1.05vw,22px)/1.3 Arial,sans-serif; box-shadow:0 0 20px #173c55; }
+/* Scoped controller editor. No gameplay or library selectors. */
+.cm-overlay { position:fixed; inset:0; z-index:10000; align-items:center; justify-content:center; background:rgba(0,0,0,.82); }
+#controllerMappingDialog { box-sizing:border-box; position:relative; margin:auto; padding:2.2vh 2.2vw 1.8vh; width:82vw; max-width:1600px; max-height:94vh; overflow-y:auto; border:1px solid #3b4a61; border-top:3px solid #00a3c6; border-radius:20px; color:#eaf1fb; background:linear-gradient(180deg,#202938 0%,#171e2b 100%); font:clamp(13px,.85vw,19px)/1.3 "DejaVu Sans",Arial,sans-serif; box-shadow:0 28px 90px rgba(0,0,0,.75); }
 #controllerMappingDialog * { box-sizing:border-box; }
-#controllerMappingDialog header, #controllerMappingDialog footer, #controllerMappingDialog footer>div { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-#controllerMappingDialog h2 { font:600 clamp(22px,1.8vw,34px)/1.2 Arial,sans-serif; margin:0 0 6px; }
-#controllerMappingDialog h3 { font:600 1.15em/1.3 Arial,sans-serif; margin:10px 0; }
-#controllerMappingDialog p { font:inherit; margin:6px 0; }
-#controllerMappingDialog button { font:inherit; color:#eef4fa; background:#263d55; border:1px solid #67809a; border-radius:7px; padding:.55em .8em; cursor:pointer; min-height:38px; }
-#controllerMappingDialog button:focus { outline:3px solid #54f0ec; outline-offset:1px; background:#1b4a64; }
-#controllerMappingDialog button:disabled { opacity:.5; cursor:default; }
-#controllerMappingDialog #cm-enabled[aria-pressed="true"], #controllerMappingDialog #cm-save { background:#087b86; }
-.cm-body { display:grid; grid-template-columns:39% 1fr; gap:2vw; margin:14px 0; align-items:start; }
-.cm-controller { position:relative; width:100%; aspect-ratio:1344/788; overflow:hidden; }
-.cm-controller img { position:absolute; max-width:none; width:155.43155%; height:auto; top:-.1269%; left:-.0744%; }
-.cm-label { position:absolute; font-weight:bold; color:#fff; padding:.1em .35em; border:1px solid #47e7e6; border-radius:4px; background:#102538; z-index:1; }
-.cm-l2 { left:17%; top:1%; } .cm-r2 { right:17%; top:1%; }
-.cm-l1 { left:17%; top:18%; } .cm-r1 { right:17%; top:18%; }
-.cm-l3 { left:32%; top:86%; } .cm-r3 { right:32%; top:86%; }
-#controllerMappingDialog .cm-credit { color:#a8bdcf; font-size:.8em; }
-.cm-actions { display:flex; gap:10px; margin:14px 0; }
-#cm-rows { display:grid; grid-template-columns:1fr 1fr; gap:5px 8px; }
-#controllerMappingDialog .cm-row { text-align:left; font-size:.89em; min-width:0; min-height:34px; padding:.48em .55em; }
-#controllerMappingDialog .cm-selected { border-color:#54f0ec; background:#23465a; }
-#controllerMappingDialog .cm-pressed { background:#087b86; color:white; opacity:1; }
-#controllerMappingDialog .cm-note { color:#a8bdcf; font-size:.85em; }
-#controllerMappingDialog #cm-status { min-height:2.6em; color:#80eee6; }
-#controllerMappingDialog footer { border-top:1px solid #3a526b; margin-top:12px; padding-top:12px; }
-@media(max-width:800px) { .cm-body { grid-template-columns:1fr; } .cm-visual { max-width:500px; margin:auto; } #controllerMappingDialog header { align-items:flex-start; } #controllerMappingDialog header button { max-width:36%; } }
-/* Controller test visuals only; the original CC0 atlas remains unchanged. */
-.cm-sprite, .cm-guide { position:absolute; pointer-events:none; visibility:hidden; }
-.cm-sprite { background-image:url('../res/controller-dualsense.png'); background-repeat:no-repeat; }
-.cm-guide { left:47.2%; top:64.5%; width:6.4%; height:7%; border:2px solid #00eef0; border-radius:6px; color:#00eef0; font-size:.65em; text-align:center; }
-.cm-sprite.cm-active, .cm-guide.cm-active { visibility:visible; }
-#controllerMappingDialog #cm-exit-hint { position:sticky; top:0; z-index:2; border:2px solid #54f0ec; border-radius:7px; padding:.6em .8em; background:#163c50; color:#fff; font-weight:bold; text-align:center; }
-#controllerMappingDialog #cm-detail, #controllerMappingDialog #cm-axes { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.cm-tuning { border-top:1px solid #3a526b; margin-top:12px; padding-top:10px; }
-.cm-tuning h3 { margin:0 0 8px; font-size:1em; }
-.cm-tuning-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-#controllerMappingDialog .cm-tuning-grid button { text-align:left; min-height:34px; }
-@media(max-width:800px) { .cm-tuning-grid { grid-template-columns:1fr; } }
+#controllerMappingDialog button { font:inherit; color:#eaf1fb; background:#222d3d; border:1px solid #3c4b62; border-radius:9px; padding:.5em .85em; cursor:pointer; min-height:34px; }
+#controllerMappingDialog button:hover, #controllerMappingDialog button:focus { border-color:#63e3f4; outline:2px solid #63e3f4; outline-offset:1px; }
+#controllerMappingDialog button:disabled { opacity:.45; cursor:default; }
+#controllerMappingDialog .cm-primary { border-color:#2cc4de; background:linear-gradient(90deg,#0a6379,#0e87a2); }
+#controllerMappingDialog .cm-ghost { background:#222d3d; }
+.cm-header { display:flex; align-items:flex-start; justify-content:space-between; gap:2vw; }
+.cm-eyebrow { color:#62d5e8; font-size:.72em; font-weight:700; letter-spacing:.18em; }
+#cm-title { margin:.08em 0 .08em; font-size:2.15em; font-weight:600; line-height:1.1; }
+.cm-sub { margin:0; color:#9fb0c8; font-size:.92em; }
+.cm-tabs { display:flex; gap:.45em; margin-top:.5em; }
+.cm-tab { display:flex; align-items:center; gap:.5em; border-radius:999px !important; padding:.55em 1em !important; color:#9fb0c8 !important; background:#1a2230 !important; }
+.cm-tab span { width:.55em; height:.55em; border-radius:50%; background:#5d6b80; }
+.cm-tab.cm-active { background:#0d6076 !important; border-color:#2cc4de !important; color:#fff !important; }
+.cm-tab.cm-active span { background:#fff; }
+#cm-family-xbox span { background:#6ee07a; } #cm-family-playstation span { background:#4d8dff; } #cm-family-nintendo span { background:#ff6b5f; }
+#cm-status { min-height:1.5em; margin:.5em 0 .2em; color:#80eee6; }
+.cm-body { display:grid; grid-template-columns:1.25fr .85fr; gap:1.6vw; margin-top:1.2vh; min-height:0; }
+.cm-stage { background:radial-gradient(circle at 50% 45%,#2a3a50 0%,#1a2433 58%,#111722 100%); border:1px solid #303d52; border-radius:16px; padding:1.1vh 1.2vw .8vh; display:flex; flex-direction:column; min-height:0; }
+.cm-stage-head { display:flex; justify-content:space-between; align-items:center; color:#c4d2e6; font-size:.9em; }
+.cm-stage-head span { color:#7f93ae; font-size:.82em; }
+.cm-art-wrap { position:relative; display:inline-block; max-width:100%; max-height:100%; align-self:center; margin:.4vh auto; line-height:0; }
+.cm-art-wrap img { display:block; max-width:100%; max-height:46vh; width:auto; height:auto; filter:drop-shadow(0 16px 22px rgba(0,0,0,.55)); }
+.cm-hotspots { position:absolute; inset:0; }
+#controllerMappingDialog .cm-hotspot { position:absolute !important; transform:translate(-50%,-50%); padding:0; min-height:0 !important; border:2px solid transparent !important; border-radius:50% !important; background:transparent !important; }
+.cm-hotspot:hover { border-color:rgba(99,227,244,.5) !important; }
+.cm-hotspot.cm-selected, .cm-hotspot.cm-pressed { border-color:transparent !important; background:transparent !important; }
+.cm-hotspot.cm-selected::after, .cm-hotspot.cm-pressed::after { content:''; position:absolute; left:50%; top:50%; width:150%; padding-bottom:150%; transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; }
+.cm-hotspot.cm-selected::after { border:3px solid #63e3f4; background:rgba(99,227,244,.08); box-shadow:0 0 18px rgba(99,227,244,.85), inset 0 0 10px rgba(99,227,244,.25); }
+.cm-hotspot.cm-pressed::after { border:3px solid #ffdc7a; background:rgba(255,220,122,.14); box-shadow:0 0 18px rgba(255,220,122,.85); }
+.cm-stage-foot { text-align:center; color:#70839e; font-size:.78em; margin:.2em 0 0; }
+.cm-inspector { display:flex; flex-direction:column; gap:1.1vh; min-height:0; }
+.cm-sel-card { display:flex; align-items:center; gap:.9em; padding:1.1vh 1.2vw; background:#1b2432; border:1px solid #334157; border-radius:14px; }
+.cm-face { width:3.3em; height:3.3em; flex:0 0 3.3em; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5em; font-weight:700; color:#fff; background:#c7444a; }
+.cm-face-playstation { background:#b74352; } .cm-face-xbox { background:#3d9b5b; } .cm-face-nintendo { background:#c7444a; }
+.cm-sel-card h3 { margin:0; font-size:1.7em; font-weight:600; line-height:1.1; }
+.cm-sel-card p { margin:.2em 0 0; color:#93a6c0; font-size:.85em; }
+.cm-map-card { padding:1.1vh 1.2vw; background:#182130; border:1px solid #334157; border-radius:14px; }
+.cm-map-row { display:flex; justify-content:space-between; align-items:center; gap:1em; }
+.cm-map-actions { margin-top:.9em; justify-content:flex-end; }
+.cm-label { color:#8fa3bd; font-size:.85em; }
+.cm-value { margin-top:.15em; font-size:1.55em; font-weight:600; }
+.cm-note { color:#8fa3bd; font-size:.8em; line-height:1.35; margin:.5em 0 0; }
+.cm-changed { padding:1vh 1.1vw; background:#151d29; border:1px solid #2d394d; border-radius:12px; }
+.cm-changed h3 { margin:0 0 .6em; color:#c4d2e6; font-size:.86em; font-weight:600; }
+.cm-chips { display:flex; flex-wrap:wrap; gap:.4em; }
+.cm-chip { padding:.4em .7em; border-radius:999px; background:#202b3b; color:#a8bdd6; font-size:.78em; border:1px solid #35445a; }
+.cm-choice { padding:1.1vh 1.2vw; background:#182130; border:1px solid #334157; border-radius:14px; }
+.cm-targets { display:grid; grid-template-columns:1fr 1fr; gap:.45em; margin:.8em 0; }
+.cm-target { text-align:left; }
+.cm-target.cm-selected { border-color:#63e3f4; background:#23465a; }
+.cm-analog-row { display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:1.2vh; padding:.8em 1.1em !important; background:#182130 !important; border:1px solid #303d52 !important; border-radius:12px !important; color:#c4d2e6 !important; font-size:.95em; }
+.cm-analog-row span:nth-child(2) { color:#7f93ae; font-size:.86em; }
+.cm-analog-row span:last-child { color:#62d5e8; font-size:1.3em; }
+.cm-analog-panel { margin-top:.7em; padding:1em 1.1em; background:#141c28; border:1px solid #303d52; border-radius:12px; }
+.cm-tuning-grid { display:grid; grid-template-columns:1fr 1fr; gap:.5em; }
+.cm-tuning-grid button { text-align:left; }
+.cm-footer { display:flex; align-items:center; justify-content:space-between; gap:1em; border-top:1px solid #334055; margin-top:1.2vh; padding-top:1.1vh; }
+.cm-footer > div { display:flex; gap:.5em; }
+@media(max-width:1000px) {
+  #controllerMappingDialog { width:94vw; padding:1.4vh 2vw; }
+  .cm-body { grid-template-columns:1fr; }
+  .cm-art-wrap img { max-height:38vh; }
+  .cm-tabs { flex-wrap:wrap; }
+  .cm-tuning-grid { grid-template-columns:1fr; }
+}

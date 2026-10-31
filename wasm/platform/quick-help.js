@@ -2,7 +2,7 @@
 // when opened and never starts a timer or frame loop.
 var QuickHelp = (function() {
   var built = false, open = false;
-  var overlay = null, list = null, closeButton = null;
+  var overlay = null, list = null, closeButton = null, activeIndex = null;
 
   function translate(value) {
     return typeof MenuI18n !== 'undefined' && typeof MenuI18n.text === 'function'
@@ -52,7 +52,9 @@ var QuickHelp = (function() {
 
   function populate() {
     list.textContent = '';
-    var family = typeof ControllerIdentity !== 'undefined' ? ControllerIdentity.primaryFamily() : 'unknown';
+    var family = typeof ControllerIdentity !== 'undefined'
+      ? (typeof activeIndex === 'number' ? ControllerIdentity.familyAt(activeIndex) : ControllerIdentity.primaryFamily())
+      : 'unknown';
     var labels = typeof ControllerIdentity !== 'undefined'
       ? ControllerIdentity.labels(family)
       : {accept: 'A', back: 'B', face2: 'X', face3: 'Y', lb: 'LB', rb: 'RB',
@@ -67,6 +69,7 @@ var QuickHelp = (function() {
       addRow('Favorite game', labels.face2);
     }
     addRow('Quick help', labels.start);
+    addRow('Game menu', labels.guide);
     addRow('Navigation guide', labels.guide);
     addRow('Close', labels.back);
   }
@@ -88,7 +91,8 @@ var QuickHelp = (function() {
     }
   };
 
-  function openHelp() {
+  function openHelp(index) {
+    activeIndex = typeof index === 'number' ? index : null;
     if (typeof isInGame !== 'undefined' && isInGame) return false;
     if (typeof isDialogOpen !== 'undefined' && isDialogOpen) return false;
     if (document.hidden) return false;

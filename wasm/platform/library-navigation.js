@@ -53,17 +53,19 @@ var LibraryNavigation = (function() {
     showAppsView();
     if (typeof ConsoleLibrary.move === 'function') ConsoleLibrary.move(0, delta * 2);
   }
-  function showQuickHelp() {
+  function showQuickHelp(index) {
     if (isInGame || typeof QuickHelp === 'undefined') return;
     if (typeof isDialogOpen !== 'undefined' && isDialogOpen && !QuickHelp.isOpen()) return;
-    QuickHelp.toggle();
+    if (QuickHelp.isOpen && QuickHelp.isOpen()) QuickHelp.close();
+    else QuickHelp.open(index);
   }
-  function showGuide() {
+  function showGuide(index) {
     if (isDialogOpen || isInGame) return;
     if (typeof navigationGuideDialog === 'function') {
+      if (typeof ControllerIdentity !== 'undefined') ControllerIdentity.setGuideIndex(index);
       navigationGuideDialog();
     } else if (typeof QuickHelp !== 'undefined') {
-      QuickHelp.open();
+      QuickHelp.open(index);
     }
   }
   function axis(value, previous) {
@@ -154,8 +156,8 @@ var LibraryNavigation = (function() {
             else if (change.index === 5) extra = function() { filterStep(1); };
             else if (change.index === 6) extra = function() { pageStep(-1); };
             else if (change.index === 7) extra = function() { pageStep(1); };
-            else if (change.index === 9) extra = showQuickHelp;
-            else if (change.index === 16) extra = showGuide;
+            else if (change.index === 9) extra = function() { showQuickHelp(index); };
+            else if (change.index === 16) extra = function() { showGuide(index); };
           }
         }
       } else if (change.type === 'axis' && change.index >= 0 && change.index <= 3) {

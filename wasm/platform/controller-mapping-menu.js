@@ -1,93 +1,78 @@
-// The editor and its optional test loop exist only while the menu is open.
+// Minimal per-family controller mapping editor. The overlay and test listener
+// exist only while the dialog is open.
 var ControllerMappingMenu = (function() {
-  var names = ['Cross / A','Circle / B','Square / X','Triangle / Y','L1 / LB','R1 / RB',
-    'L2 / LT','R2 / RT','Create / Back','Options / Start','L3 / LS click','R3 / RS click',
-    'D-pad up','D-pad down','D-pad left','D-pad right','PS / Guide','Touchpad','Mute'];
-  var root, dialog, draft, tuning = null, selected = 0, choosing = false, testing = false, raf = 0;
-  var focused = 'cm-enabled', lastSample = '', exitSince = null;
-  var releaseGuard = false, exitPad = null, exitArmed = false, lastCountdown = '';
-  var pointerUntil = 0;
-  function observePointer() { if (testing) pointerUntil = Date.now() + 350; }
-  // Existing CC0 atlas: physical Web Gamepad button, destination, pressed crop.
-  // Source rectangles follow the Input Overlay preset, not its SDL button codes.
-  var sprites = [
-    [0,1047,431,0,883,99,91], [1,1150,345,305,882,98,90],
-    [2,946,349,102,883,98,90], [3,1050,257,203,883,99,91],
-    [4,146,75,409,900,206,108], [5,992,75,618,900,206,108],
-    [6,167,0,1112,896,187,104], [7,990,0,922,896,187,104],
-    [8,332,225,874,858,45,66], [9,968,225,827,858,44,66],
-    [10,389,517,1359,157,157,156], [11,810,516,1359,157,157,156],
-    [17,390,138,1368,642,572,313]
-  ];
-  function spriteStyle(x,y,sx,sy,w,h) {
-    return 'left:'+(x/1344*100)+'%;top:'+(y/788*100)+'%;width:'+(w/1344*100)+
-      '%;height:'+(h/788*100)+'%;background-size:'+(2089/w*100)+'% '+(1236/h*100)+
-      '%;background-position:'+(sx/(2089-w)*100)+'% '+(sy/(1236-h)*100)+'%';
-  }
-  function artwork() {
-    return sprites.map(function(s) {
-      return '<span id="cm-art-button-'+s[0]+'" class="cm-sprite" aria-hidden="true" style="'+spriteStyle.apply(null,s.slice(1))+'"></span>';
-    }).join('')+'<span id="cm-art-dpad" class="cm-sprite" aria-hidden="true"></span>'+
-      '<span id="cm-art-button-16" class="cm-guide" aria-hidden="true">Guide</span>';
-  }
-  function resetArt() {
-    dialog.querySelectorAll('.cm-active,.cm-pressed').forEach(function(node) {
-      node.classList.remove('cm-active','cm-pressed');
-    });
-  }
-  function paintArt(pressed) {
-    sprites.forEach(function(s) { el('cm-art-button-'+s[0]).classList.toggle('cm-active',pressed.includes(s[0])); });
-    el('cm-art-button-16').classList.toggle('cm-active',pressed.includes(16));
-    var up = pressed.includes(12), down = pressed.includes(13);
-    var left = pressed.includes(14), right = pressed.includes(15);
-    var mask = (up !== down ? (up ? 1 : 2) : 0) | (left !== right ? (left ? 4 : 8) : 0);
-    var frame = {0:0,4:1,8:2,1:3,2:4,5:5,9:6,6:7,10:8}[mask];
-    el('cm-art-dpad').style.cssText = spriteStyle(136,281,1+frame*232,1013,229,220);
-    el('cm-art-dpad').classList.toggle('cm-active',mask !== 0);
-  }
-  function padsNow() {
-    try { return navigator.getGamepads ? navigator.getGamepads() : []; } catch (e) { return []; }
-  }
-  function circleHeld() {
-    var pads = padsNow();
-    for (var i=0;i<pads.length;i++) if (pads[i] && pads[i].connected && pads[i].index === exitPad)
-      return !!(pads[i].buttons[1] && pads[i].buttons[1].pressed);
-    return false;
-  }
-  function clearTestInput() {
-    releaseGuard = false;
-    window.removeEventListener('gamepadinputchanged',blockGamepad,true);
-    window.removeEventListener('keydown',blockTestKeys,true);
-    window.removeEventListener('keyup',blockTestKeys,true);
-    window.removeEventListener('gamepaddisconnected',testDisconnected,true);
-  }
-  function testDisconnected(event) {
-    if (event.gamepad && event.gamepad.index === exitPad) {
-      exitSince = null; exitArmed = false;
-      if (!testing) clearTestInput();
+  var families = ['xbox', 'playstation', 'nintendo'];
+  var profiles = {
+    xbox: {
+      name: 'Xbox', image: 'static/res/controller-xbox.png',
+      source: ['A','B','X','Y','LB','RB','LT','RT','View','Menu','LS','RS','↑','↓','←','→','Guide','Share','Mute'],
+      target: ['A','B','X','Y','LB','RB','LT','RT','View','Menu','LS','RS','↑','↓','←','→','Guide']
+    },
+    playstation: {
+      name: 'PlayStation', image: 'static/res/controller-ps5.png',
+      source: ['Cross','Circle','Square','Triangle','L1','R1','L2','R2','Create','Options','L3','R3','↑','↓','←','→','PS','Touchpad','Mute'],
+      target: ['Cross','Circle','Square','Triangle','L1','R1','L2','R2','Create','Options','L3','R3','↑','↓','←','→','PS']
+    },
+    nintendo: {
+      name: 'Switch', image: 'static/res/controller-switch.png',
+      source: ['B','A','Y','X','L','R','ZL','ZR','Minus','Plus','L3','R3','↑','↓','←','→','Home','Capture','Mute'],
+      target: ['A','B','X','Y','L','R','ZL','ZR','Minus','Plus','L3','R3','↑','↓','←','→','Home']
     }
-  }
-  function blockTestKeys(event) {
-    var navigationKey = ['Enter','Escape','Backspace','ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(event.key) ||
-      [13,27,8,32,37,38,39,40,10009,65376,65385].includes(event.keyCode);
-    if (!navigationKey) return;
-    event.preventDefault(); event.stopImmediatePropagation();
-    if (!testing && !circleHeld()) clearTestInput();
-  }
+  };
+  // Centers are percentages of the artwork; sizes are percentages of its width.
+  var hotspots = {
+    xbox: [
+      [0,75.7,43.4,8],[1,82.5,32.7,8],[2,68.5,32.7,8],[3,75.5,22.4,8],
+      [4,34.0,13.1,10],[5,75.7,13.1,10],[6,32.0,5.8,9],[7,77.7,5.8,9],
+      [8,42.7,29.2,8],[9,55.3,29.2,8],[10,30.1,32.1,10],[11,75.7,52.5,10],
+      [12,30.1,45.2,7],[13,30.1,59.8,7],[14,25.2,52.5,7],[15,35.0,52.5,7]
+    ],
+    playstation: [
+      [0,79.2,39.8,8],[1,87.1,30.4,8],[2,72.3,31.0,8],[3,75.6,22.1,8],
+      [4,36.6,16.2,10],[5,90.1,16.2,10],[6,34.7,7.4,9],[7,92.1,7.4,9],
+      [8,63.4,17.7,8],[9,77.2,17.7,8],[10,58.4,56.0,10],[11,80.2,56.0,10],
+      [12,32.7,31.0,7],[13,32.7,48.7,7],[14,26.7,39.8,7],[15,38.6,39.8,7]
+    ],
+    nintendo: [
+      [0,77.0,45.3,8],[1,83.9,35.3,8],[2,69.9,34.7,8],[3,77.0,24.9,8],
+      [4,34.4,16.7,10],[5,73.7,16.7,10],[6,32.4,9.1,9],[7,75.6,9.1,9],
+      [8,37.3,18.2,8],[9,66.8,18.2,8],[10,31.4,33.4,10],[11,74.7,56.2,10],
+      [12,37.3,51.7,7],[13,37.3,63.8,7],[14,33.4,57.8,7],[15,41.3,57.8,7]
+    ]
+  };
+
+  var root, dialog, draft, tuning, family = 'xbox', selected = 0, choosing = false, testing = false;
+  var focused = 'cm-family-xbox', statusText = '', testInput = null;
+
   function el(id) { return document.getElementById(id); }
-  function button(id, text) { return '<button type="button" id="'+id+'">'+text+'</button>'; }
-  function setStatus(text) { el('cm-status').textContent = text; }
+  function translate(value) {
+    return typeof MenuI18n !== 'undefined' && typeof MenuI18n.text === 'function'
+      ? MenuI18n.text(value) : value;
+  }
+  function profile() { return draft.profiles[family]; }
+  function source(i) { return profiles[family].source[i]; }
+  function target(i) { return profiles[family].target[i]; }
+  function sourceText(i) { return translate(source(i)); }
+  function targetText(i) { return translate(target(i)); }
+  function faceText(value) {
+    if (family === 'playstation' && value === 'Cross') return '✕';
+    if (family === 'playstation' && value === 'Circle') return '○';
+    if (family === 'playstation' && value === 'Square') return '□';
+    if (family === 'playstation' && value === 'Triangle') return '△';
+    return value;
+  }
+  function setStatus(text) { statusText = text || ''; if (el('cm-status')) el('cm-status').textContent = translate(statusText); }
   function focus(id) {
     var node = el(id);
-    if (node && !node.disabled) { focused = id; node.focus(); node.scrollIntoView({block:'nearest'}); }
+    if (node && !node.disabled) { focused = id; node.focus(); if (node.scrollIntoView) node.scrollIntoView({block:'nearest'}); }
   }
   function controls() {
+    if (!dialog) return [];
     return Array.from(dialog.querySelectorAll('button')).filter(function(node) {
-      return !node.disabled && node.getClientRects().length;
+      return !node.disabled && !node.hidden && node.getClientRects().length;
     });
   }
   function move(dx, dy) {
-    if (testing || releaseGuard) return;
     var current = el(focused), items = controls();
     if (!current || !items.includes(current)) { if (items.length) focus(items[0].id); return; }
     var from = current.getBoundingClientRect(), best = null, distance = Infinity;
@@ -105,12 +90,13 @@ var ControllerMappingMenu = (function() {
     enter:function() { focus(focused); }, leave:function() {},
     up:function() { move(0,-1); }, down:function() { move(0,1); },
     left:function() { move(-1,0); }, right:function() { move(1,0); },
-    accept:function() { if (testing || releaseGuard) return; var node = el(focused); if (node && !node.disabled) node.click(); },
+    accept:function() { var node = el(focused); if (node && !node.disabled) node.click(); },
     back:function() {
-      if (testing || releaseGuard) return;
-      if (choosing) { choosing = false; render(); focus('cm-change'); }
-      else close();
-    }, press:function() {}, switch:function() { focus(focused); }
+      if (choosing) { choosing = false; render(); focus('cm-change'); return; }
+      if (!el('cm-analog-panel').hidden) { el('cm-analog-panel').hidden = true; focus('cm-analog-row'); return; }
+      close();
+    },
+    press:function() {}, switch:function() { focus(focused); }
   };
   var curveNames = {1:'Linear', 0.75:'Soft', 1.5:'Precise', 2:'Strong'};
   var invertNames = ['OFF', 'X', 'Y', 'X+Y'];
@@ -121,45 +107,150 @@ var ControllerMappingMenu = (function() {
   function percent(value) { return Math.round(value * 100) + '%'; }
   function renderTuning() {
     if (!tuning) return;
-    el('cm-tuning-enabled').textContent = 'Analog tuning: ' + (tuning.enabled ? 'ON' : 'OFF');
-    el('cm-deadzone').textContent = 'Deadzone: ' + (tuning.deadzone ? percent(tuning.deadzone) : 'none');
-    el('cm-curve').textContent = 'Curve: ' + (curveNames[tuning.curve] || 'Linear');
-    el('cm-invert-left').textContent = 'Invert left: ' + invertNames[tuning.invertLeft];
-    el('cm-invert-right').textContent = 'Invert right: ' + invertNames[tuning.invertRight];
-    el('cm-swap-sticks').textContent = 'Swap sticks: ' + (tuning.swapSticks ? 'ON' : 'OFF');
-    el('cm-trigger-threshold').textContent =
-      'Trigger threshold: ' + (tuning.triggerThreshold ? percent(tuning.triggerThreshold) : 'none');
+    el('cm-tuning-enabled').textContent = translate('Analog tuning') + ': ' + translate(tuning.enabled ? 'ON' : 'OFF');
+    el('cm-deadzone').textContent = translate('Deadzone') + ': ' + (tuning.deadzone ? percent(tuning.deadzone) : translate('none'));
+    el('cm-curve').textContent = translate('Curve') + ': ' + translate(curveNames[tuning.curve] || 'Linear');
+    el('cm-invert-left').textContent = translate('Invert left') + ': ' + translate(invertNames[tuning.invertLeft]);
+    el('cm-invert-right').textContent = translate('Invert right') + ': ' + translate(invertNames[tuning.invertRight]);
+    el('cm-swap-sticks').textContent = translate('Swap sticks') + ': ' + translate(tuning.swapSticks ? 'ON' : 'OFF');
+    el('cm-trigger-threshold').textContent = translate('Trigger threshold') + ': ' +
+      (tuning.triggerThreshold ? percent(tuning.triggerThreshold) : translate('none'));
     var disabled = !tuning.enabled || testing;
     ['cm-deadzone','cm-curve','cm-invert-left','cm-invert-right','cm-swap-sticks',
       'cm-trigger-threshold'].forEach(function(id) { el(id).disabled = disabled; });
     el('cm-tuning-enabled').disabled = testing;
+    el('cm-analog-state').textContent = translate(tuning.enabled ? 'Enabled' : 'Disabled');
+  }
+  function renderHotspots() {
+    var wrap = el('cm-hotspots');
+    wrap.textContent = '';
+    hotspots[family].forEach(function(item) {
+      var index = item[0], button = document.createElement('button');
+      button.type = 'button'; button.id = 'cm-hs-' + index;
+      button.className = 'cm-hotspot' + (selected === index ? ' cm-selected' : '') + (testing ? ' cm-testing' : '');
+      button.style.left = item[1] + '%'; button.style.top = item[2] + '%';
+      button.style.width = item[3] + '%'; button.style.paddingBottom = item[3] + '%';
+      button.setAttribute('aria-label', sourceText(index));
+      button.title = sourceText(index);
+      button.onclick = function() { selected = index; render(); focus('cm-hs-' + index); };
+      wrap.appendChild(button);
+    });
+  }
+  function pairText(i) {
+    var s = sourceText(i), t = targetText(profile().map[i]);
+    if (s === t) return '';
+    return profile().map[profile().map[i]] === i ? s + ' ↔ ' + t : s + ' → ' + t;
+  }
+  function renderChanges() {
+    var box = el('cm-changes'); box.textContent = '';
+    var seen = Object.create(null), found = false;
+    for (var i=0; i<16; i++) {
+      var s = sourceText(i), t = targetText(profile().map[i]);
+      if (s === t) continue;
+      var key = [s,t].sort().join('|');
+      if (seen[key]) continue;
+      seen[key] = true; found = true;
+      var chip = document.createElement('span'); chip.className = 'cm-chip';
+      var pair = [s, t].sort();
+      chip.textContent = profile().map[profile().map[i]] === i ? pair[0] + ' ↔ ' + pair[1] : s + ' → ' + t;
+      box.appendChild(chip);
+    }
+    if (!found) { var chip = document.createElement('span'); chip.className = 'cm-chip'; chip.textContent = translate('No swaps'); box.appendChild(chip); }
+  }
+  function renderTargets() {
+    var box = el('cm-targets'); box.textContent = '';
+    var sourceIsTrigger = selected === 6 || selected === 7;
+    for (var i=0; i<16; i++) {
+      if ((i === 6 || i === 7) !== sourceIsTrigger) continue;
+      var button = document.createElement('button'); button.type = 'button';
+      button.id = 'cm-target-' + i; button.className = 'cm-target' + (profile().map[selected] === i ? ' cm-selected' : '');
+      button.textContent = targetText(i);
+      button.onclick = function(index) { return function() {
+        ControllerMapping.assign(draft, family, selected, index);
+        choosing = false; render(); focus('cm-change');
+        setStatus('Assignment swapped. Save to keep this layout.');
+      }; }(i);
+      box.appendChild(button);
+    }
+  }
+  function render() {
+    if (!draft) return;
+    el('cm-family-xbox').classList.toggle('cm-active', family === 'xbox');
+    el('cm-family-playstation').classList.toggle('cm-active', family === 'playstation');
+    el('cm-family-nintendo').classList.toggle('cm-active', family === 'nintendo');
+    el('cm-profile-title').textContent = profiles[family].name;
+    el('cm-art').src = profiles[family].image;
+    el('cm-art').alt = profiles[family].name;
+    renderHotspots();
+    el('cm-selected').textContent = sourceText(selected);
+    el('cm-selected-detail').textContent = profiles[family].name + ' · ' + translate('Physical button');
+    el('cm-face').textContent = faceText(source(selected));
+    el('cm-face').className = 'cm-face cm-face-' + family;
+    var s = sourceText(selected), t = targetText(profile().map[selected]);
+    el('cm-target-value').textContent = s === t ? t : pairText(selected);
+    el('cm-target-note').textContent = s === t ? translate('Original') : translate('Swapped');
+    el('cm-change').disabled = testing;
+    el('cm-test').textContent = translate(testing ? 'Stop test' : 'Test buttons');
+    el('cm-analog-row').disabled = testing;
+    el('cm-analog-toggle').textContent = el('cm-analog-panel').hidden ? '›' : '⌄';
+    el('cm-inspector-main').hidden = choosing;
+    el('cm-choice').hidden = !choosing;
+    if (choosing) renderTargets();
+    renderChanges(); renderTuning();
+    el('cm-status').textContent = translate(statusText);
   }
   function ensure() {
     if (root) return;
-    root = document.createElement('div');
-    root.className = 'cm-overlay'; root.style.display = 'none';
-    root.innerHTML = '<dialog id="controllerMappingDialog" aria-labelledby="cm-title">'+
-      '<header><div><h2 id="cm-title">Controller mapping</h2><p>Game controls only. Menu navigation stays unchanged.</p></div>'+button('cm-enabled','Custom mapping: OFF')+'</header>'+
-      '<p id="cm-exit-hint" hidden>Hold Circle / B for 3 seconds to finish the test.</p>'+
-      '<div class="cm-body"><section class="cm-visual" aria-label="Controller reference">'+
-      '<div class="cm-controller"><img id="cm-art" alt="Front view of a DualSense controller">'+artwork()+
-      '<span class="cm-label cm-l2">L2</span><span class="cm-label cm-l1">L1</span><span class="cm-label cm-l3">L3</span>'+
-      '<span class="cm-label cm-r2">R2</span><span class="cm-label cm-r1">R1</span><span class="cm-label cm-r3">R3</span></div>'+
-      '<p class="cm-credit">Art: Xelu (CC0) · Input Overlay preset by Caro</p>'+
-      '<h3 id="cm-selected"></h3><p id="cm-detail"></p><div class="cm-actions">'+button('cm-change','Change')+button('cm-test','Test buttons')+button('cm-analog','Analog controls')+'</div>'+
-      '<p id="cm-axes">Sticks: original axes, sensitivity and range.</p></section>'+
-      '<section class="cm-assignments" aria-label="Button assignments"><p id="cm-list-title">Physical button → game input</p><div id="cm-rows"></div></section></div>'+
-      '<section class="cm-tuning" aria-label="Analog controls"><h3>Analog controls</h3><div class="cm-tuning-grid">'+
-      button('cm-tuning-enabled','Analog tuning: OFF')+button('cm-deadzone','Deadzone: none')+
-      button('cm-curve','Curve: Linear')+button('cm-invert-left','Invert left: OFF')+
-      button('cm-invert-right','Invert right: OFF')+button('cm-swap-sticks','Swap sticks: OFF')+
-      button('cm-trigger-threshold','Trigger threshold: none')+
-      '</div><p class="cm-note">Optional response for the next stream. Defaults keep the original sticks and triggers.</p></section>'+
-      '<p id="cm-status" role="status"></p><p class="cm-note">When ON, the saved layout applies to game controls. Triggers stay analog. One layout applies to all controllers.</p>'+
-      '<footer>'+button('cm-reset','Restore layout')+'<div>'+button('cm-cancel','Cancel')+button('cm-save','Save')+'</div></footer></dialog>';
+    root = document.createElement('div'); root.className = 'cm-overlay'; root.style.display = 'none';
+    root.innerHTML =
+      '<dialog id="controllerMappingDialog" aria-labelledby="cm-title">'+
+      '<header class="cm-header"><div><div class="cm-eyebrow" id="cm-eyebrow">CONTROLES</div>'+
+      '<h2 id="cm-title">Controller mapping</h2><p class="cm-sub">Game controls only. Menu navigation stays unchanged.</p></div>'+
+      '<div class="cm-tabs"><button type="button" id="cm-family-xbox" class="cm-tab"><span></span>Xbox</button>'+
+      '<button type="button" id="cm-family-playstation" class="cm-tab"><span></span>PlayStation</button>'+
+      '<button type="button" id="cm-family-nintendo" class="cm-tab"><span></span>Switch</button></div></header>'+
+      '<p id="cm-status" role="status"></p>'+
+      '<div class="cm-body"><section class="cm-stage"><div class="cm-stage-head"><strong id="cm-profile-title">Xbox</strong>'+
+      '<span id="cm-connection">Independent profile</span></div>'+
+      '<div class="cm-art-wrap" id="cm-art-wrap"><img id="cm-art" alt="">'+
+      '<div id="cm-hotspots" class="cm-hotspots"></div></div>'+
+      '<p class="cm-stage-foot">Click a button or use the direction pad.</p></section>'+
+      '<aside class="cm-inspector"><div id="cm-inspector-main">'+
+      '<div class="cm-eyebrow" id="cm-selected-label">SELECTED BUTTON</div>'+
+      '<div class="cm-sel-card"><div id="cm-face" class="cm-face">A</div><div><h3 id="cm-selected">A</h3>'+
+      '<p id="cm-selected-detail">Xbox · Physical button</p></div></div>'+
+      '<div class="cm-map-card"><div class="cm-map-row"><div><div class="cm-label" id="cm-target-label">Goes to game</div>'+
+      '<div id="cm-target-value" class="cm-value">A</div><div id="cm-target-note" class="cm-note">Original</div></div>'+
+      '<button type="button" id="cm-change" class="cm-primary">Change</button></div>'+
+      '<div class="cm-map-row cm-map-actions"><button type="button" id="cm-test" class="cm-ghost">Test buttons</button></div></div>'+
+      '<div class="cm-changed"><h3 id="cm-changed-title">Changes in this profile</h3><div id="cm-changes" class="cm-chips"></div></div>'+
+      '<p id="cm-note" class="cm-note">This profile applies only to this controller family. PlayStation and Xbox profiles stay independent; the PlayStation profile is not changed.</p>'+
+      '</div><div id="cm-choice" class="cm-choice" hidden><div class="cm-eyebrow">CHOOSE GAME BUTTON</div>'+
+      '<p class="cm-note">The other assignment swaps automatically.</p><div id="cm-targets" class="cm-targets"></div>'+
+      '<button type="button" id="cm-choice-cancel" class="cm-ghost">Back</button></div></aside></div>'+
+      '<button type="button" id="cm-analog-row" class="cm-analog-row"><span id="cm-analog-label">Analog tuning</span>'+
+      '<span id="cm-analog-state">Disabled</span><span id="cm-analog-toggle">›</span></button>'+
+      '<div id="cm-analog-panel" class="cm-analog-panel" hidden><div class="cm-tuning-grid">'+
+      '<button type="button" id="cm-tuning-enabled">Analog tuning: OFF</button><button type="button" id="cm-deadzone">Deadzone: none</button>'+
+      '<button type="button" id="cm-curve">Curve: Linear</button><button type="button" id="cm-invert-left">Invert left: OFF</button>'+
+      '<button type="button" id="cm-invert-right">Invert right: OFF</button><button type="button" id="cm-swap-sticks">Swap sticks: OFF</button>'+
+      '<button type="button" id="cm-trigger-threshold">Trigger threshold: none</button></div>'+
+      '<p class="cm-note">Optional response for the next stream. Defaults keep the original sticks and triggers.</p></div>'+
+      '<footer class="cm-footer"><button type="button" id="cm-reset" class="cm-ghost">Restore layout</button>'+
+      '<div><button type="button" id="cm-cancel" class="cm-ghost">Cancel</button><button type="button" id="cm-save" class="cm-primary">Save</button></div></footer>'+
+      '</dialog>';
     document.body.appendChild(root); dialog = el('controllerMappingDialog');
-    root.addEventListener('focusin',function(event) { if (event.target.tagName === 'BUTTON') focused = event.target.id; });
-    el('cm-enabled').onclick = function() { draft.enabled = !draft.enabled; render(); };
+    root.addEventListener('focusin', function(event) { if (event.target.tagName === 'BUTTON') focused = event.target.id; });
+    el('cm-family-xbox').onclick = function() { selectFamily('xbox'); };
+    el('cm-family-playstation').onclick = function() { selectFamily('playstation'); };
+    el('cm-family-nintendo').onclick = function() { selectFamily('nintendo'); };
+    el('cm-change').onclick = function() { choosing = true; render(); focus('cm-target-' + profile().map[selected]); };
+    el('cm-choice-cancel').onclick = function() { choosing = false; render(); focus('cm-change'); };
+    el('cm-test').onclick = function() { if (testing) stopTest(); else startTest(); };
+    el('cm-analog-row').onclick = function() {
+      el('cm-analog-panel').hidden = !el('cm-analog-panel').hidden;
+      render(); if (!el('cm-analog-panel').hidden) focus('cm-tuning-enabled'); else focus('cm-analog-row');
+    };
     el('cm-tuning-enabled').onclick = function() { tuning.enabled = !tuning.enabled; renderTuning(); };
     el('cm-deadzone').onclick = function() { tuning.deadzone = cycle(ControllerTuning.DEADZONES, tuning.deadzone); renderTuning(); };
     el('cm-curve').onclick = function() { tuning.curve = cycle(ControllerTuning.CURVES, tuning.curve); renderTuning(); };
@@ -167,156 +258,80 @@ var ControllerMappingMenu = (function() {
     el('cm-invert-right').onclick = function() { tuning.invertRight = (tuning.invertRight + 1) % 4; renderTuning(); };
     el('cm-swap-sticks').onclick = function() { tuning.swapSticks = !tuning.swapSticks; renderTuning(); };
     el('cm-trigger-threshold').onclick = function() { tuning.triggerThreshold = cycle(ControllerTuning.THRESHOLDS, tuning.triggerThreshold); renderTuning(); };
-    el('cm-change').onclick = function() { choosing = true; render(); focus('cm-target-'+draft.map[selected]); };
-    el('cm-test').onclick = function() {
-      if (testing) { stopTest(); focus('cm-test'); } else startTest();
-    };
-    el('cm-analog').onclick = function() { focus('cm-tuning-enabled'); };
     el('cm-reset').onclick = function() {
-      var enabled = draft.enabled, tuningEnabled = tuning.enabled;
-      draft = ControllerMapping.defaults(); draft.enabled = enabled;
-      tuning = ControllerTuning.defaults(); tuning.enabled = tuningEnabled;
+      ControllerMapping.reset(draft, family); tuning = ControllerTuning.defaults();
       render(); setStatus('Original button assignments and analog defaults restored. Save to keep them.');
     };
     el('cm-cancel').onclick = close;
-    el('cm-save').onclick = function() {
-      if (!ControllerMapping.save(draft)) { setStatus('Could not save. Check storage and try again; your previous layout is unchanged.'); return; }
-      if (!ControllerTuning.save(tuning)) { setStatus('Could not save the analog response. Check storage and try again.'); return; }
-      var saved = tuning.enabled
-        ? 'Analog tuning saved. It applies to the next stream.'
-        : 'Controller settings saved.';
-      close();
-      if (typeof snackbarLog === 'function') {
-        snackbarLog(typeof MenuI18n !== 'undefined' && typeof MenuI18n.text === 'function'
-          ? MenuI18n.text(saved) : saved);
-      }
-    };
-    dialog.addEventListener('keydown',function(event) {
+    el('cm-save').onclick = save;
+    dialog.addEventListener('keydown', function(event) {
       var direction = {ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[event.key];
       if (direction) { event.preventDefault(); event.stopPropagation(); move(direction[0],direction[1]); }
     });
+    dialog.oncancel = function(event) { event.preventDefault(); view.back(); };
   }
-  function render() {
-    el('cm-enabled').textContent = 'Custom mapping: '+(draft.enabled ? 'ON' : 'OFF');
-    el('cm-enabled').setAttribute('aria-pressed', String(draft.enabled));
-    el('cm-selected').textContent = names[selected];
-    el('cm-detail').textContent = selected < 16 ? 'Sends '+names[draft.map[selected]]+'.'+
-      ((selected === 6 || selected === 7) ? ' Analog trigger range is preserved.' : '') :
-      selected === 16 ? 'Guide remains unchanged; availability depends on the TV.' :
-      selected === 17 ? 'Mouse input only.' : 'Not exposed as a standard button by the TV.';
-    el('cm-change').disabled = selected >= 16 || testing || choosing;
-    el('cm-list-title').textContent = choosing ? 'Choose game input · the other assignment swaps automatically' : 'Physical button → game input';
-    var rows = el('cm-rows'); rows.textContent = '';
-    names.forEach(function(name,i) {
-      if (choosing && (i >= 16 || ((selected === 6 || selected === 7) !== (i === 6 || i === 7)))) return;
-      var node = document.createElement('button'); node.type = 'button';
-      node.id = 'cm-'+(choosing ? 'target-' : 'row-')+i;
-      node.className = 'cm-row'+(!choosing && selected === i ? ' cm-selected' : '');
-      node.textContent = choosing ? name : name+' → '+(i < 16 ? names[draft.map[i]] : i === 16 ? 'unchanged' : i === 17 ? 'mouse (unchanged)' : 'not exposed');
-      node.disabled = testing;
-      node.onclick = function() {
-        if (choosing) {
-          ControllerMapping.assign(draft,selected,i); choosing = false; render();
-          setStatus('Assignment swapped. Save to keep this layout.'); focus('cm-row-'+selected);
-        } else { selected = i; render(); focus('cm-row-'+i); }
-      };
-      rows.appendChild(node);
-    });
-    ['cm-enabled','cm-reset','cm-save','cm-analog'].forEach(function(id) { el(id).disabled = testing; });
-    renderTuning();
+  function selectFamily(next) {
+    if (!profiles[next]) return;
+    family = next; selected = 1; choosing = false;
+    render(); focus('cm-family-' + next);
   }
-  function blockGamepad(event) {
-    event.stopImmediatePropagation();
-    if (!testing && !circleHeld()) clearTestInput();
+  function startTest() {
+    if (testing) return;
+    if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.suspend) LibraryNavigation.suspend();
+    testing = true; render();
+    testInput = function(event) {
+      var changes = event && event.detail && event.detail.changes || [];
+      changes.forEach(function(change) {
+        if (change.type !== 'button' || change.index < 0 || change.index > 15) return;
+        var node = el('cm-hs-' + change.index);
+        if (node) node.classList.toggle('cm-pressed', !!change.pressed);
+      });
+    };
+    window.addEventListener('gamepadinputchanged', testInput, true);
+    setStatus('Press buttons to see them light up. Click Stop test when finished.');
+    focus('cm-test');
   }
   function stopTest() {
     if (!testing) return;
-    window.removeEventListener('mousemove',observePointer,true);
-    window.removeEventListener('mousedown',observePointer,true);
-    window.removeEventListener('mouseup',observePointer,true);
-    pointerUntil = 0;
-    testing = false; cancelAnimationFrame(raf); raf = 0; exitSince = null;
-    releaseGuard = circleHeld();
-    if (!releaseGuard) clearTestInput();
-    el('cm-exit-hint').hidden = true; resetArt();
-    el('cm-test').textContent = 'Test buttons';
-    el('cm-axes').textContent = 'Sticks: original axes, sensitivity and range.';
+    testing = false;
+    if (testInput) window.removeEventListener('gamepadinputchanged', testInput, true);
+    testInput = null;
     if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.resume) LibraryNavigation.resume();
+    hotspots[family].forEach(function(item) { var node = el('cm-hs-' + item[0]); if (node) node.classList.remove('cm-pressed'); });
     render(); setStatus('Test finished. Menu navigation stays on the original layout.');
-  }
-  function startTest() {
-    if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.suspend) LibraryNavigation.suspend();
-    clearTestInput();
-    pointerUntil = 0;
-    window.addEventListener('mousemove',observePointer,true);
-    window.addEventListener('mousedown',observePointer,true);
-    window.addEventListener('mouseup',observePointer,true);
-    choosing = false; testing = true; lastSample = ''; exitSince = null; exitPad = null; lastCountdown = '';
-    var initial = padsNow();
-    for (var p=0;p<initial.length;p++) if (initial[p] && initial[p].connected) { exitPad = initial[p].index; break; }
-    exitArmed = !circleHeld();
-    var preview = draft.enabled ? draft.map.slice() : ControllerMapping.defaults().map;
-    window.addEventListener('gamepadinputchanged',blockGamepad,true);
-    window.addEventListener('keydown',blockTestKeys,true);
-    window.addEventListener('keyup',blockTestKeys,true);
-    window.addEventListener('gamepaddisconnected',testDisconnected,true);
-    el('cm-exit-hint').hidden = false;
-    el('cm-exit-hint').textContent = 'Hold Circle / B for 3 seconds to finish the test.';
-    el('cm-test').textContent = 'Finish test'; render(); focus('cm-test');
-    setStatus('Press buttons or move sticks. Pointer activity highlights the touchpad.');
-    function tick(time) {
-      if (!testing) return;
-      if (document.hidden || isInGame) { close(); return; }
-      var pads = padsNow(), pad = null;
-      for (var i=0;i<pads.length;i++) if (pads[i] && pads[i].connected) { pad = pads[i]; break; }
-      var pressed = [], axes = [], triggers = [];
-      if (pad) {
-        for (var b=0;b<18;b++) if (pad.buttons[b] && pad.buttons[b].pressed) pressed.push(b);
-        axes = Array.from(pad.axes).slice(0,4).map(function(value) { return Number.isFinite(value) ? value.toFixed(2) : '0.00'; });
-        triggers = [6,7].map(function(n) { var v = pad.buttons[n] && pad.buttons[n].value; return Number.isFinite(v) ? v.toFixed(2) : '0.00'; });
-      }
-      var padIndex = pad ? pad.index : null;
-      if (padIndex !== exitPad) { exitPad = padIndex; exitSince = null; exitArmed = !pressed.includes(1); }
-      if (!pressed.includes(1)) exitArmed = true;
-      var countdown = 'Hold Circle / B for 3 seconds to finish the test.';
-      if (pressed.includes(1) && exitArmed) {
-        if (exitSince === null) exitSince = time;
-        if (time-exitSince >= 3000) { stopTest(); focus('cm-test'); return; }
-        countdown = 'Keep holding Circle / B: '+Math.ceil((3000-(time-exitSince))/1000)+' s';
-      } else exitSince = null;
-      if (countdown !== lastCountdown) { lastCountdown = countdown; el('cm-exit-hint').textContent = countdown; }
-      var pointerActive = Date.now() < pointerUntil;
-      var sample = JSON.stringify([!!pad,pressed,axes,triggers,pointerActive]);
-      if (sample !== lastSample) {
-        lastSample = sample;
-        for (var n=0;n<19;n++) el('cm-row-'+n).classList.toggle('cm-pressed',pressed.includes(n));
-        paintArt(pointerActive && !pressed.includes(17) ? pressed.concat([17]) : pressed);
-        el('cm-axes').textContent = pad ? 'Axes '+axes.join('/')+' · L2/R2 '+triggers.join('/') : 'Connect a controller.';
-        el('cm-detail').textContent = pressed.length ? 'Physical: '+pressed.map(function(n) { return names[n]; }).join(', ')+
-          ' · Game: '+pressed.map(function(n) { return n < 17 ? names[preview[n]] : 'mouse (unchanged)'; }).join(', ') : 'Press a button to see its mapping.';
-        el('cm-detail').title = el('cm-detail').textContent;
-      }
-      raf = requestAnimationFrame(tick);
-    }
-    raf = requestAnimationFrame(tick);
   }
   function hidden() { if (document.hidden) close(); }
   function close() {
     if (!dialog || !dialog.open) return;
-    stopTest(); clearTestInput(); document.removeEventListener('visibilitychange',hidden);
+    stopTest();
+    document.removeEventListener('visibilitychange', hidden);
     closeUtilityDialog('controllerMappingDialog');
-    el('cm-rows').textContent = ''; el('cm-art').removeAttribute('src'); draft = null; tuning = null; choosing = false;
+    root.style.display = 'none'; draft = null; tuning = null; testing = false; choosing = false;
     focusElement('controllerMappingBtn');
+  }
+  function save() {
+    if (!ControllerMapping.save(draft)) { setStatus('Could not save. Check storage and try again; your previous layout is unchanged.'); return; }
+    if (!ControllerTuning.save(tuning)) { setStatus('Could not save the analog response. Check storage and try again.'); return; }
+    var saved = tuning.enabled ? 'Analog tuning saved. It applies to the next stream.' : 'Controller settings saved.';
+    close();
+    if (typeof snackbarLog === 'function') snackbarLog(translate(saved));
   }
   function open() {
     if (isInGame || isDialogOpen || document.hidden) return;
-    ensure(); draft = ControllerMapping.get(); tuning = ControllerTuning.get(); selected = 0; choosing = false; focused = 'cm-enabled';
-    el('cm-art').src = 'static/res/controller-dualsense.png'; render();
+    ensure();
+    family = 'xbox';
+    if (typeof ControllerIdentity !== 'undefined') {
+      var primary = ControllerIdentity.primaryFamily();
+      if (primary === 'playstation' || primary === 'nintendo') family = primary;
+    }
+    draft = ControllerMapping.get(); tuning = ControllerTuning.get();
+    selected = 1; choosing = false; testing = false; statusText = '';
+    render();
     setStatus('Select a physical button, then Change. Cancel leaves saved settings unchanged.');
-    openUtilityDialog('controllerMappingDialog',['cm-enabled','cm-cancel'],'cm-cancel');
+    openUtilityDialog('controllerMappingDialog', ['cm-family-xbox','cm-cancel'], 'cm-cancel');
+    document.addEventListener('visibilitychange', hidden);
     Navigation.change(view);
-    dialog.oncancel = function(event) { event.preventDefault(); view.back(); };
-    document.addEventListener('visibilitychange',hidden);
+    focus('cm-hs-1');
   }
-  return {open:open, isTesting:function(){return testing;}};
+  return {open:open, isTesting:function() { return testing; }};
 })();

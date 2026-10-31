@@ -151,8 +151,8 @@ int main(int argc,char** argv) {
  publish(app,0,2,true);n=events.size();publish(app,6,2,true);assert(events.size()==n+2);
  app.HandleGamepadInputState(false,false);events.clear();publish(app,6,2,true);
  assert(events[0].kind==1&&!(events[0].buttons&LI_CCAP_RUMBLE));
- // Guide is edge-latched; Back+Start is an independent fallback. Both are
- // consumed: the host sees a neutral packet, never the system gesture.
+ // Guide is edge-latched and is the only in-stream system gesture. It is
+ // consumed: the host sees a neutral packet, never the system button.
  posts.clear();publish(app,6,2,true,0,1,3,0,0);publish(app,6,2,true,0,1,3,0,0);
  n=events.size();publish(app,6,2,true,0,1,3,1);
  assert(std::count(posts.begin(),posts.end(),"guideButton")==2);
@@ -162,10 +162,11 @@ int main(int argc,char** argv) {
  publish(app,6,2,true,0,1,3,0);publish(app,6,2,true,0,1,3,0);
  publish(app,6,2,true,0,1,3,1);assert(posts.size()==4);
  publish(app,6,2,true,0,1,3,0);publish(app,6,2,true,0,1,3,0);
- publish(app,6,2,true,0,1,3,0,0);publish(app,6,2,true,0,1,3,0,0);
- n=events.size();publish(app,6,2,true,0,1,3,0,1);
- assert(posts.size()==6);
- assert(events.size()==n+2&&events[n].buttons==0&&events[n+1].buttons==0);
+ // Start+Select is no longer a system gesture; its buttons reach the host.
+ const auto withoutGuide=posts.size();n=events.size();
+ publish(app,6,2,true,0,1,3,0,1);publish(app,6,2,true,0,1,3,0,1);
+ assert(posts.size()==withoutGuide);
+ assert(events.size()>n);
  publish(app,6,2,true,0,1,3,0,0);publish(app,6,2,true,0,1,3,0,0);
  // Suppression releases both pads exactly once and holds neutral until resumed.
  setInputSuppressed(1);n=events.size();publish(app,6,2,true,1);
@@ -173,7 +174,7 @@ int main(int argc,char** argv) {
  n=events.size();publish(app,6,2,true,0);assert(events.size()==n);
  setInputSuppressed(0);publish(app,6,2,true,1);
  assert(events.size()==n+2&&events[n].buttons==A_FLAG&&events[n+1].buttons==0);
- std::cout<<"controller identity native: ordered release/arrival, two slots, same-family replacement, failed enqueue, idle, rumble OFF, Guide/fallback and neutral suppression PASS\\n";
+ std::cout<<"controller identity native: ordered release/arrival, two slots, same-family replacement, failed enqueue, idle, rumble OFF, Guide-only gesture and neutral suppression PASS\\n";
 }
 `;
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'controller-identity-'));

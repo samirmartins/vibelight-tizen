@@ -247,7 +247,10 @@ function fixture(options = {}) {
     f.step();
     f.press({8: true, 9: true});
     f.release();
-    assert.strictEqual(f.c.StreamOverlay.isOpen(), false, 'Back+Start fallback closes the menu');
+    assert.strictEqual(f.c.StreamOverlay.isOpen(), true, 'Start+Select no longer closes the menu');
+    f.press({16: true});
+    f.release();
+    assert.strictEqual(f.c.StreamOverlay.isOpen(), false, 'Guide closes the menu');
   }
 
   {
@@ -418,5 +421,5 @@ function fixture(options = {}) {
     assert.strictEqual(calls.toggled, 1, 'Guide is inert outside a stream');
   }
 
-  console.log('stream_overlay_test: atomic mask, Guide/fallback, pt-BR labels, navigation, volume, stats, disconnect, confirmed end-on-PC, styled action cards, config and message dispatch PASS (synthetic inputs)');
+  console.log('stream_overlay_test: atomic mask, Guide-only, pt-BR labels, navigation, volume, stats, disconnect, confirmed end-on-PC, styled action cards, config and message dispatch PASS (synthetic inputs)');
 })().catch(error => { console.error(error); process.exitCode = 1; });
