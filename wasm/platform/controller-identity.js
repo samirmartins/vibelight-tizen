@@ -109,7 +109,7 @@ var ControllerIdentity = (function() {
     }
     var text = list.map(function(pad) {
       return translate('Controller ' + pad.player) + ' · ' + familyName(pad.family);
-    }).join('   ');
+    }).join(' | ');
     if (node.textContent !== text) node.textContent = text;
     node.hidden = false;
   }

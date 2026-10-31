@@ -271,11 +271,14 @@ function fixture(options = {}) {
     f.release();
     assert.strictEqual(f.document.getElementById('streamOverlayConfirm').hidden, false);
     assert.strictEqual(f.c.FocusManager.count(), 2);
+    assert.strictEqual(f.c.FocusManager.index(), 1, 'No is the safe default');
     f.press({1: true}); // B cancels the confirmation
     f.release();
     assert.strictEqual(f.document.getElementById('streamOverlayConfirm').hidden, true);
     assert.strictEqual(f.c.FocusManager.index(), 4);
     f.press({0: true});
+    f.release();
+    f.press({12: true}); // Up from No to Yes
     f.release();
     f.press({0: true}); // Yes
     f.release();
@@ -297,6 +300,8 @@ function fixture(options = {}) {
     f.step();
     f.c.FocusManager.select(4);
     f.press({0: true});
+    f.release();
+    f.press({12: true});
     f.release();
     f.press({0: true});
     f.release();

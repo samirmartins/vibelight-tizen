@@ -369,7 +369,8 @@ var StreamOverlay = (function() {
     errorText = '';
     list.hidden = true;
     confirmBox.hidden = false;
-    FocusManager.open(confirmButtons, 0);
+    // Default to No: a stray accept must not close the game on the PC.
+    FocusManager.open(confirmButtons, 1);
     refresh();
   }
 

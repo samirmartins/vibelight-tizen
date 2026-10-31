@@ -97,7 +97,7 @@ function pad(index, id) {
 
   f.c.ControllerIdentity.refreshPlayers();
   assert.strictEqual(f.badge.hidden, false);
-  assert.strictEqual(f.badge.textContent, 'Controller 1 · Xbox   Controller 2 · Nintendo');
+  assert.strictEqual(f.badge.textContent, 'Controller 1 · Xbox | Controller 2 · Nintendo');
   f.c.isInGame = true;
   f.c.ControllerIdentity.refreshPlayers();
   assert.strictEqual(f.badge.hidden, true, 'no player badge during a stream');

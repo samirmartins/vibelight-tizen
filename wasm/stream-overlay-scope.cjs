@@ -8,7 +8,7 @@ const hashes = {
   'wasm/platform/messages.js': 'b1d2d5ea9254bd5690e087d7b44da11992a3f769e9d8f50cd3a8300fa9bc32f2'
 };
 const assets = {
-  'wasm/static/css/stream-overlay.css': '15f16c9c6d120cd3106557f7445274ee418996ff13cf20ab9fdfd0ae3cf506c9',
+  'wasm/static/css/stream-overlay.css': '7bc1c2e3e993819e026c0d36fdd2037da0b059386c6a0f8f8f7ea4b92592b7d2',
   'wasm/static/css/console-controls.css': 'd2eb2817113d1c2bda345eb9d72d3ff01d17708e46d9bc10b9325989f64cca1b'
 };
 function normalize(file, source) {
