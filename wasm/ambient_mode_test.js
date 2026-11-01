@@ -205,5 +205,38 @@ function fixture() {
     f.advance(60000);
     assert.strictEqual(f.context.AmbientMode.isDimmed(), false, 'menu must be running');
   }
-  console.log('ambient_mode_test: menu-only timer, dim/wake, dialog, settings and lifecycle PASS');
+  {
+    const f = fixture();
+    f.context.AmbientMode.setMinutes(1);
+    f.dispatch('mousemove', {clientX: 100, clientY: 100});
+    f.advance(30000);
+    // Synthetic pointer reports at the same place, resting axis noise and a
+    // trigger axis must not restart the idle timer.
+    f.dispatch('mousemove', {clientX: 100, clientY: 100});
+    f.dispatch('gamepadinputchanged', {detail: {changes: [{type: 'axis', index: 0, value: 0.4}], padIndex: 0}});
+    f.dispatch('gamepadinputchanged', {detail: {changes: [{type: 'axis', index: 0, value: 0.1}], padIndex: 0}});
+    f.dispatch('gamepadinputchanged', {detail: {changes: [{type: 'axis', index: 4, value: -1}], padIndex: 0}});
+    f.dispatch('gamepadconnected', {});
+    f.advance(30000);
+    assert.strictEqual(f.context.AmbientMode.isDimmed(), true, 'idle noise does not keep the timer alive');
+    f.dispatch('mousemove', {clientX: 100, clientY: 100});
+    assert.strictEqual(f.context.AmbientMode.isDimmed(), true, 'same-coordinate pointer noise does not wake');
+    f.dispatch('gamepadinputchanged', {detail: {changes: [{type: 'axis', index: 0, value: 0.8}], padIndex: 0}});
+    assert.strictEqual(f.context.AmbientMode.isDimmed(), false, 'a real stick movement wakes the dimmed menu');
+    f.advance(60000);
+    assert.strictEqual(f.context.AmbientMode.isDimmed(), true);
+    f.dispatch('mousemove', {clientX: 108, clientY: 100});
+    assert.strictEqual(f.context.AmbientMode.isDimmed(), false, 'real pointer movement wakes');
+  }
+  {
+    const f = fixture();
+    f.context.AmbientMode.setMinutes(1);
+    f.advance(30000);
+    f.dispatch('gamepadinputchanged', {detail: {changes: [{type: 'axis', index: 0, value: 0.8}], padIndex: 0}});
+    f.advance(30000);
+    assert.strictEqual(f.context.AmbientMode.isDimmed(), false, 'a real stick movement resets the timer');
+    f.advance(30000);
+    assert.strictEqual(f.context.AmbientMode.isDimmed(), true);
+  }
+  console.log('ambient_mode_test: menu-only timer, dim/wake, dialog, settings, noisy input and lifecycle PASS');
 })();

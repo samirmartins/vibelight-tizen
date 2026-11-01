@@ -57,7 +57,9 @@ const remaining = changed.filter(file => {
   return true;
 });
 assert.deepStrictEqual(remaining.sort(), files.filter(f => (f.startsWith('wasm/platform/') && !f.endsWith('/messages.js')) || f === 'wasm/main.cpp')
-  .concat(['wasm/platform/library-navigation.js',
+  .concat(['wasm/platform/ambient-mode.js',
+    'wasm/platform/interface-sounds.js',
+    'wasm/platform/library-navigation.js',
     'wasm/platform/focus-manager.js',
     'wasm/platform/stream-session.js',
     'wasm/platform/stream-overlay.js',

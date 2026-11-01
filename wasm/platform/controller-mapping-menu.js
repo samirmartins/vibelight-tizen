@@ -382,9 +382,9 @@ var ControllerMappingMenu = (function() {
       '<div class="cm-sel-card"><div id="cm-face" class="cm-face">A</div><div><h3 id="cm-selected">A</h3>'+
       '<p id="cm-selected-detail">Xbox · Physical button</p></div></div>'+
       '<div class="cm-map-card"><div class="cm-map-row"><div><div class="cm-label" id="cm-target-label">Goes to game</div>'+
-      '<div id="cm-target-value" class="cm-value">A</div><div id="cm-target-note" class="cm-note">Original</div></div>'+
-      '<button type="button" id="cm-change" class="cm-primary">Change</button></div>'+
-      '<div class="cm-map-row cm-map-actions"><button type="button" id="cm-test" class="cm-ghost">Test buttons</button></div></div>'+
+      '<div id="cm-target-value" class="cm-value">A</div><div id="cm-target-note" class="cm-note">Original</div></div></div>'+
+      '<div class="cm-map-row cm-map-actions"><button type="button" id="cm-change" class="cm-primary">Change</button>'+
+      '<button type="button" id="cm-test" class="cm-ghost">Test buttons</button></div></div>'+
       '<div class="cm-changed"><h3 id="cm-changed-title">Changes in this profile</h3><div id="cm-changes" class="cm-chips"></div></div>'+
       '</div><div id="cm-choice" class="cm-choice" hidden><div class="cm-eyebrow">CHOOSE GAME BUTTON</div>'+
       '<p class="cm-note">The other assignment swaps automatically.</p><div id="cm-targets" class="cm-targets"></div>'+

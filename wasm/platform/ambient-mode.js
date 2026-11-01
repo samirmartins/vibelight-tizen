@@ -10,6 +10,8 @@ var AmbientMode = (function() {
   var root = null;
   var dimmed = false;
   var lastActivityAt = 0;
+  var lastPointerX = null, lastPointerY = null;
+  var axisWake = Object.create(null);
 
   function load() {
     try {
@@ -80,6 +82,8 @@ var AmbientMode = (function() {
     void root.offsetWidth;
     root.classList.add('ambient-visible');
     dimmed = true;
+    // Re-arm stick edges so a held stick that moves after dimming wakes it.
+    axisWake = Object.create(null);
   }
 
   function hide() {
@@ -144,6 +148,14 @@ var AmbientMode = (function() {
 
   function onMove(event) {
     if (!active || (typeof isInGame !== 'undefined' && isInGame)) return;
+    var x = event && typeof event.clientX === 'number' ? event.clientX : null;
+    var y = event && typeof event.clientY === 'number' ? event.clientY : null;
+    // Some TV engines emit mousemove continuously at the same coordinates.
+    // Only a real pointer displacement counts as activity.
+    if (x === null || y === null) return;
+    if (lastPointerX !== null &&
+        Math.abs(x - lastPointerX) < 2 && Math.abs(y - lastPointerY) < 2) return;
+    lastPointerX = x; lastPointerY = y;
     var now = typeof performance !== 'undefined' && performance.now
       ? performance.now() : Date.now();
     if (dimmed) {
@@ -156,19 +168,31 @@ var AmbientMode = (function() {
 
   function meaningfulGamepad(detail) {
     var changes = detail && detail.changes ? detail.changes : [];
+    var pad = detail && detail.padIndex !== undefined ? detail.padIndex : 0;
     for (var i = 0; i < changes.length; i++) {
-      if (changes[i].type === 'button' && changes[i].pressed) return true;
-      if (changes[i].type === 'axis' && Math.abs(Number(changes[i].value)) >= 0.3) return true;
+      var change = changes[i];
+      if (change.type === 'button') {
+        if (change.pressed) return true;
+        continue;
+      }
+      // Ignore triggers and other non-stick axes. A trigger resting at -1 or
+      // a noisy axis must not keep the idle timer alive.
+      if (change.type !== 'axis' || change.index < 0 || change.index > 3) continue;
+      var key = pad + ':' + change.index;
+      var value = Math.abs(Number(change.value));
+      value = isFinite(value) ? value : 0;
+      if (value >= 0.65 && !axisWake[key]) {
+        axisWake[key] = true;
+        return true;
+      }
+      if (value < 0.2) axisWake[key] = false;
     }
     return false;
   }
 
   function onGamepad(event) {
     if (!active || (typeof isInGame !== 'undefined' && isInGame)) return;
-    if (!event || !event.detail) {
-      resetTimer();
-      return;
-    }
+    if (!event || !event.detail) return;
     if (!meaningfulGamepad(event.detail)) return;
     wake(event);
   }
@@ -232,8 +256,6 @@ var AmbientMode = (function() {
   window.addEventListener('touchstart', onPointer, true);
   window.addEventListener('mousemove', onMove, true);
   window.addEventListener('gamepadinputchanged', onGamepad, true);
-  window.addEventListener('gamepadconnected', onGamepad, true);
-  window.addEventListener('gamepaddisconnected', onGamepad, true);
   document.addEventListener('visibilitychange', function() {
     if (document.hidden) stop();
     else if (typeof Navigation === 'undefined' || menuRunning()) start();

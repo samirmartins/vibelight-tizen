@@ -17,11 +17,14 @@ that reason: the two lines are separate and should never be read as one.
 
 ### Fixed
 - Makes controller mapping navigation deterministic on the selected-button
-  inspector, target chooser and footer; the existing grid layout is unchanged
-  and Back closes the analog panel or target chooser before leaving the editor
+  inspector, target chooser and footer; Change and Test buttons now sit side by
+  side, the existing grid layout is unchanged and Back closes the analog panel
+  or target chooser before leaving the editor
 - Moves Screensaver to Advanced Settings before Session diagnosis, opens the
   dropdown on the saved value and shows the dim layer without relying on
   requestAnimationFrame
+- Ignores duplicate pointer reports, trigger axes and resting analog noise in
+  the screensaver timer, while real stick movement still wakes the menu
 - Plays interface tones from the first gamepad event on every menu screen,
   including all buttons and both sticks, while keeping text fields and streams
   silent and raising the menu sound level
