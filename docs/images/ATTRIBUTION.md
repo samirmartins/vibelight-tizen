@@ -18,11 +18,12 @@ The stacked README composition uses `vibelight-readme-logo.svg` and
 proportions, with the name below the original symbol.
 `interface.gif` shows Wake PC/Play, the Resume library in English, settings,
 the same library in Brazilian Portuguese, the initial Add Host screen, the
-library in Spanish, the Switch controller mapping grid and the per-family
-analog tuning panel, in that order, with two seconds per frame. The three
-language views are separated by other screens. The eight screen captures are
-1920 × 1080; the mapping and analog frames use the shipped controller artwork
-credited in [the application asset notice](../../wasm/static/res/controller-dualsense-LICENSE.txt).
+library in Spanish, the Xbox, PlayStation and Switch mapping views, the analog
+tuning panel and the in-game menu over a SuperTuxKart background, in that order,
+with 1.5 seconds per frame. The three language views are separated by other
+screens. The eleven screen captures are 1920 × 1080; the mapping, analog and
+in-game frames use the shipped controller artwork and the open-game image
+credited above.
 
 ## Controller artwork source
 

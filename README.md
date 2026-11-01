@@ -14,7 +14,7 @@ Stream PC games through [VibeShine](https://github.com/Nonary/VibeShine) (recomm
 
 ## Interface
 
-![VibeLight interface: Wake PC, library in English, Brazilian Portuguese and Spanish, settings, Add Host, controller mapping and analog tuning](docs/images/interface.gif)
+![VibeLight interface: Wake PC, library in English, Brazilian Portuguese and Spanish, settings, Add Host, Xbox/PlayStation/Switch controller mapping, analog tuning and in-game menu](docs/images/interface.gif)
 
 Simulated UI preview · [Image credits and licenses](docs/images/ATTRIBUTION.md).
 
