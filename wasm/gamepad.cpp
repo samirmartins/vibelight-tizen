@@ -111,9 +111,10 @@ static std::atomic<bool> s_inputSuppressed{false};
 // Optional analog shaping. Two packed 32-bit words are published through a
 // seqlock, so the input thread never reads a torn configuration and no 64-bit
 // atomic is required on older WASM runtimes. Default 0 is neutral.
-static std::atomic<uint32_t> s_tuningGeneration{0};
-static std::atomic<uint32_t> s_tuningLow{0};
-static std::atomic<uint32_t> s_tuningHigh{0};
+static constexpr int kTuningProfiles = 3;
+static std::atomic<uint32_t> s_tuningGeneration[kTuningProfiles]{};
+static std::atomic<uint32_t> s_tuningLow[kTuningProfiles]{};
+static std::atomic<uint32_t> s_tuningHigh[kTuningProfiles]{};
 
 struct GamepadTuning {
   bool enabled;
@@ -125,14 +126,20 @@ struct GamepadTuning {
   float triggerThreshold;
 };
 
-static GamepadTuning ReadGamepadTuning() {
+static int TuningProfileIndex(int type) {
+  return type >= 1 && type <= kTuningProfiles ? type - 1 : -1;
+}
+
+static GamepadTuning ReadGamepadTuning(int type) {
   GamepadTuning tuning = {};
+  const int index = TuningProfileIndex(type);
+  if (index < 0) return tuning;
   for (;;) {
-    const uint32_t before = s_tuningGeneration.load(std::memory_order_acquire);
+    const uint32_t before = s_tuningGeneration[index].load(std::memory_order_acquire);
     if ((before & 1u) != 0) continue;
-    const uint32_t low = s_tuningLow.load(std::memory_order_relaxed);
-    const uint32_t high = s_tuningHigh.load(std::memory_order_relaxed);
-    const uint32_t after = s_tuningGeneration.load(std::memory_order_acquire);
+    const uint32_t low = s_tuningLow[index].load(std::memory_order_relaxed);
+    const uint32_t high = s_tuningHigh[index].load(std::memory_order_relaxed);
+    const uint32_t after = s_tuningGeneration[index].load(std::memory_order_acquire);
     if (before != after) continue;
     tuning.enabled = (high & 0x1u) != 0;
     tuning.deadzone = static_cast<float>(low & 0x3ffu) / 1000.0f;
@@ -146,8 +153,10 @@ static GamepadTuning ReadGamepadTuning() {
 }
 
 extern "C" EMSCRIPTEN_KEEPALIVE void configureGamepadTuning(
-  int enabled, int deadzoneX1000, int curveX100, int invertLeft, int invertRight,
+  int type, int enabled, int deadzoneX1000, int curveX100, int invertLeft, int invertRight,
   int swapSticks, int triggerThresholdX1000) {
+  const int index = TuningProfileIndex(type);
+  if (index < 0) return;
   const uint32_t deadzone = static_cast<uint32_t>(std::max(0, std::min(500, deadzoneX1000))) & 0x3ffu;
   const uint32_t curve = static_cast<uint32_t>(std::max(50, std::min(200, curveX100))) & 0xffu;
   const uint32_t left = static_cast<uint32_t>(std::max(0, std::min(3, invertLeft)));
@@ -155,10 +164,10 @@ extern "C" EMSCRIPTEN_KEEPALIVE void configureGamepadTuning(
   const uint32_t threshold = static_cast<uint32_t>(std::max(0, std::min(500, triggerThresholdX1000))) & 0x3ffu;
   const uint32_t low = deadzone | (curve << 10) | (left << 18) | (right << 20);
   const uint32_t high = (enabled ? 1u : 0u) | (swapSticks ? 2u : 0u) | (threshold << 2);
-  s_tuningGeneration.fetch_add(1, std::memory_order_acq_rel);
-  s_tuningLow.store(low, std::memory_order_relaxed);
-  s_tuningHigh.store(high, std::memory_order_relaxed);
-  s_tuningGeneration.fetch_add(1, std::memory_order_release);
+  s_tuningGeneration[index].fetch_add(1, std::memory_order_acq_rel);
+  s_tuningLow[index].store(low, std::memory_order_relaxed);
+  s_tuningHigh[index].store(high, std::memory_order_relaxed);
+  s_tuningGeneration[index].fetch_add(1, std::memory_order_release);
 }
 
 extern "C" EMSCRIPTEN_KEEPALIVE void setInputSuppressed(int suppressed) {
@@ -441,8 +450,6 @@ void MoonlightInstance::PollGamepads() {
     }
   }
 
-  const GamepadTuning tuning = ReadGamepadTuning();
-
   for (int gamepadID = 0; gamepadID < numGamepads; ++gamepadID) {
     const GamepadState& gamepad = snapshot.pads[gamepadID];
     const short bit = static_cast<short>(1 << gamepadID);
@@ -452,6 +459,7 @@ void MoonlightInstance::PollGamepads() {
     }
 
     ControllerPacketState packet = {};
+    const GamepadTuning tuning = ReadGamepadTuning(gamepad.controllerType);
     packet.buttonFlags = GetButtonFlags(gamepad);
     float leftX = gamepad.axis[GamepadAxis::LeftX];
     float leftY = gamepad.axis[GamepadAxis::LeftY];

@@ -99,6 +99,23 @@ var ControllerMappingMenu = (function() {
     var current = el(focused), items = controls();
     if (!current || !items.includes(current)) { if (items.length) focus(items[0].id); return; }
     if (testing) { if (focused !== 'cm-test') focus('cm-test'); return; }
+    if (analogOpen()) {
+      var panelItems = panelControls();
+      if (!panelItems.length) return;
+      if (!panelItems.includes(current)) { focus(panelItems[0].id); return; }
+      if (!moveWithin(panelItems, dx, dy) && dy < 0) closeAnalog();
+      return;
+    }
+    if (focused === 'cm-analog-row') {
+      if (dy > 0) { openAnalog(); return; }
+      if (dy < 0) { focus('cm-test'); return; }
+      if (dx < 0) { focus('cm-reset'); return; }
+      if (dx > 0) { focus('cm-save'); return; }
+      return;
+    }
+    if ((focused === 'cm-change' || focused === 'cm-test') && dy > 0) {
+      focus('cm-analog-row'); return;
+    }
     var key = /^cm-key-(\d+)$/.exec(focused);
     if (key) {
       var index = Number(key[1]), row = Math.floor(index / 8);
@@ -115,6 +132,33 @@ var ControllerMappingMenu = (function() {
       if (dy > 0) focus('cm-key-' + selected);
       return;
     }
+    moveWithin(items, dx, dy);
+  }
+  function analogOpen() {
+    var panel = el('cm-analog-panel');
+    return !!(panel && !panel.hidden);
+  }
+  function openAnalog() {
+    var panel = el('cm-analog-panel');
+    if (!panel) return;
+    panel.hidden = false; render(); focus('cm-tuning-enabled');
+  }
+  function closeAnalog() {
+    var panel = el('cm-analog-panel');
+    if (!panel || panel.hidden) return;
+    panel.hidden = true; render(); focus('cm-analog-row');
+  }
+  function toggleAnalog() { if (analogOpen()) closeAnalog(); else openAnalog(); }
+  function panelControls() {
+    var ids = ['cm-tuning-enabled','cm-deadzone','cm-curve','cm-invert-left',
+      'cm-invert-right','cm-swap-sticks','cm-trigger-threshold','cm-analog-back'];
+    return ids.map(function(id) { return el(id); }).filter(function(node) {
+      return node && !node.disabled && !node.hidden && node.getClientRects().length;
+    });
+  }
+  function moveWithin(items, dx, dy) {
+    var current = el(focused);
+    if (!current || !items.includes(current)) { if (items.length) focus(items[0].id); return true; }
     var from = current.getBoundingClientRect(), best = null, distance = Infinity;
     items.forEach(function(node) {
       if (node === current) return;
@@ -124,7 +168,8 @@ var ControllerMappingMenu = (function() {
       var score = dx ? Math.abs(x)+Math.abs(y)*3 : Math.abs(y)+Math.abs(x)*3;
       if (score < distance) { distance = score; best = node; }
     });
-    if (best) focus(best.id);
+    if (best) { focus(best.id); return true; }
+    return false;
   }
   var view = {
     enter:function() { focus(focused); }, leave:function() {},
@@ -141,7 +186,7 @@ var ControllerMappingMenu = (function() {
     },
     back:function() {
       if (choosing) { choosing = false; render(); focus('cm-change'); return; }
-      if (!el('cm-analog-panel').hidden) { el('cm-analog-panel').hidden = true; focus('cm-analog-row'); return; }
+      if (analogOpen()) { closeAnalog(); return; }
       close();
     },
     press:function() {}, switch:function() { focus(focused); }
@@ -154,20 +199,24 @@ var ControllerMappingMenu = (function() {
   }
   function percent(value) { return Math.round(value * 100) + '%'; }
   function renderTuning() {
-    if (!tuning) return;
-    el('cm-tuning-enabled').textContent = translate('Analog tuning') + ': ' + translate(tuning.enabled ? 'ON' : 'OFF');
-    el('cm-deadzone').textContent = translate('Deadzone') + ': ' + (tuning.deadzone ? percent(tuning.deadzone) : translate('none'));
-    el('cm-curve').textContent = translate('Curve') + ': ' + translate(curveNames[tuning.curve] || 'Linear');
-    el('cm-invert-left').textContent = translate('Invert left') + ': ' + translate(invertNames[tuning.invertLeft]);
-    el('cm-invert-right').textContent = translate('Invert right') + ': ' + translate(invertNames[tuning.invertRight]);
-    el('cm-swap-sticks').textContent = translate('Swap sticks') + ': ' + translate(tuning.swapSticks ? 'ON' : 'OFF');
+    if (!tuning || !tuning.profiles || !tuning.profiles[family]) return;
+    var t = tuning.profiles[family];
+    el('cm-analog-label').textContent = translate('Analog tuning') + ' · ' + profiles[family].name;
+    if (el('cm-analog-title')) el('cm-analog-title').textContent = translate('Analog tuning') + ' · ' + profiles[family].name;
+    el('cm-tuning-enabled').textContent = translate('Analog tuning') + ': ' + translate(t.enabled ? 'ON' : 'OFF');
+    el('cm-deadzone').textContent = translate('Deadzone') + ': ' + (t.deadzone ? percent(t.deadzone) : translate('none'));
+    el('cm-curve').textContent = translate('Curve') + ': ' + translate(curveNames[t.curve] || 'Linear');
+    el('cm-invert-left').textContent = translate('Invert left') + ': ' + translate(invertNames[t.invertLeft]);
+    el('cm-invert-right').textContent = translate('Invert right') + ': ' + translate(invertNames[t.invertRight]);
+    el('cm-swap-sticks').textContent = translate('Swap sticks') + ': ' + translate(t.swapSticks ? 'ON' : 'OFF');
     el('cm-trigger-threshold').textContent = translate('Trigger threshold') + ': ' +
-      (tuning.triggerThreshold ? percent(tuning.triggerThreshold) : translate('none'));
-    var disabled = !tuning.enabled || testing;
+      (t.triggerThreshold ? percent(t.triggerThreshold) : translate('none'));
+    var disabled = !t.enabled || testing;
     ['cm-deadzone','cm-curve','cm-invert-left','cm-invert-right','cm-swap-sticks',
       'cm-trigger-threshold'].forEach(function(id) { el(id).disabled = disabled; });
     el('cm-tuning-enabled').disabled = testing;
-    el('cm-analog-state').textContent = translate(tuning.enabled ? 'Enabled' : 'Disabled');
+    el('cm-analog-state').textContent = translate(t.enabled ? 'Enabled' : 'Disabled');
+    if (el('cm-analog-help')) el('cm-analog-help').textContent = translate('A: change · B: back');
   }
   function renderKeys() {
     var box = el('cm-key-grid');
@@ -282,12 +331,13 @@ var ControllerMappingMenu = (function() {
       '<button type="button" id="cm-choice-cancel" class="cm-ghost">Back</button></div></aside></div>'+
       '<button type="button" id="cm-analog-row" class="cm-analog-row"><span id="cm-analog-label">Analog tuning</span>'+
       '<span id="cm-analog-state">Disabled</span><span id="cm-analog-toggle">›</span></button>'+
-      '<div id="cm-analog-panel" class="cm-analog-panel" hidden><div class="cm-tuning-grid">'+
+      '<div id="cm-analog-panel" class="cm-analog-panel" hidden><div id="cm-analog-title" class="cm-eyebrow"></div><div class="cm-tuning-grid">'+
       '<button type="button" id="cm-tuning-enabled">Analog tuning: OFF</button><button type="button" id="cm-deadzone">Deadzone: none</button>'+
       '<button type="button" id="cm-curve">Curve: Linear</button><button type="button" id="cm-invert-left">Invert left: OFF</button>'+
       '<button type="button" id="cm-invert-right">Invert right: OFF</button><button type="button" id="cm-swap-sticks">Swap sticks: OFF</button>'+
       '<button type="button" id="cm-trigger-threshold">Trigger threshold: none</button></div>'+
-      '<p class="cm-note">Optional response for the next stream. Defaults keep the original sticks and triggers.</p></div>'+
+      '<p class="cm-note">Optional response for the next stream. Defaults keep the original sticks and triggers.</p>'+
+      '<p id="cm-analog-help" class="cm-note"></p><button type="button" id="cm-analog-back" class="cm-ghost">Back</button></div>'+
       '<footer class="cm-footer"><button type="button" id="cm-reset" class="cm-ghost">Restore layout</button>'+
       '<span id="cm-family-hint" class="cm-nav-hint"></span>'+
       '<div><button type="button" id="cm-cancel" class="cm-ghost">Cancel</button><button type="button" id="cm-save" class="cm-primary">Save</button></div></footer>'+
@@ -300,19 +350,17 @@ var ControllerMappingMenu = (function() {
     el('cm-change').onclick = function() { choosing = true; render(); focus('cm-target-' + profile().map[selected]); };
     el('cm-choice-cancel').onclick = function() { choosing = false; render(); focus('cm-change'); };
     el('cm-test').onclick = function() { if (testing) stopTest(); else startTest(); };
-    el('cm-analog-row').onclick = function() {
-      el('cm-analog-panel').hidden = !el('cm-analog-panel').hidden;
-      render(); if (!el('cm-analog-panel').hidden) focus('cm-tuning-enabled'); else focus('cm-analog-row');
-    };
-    el('cm-tuning-enabled').onclick = function() { tuning.enabled = !tuning.enabled; renderTuning(); };
-    el('cm-deadzone').onclick = function() { tuning.deadzone = cycle(ControllerTuning.DEADZONES, tuning.deadzone); renderTuning(); };
-    el('cm-curve').onclick = function() { tuning.curve = cycle(ControllerTuning.CURVES, tuning.curve); renderTuning(); };
-    el('cm-invert-left').onclick = function() { tuning.invertLeft = (tuning.invertLeft + 1) % 4; renderTuning(); };
-    el('cm-invert-right').onclick = function() { tuning.invertRight = (tuning.invertRight + 1) % 4; renderTuning(); };
-    el('cm-swap-sticks').onclick = function() { tuning.swapSticks = !tuning.swapSticks; renderTuning(); };
-    el('cm-trigger-threshold').onclick = function() { tuning.triggerThreshold = cycle(ControllerTuning.THRESHOLDS, tuning.triggerThreshold); renderTuning(); };
+    el('cm-analog-row').onclick = toggleAnalog;
+    el('cm-analog-back').onclick = closeAnalog;
+    el('cm-tuning-enabled').onclick = function() { var t = tuning.profiles[family]; t.enabled = !t.enabled; renderTuning(); };
+    el('cm-deadzone').onclick = function() { var t = tuning.profiles[family]; t.deadzone = cycle(ControllerTuning.DEADZONES, t.deadzone); renderTuning(); };
+    el('cm-curve').onclick = function() { var t = tuning.profiles[family]; t.curve = cycle(ControllerTuning.CURVES, t.curve); renderTuning(); };
+    el('cm-invert-left').onclick = function() { var t = tuning.profiles[family]; t.invertLeft = (t.invertLeft + 1) % 4; renderTuning(); };
+    el('cm-invert-right').onclick = function() { var t = tuning.profiles[family]; t.invertRight = (t.invertRight + 1) % 4; renderTuning(); };
+    el('cm-swap-sticks').onclick = function() { var t = tuning.profiles[family]; t.swapSticks = !t.swapSticks; renderTuning(); };
+    el('cm-trigger-threshold').onclick = function() { var t = tuning.profiles[family]; t.triggerThreshold = cycle(ControllerTuning.THRESHOLDS, t.triggerThreshold); renderTuning(); };
     el('cm-reset').onclick = function() {
-      ControllerMapping.reset(draft, family); tuning = ControllerTuning.defaults();
+      ControllerMapping.reset(draft, family); ControllerTuning.reset(tuning, family);
       render(); setStatus('Original button assignments and analog defaults restored. Save to keep them.');
     };
     el('cm-cancel').onclick = close;
@@ -341,6 +389,7 @@ var ControllerMappingMenu = (function() {
   }
   function startTest() {
     if (testing) return;
+    if (analogOpen()) closeAnalog();
     if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.suspend) LibraryNavigation.suspend();
     testing = true; render();
     testInput = function(event) {

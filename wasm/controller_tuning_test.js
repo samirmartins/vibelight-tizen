@@ -3,15 +3,21 @@
 const assert = require('assert'), fs = require('fs'), vm = require('vm');
 const cp = require('child_process'), path = require('path'), os = require('os');
 
-function jsFixture(stored) {
-  let value = stored === undefined ? null : stored, writes = 0, calls = [];
+function jsFixture(stored, legacy) {
+  let value = stored === undefined ? null : stored;
+  let legacyValue = legacy === undefined ? null : legacy;
+  let writes = 0, calls = [];
   const c = {
     console: {log() {}, warn() {}, error() {}},
     JSON, Object, Math, Number, String, isFinite,
     isInGame: false,
     localStorage: {
-      getItem() { return value; },
-      setItem(key, next) { assert.strictEqual(key, 'moonlight.controller-tuning.v1'); value = next; writes++; }
+      getItem(key) {
+        if (key === 'moonlight.controller-tuning.v2') return value;
+        if (key === 'moonlight.controller-tuning.v1') return legacyValue;
+        return null;
+      },
+      setItem(key, next) { assert.strictEqual(key, 'moonlight.controller-tuning.v2'); value = next; writes++; }
     },
     Module: {_configureGamepadTuning(...args) { calls.push(args); }}
   };
@@ -26,38 +32,52 @@ function jsFixture(stored) {
 {
   let f = jsFixture();
   let cfg = f.c.ControllerTuning.get();
-  assert.strictEqual(cfg.enabled, false);
-  assert.strictEqual(cfg.deadzone, 0);
-  assert.strictEqual(cfg.curve, 1);
+  assert.strictEqual(cfg.version, 2);
+  for (const family of ['xbox','playstation','nintendo']) {
+    assert.strictEqual(cfg.profiles[family].enabled, false);
+    assert.strictEqual(cfg.profiles[family].deadzone, 0);
+    assert.strictEqual(cfg.profiles[family].curve, 1);
+  }
   assert(f.c.ControllerTuning.valid(cfg));
-  cfg.deadzone = 0.1;
-  assert.strictEqual(f.c.ControllerTuning.get().deadzone, 0, 'get returns a copy');
+  cfg.profiles.xbox.deadzone = 0.1;
+  assert.strictEqual(f.c.ControllerTuning.get().profiles.xbox.deadzone, 0, 'get returns a copy');
+  assert.strictEqual(f.c.ControllerTuning.getProfile('xbox').deadzone, 0, 'getProfile returns a copy');
 
   for (const bad of [
-    'bad json', 'null', '{}', '{"version":2,"enabled":true,"deadzone":0,"curve":1,"invertLeft":0,"invertRight":0,"swapSticks":false,"triggerThreshold":0}',
+    'bad json', 'null', '{}', '{"version":2,"profiles":{}}',
     '{"version":1,"enabled":true,"deadzone":0.6,"curve":1,"invertLeft":0,"invertRight":0,"swapSticks":false,"triggerThreshold":0}',
     '{"version":1,"enabled":true,"deadzone":0,"curve":0.4,"invertLeft":0,"invertRight":0,"swapSticks":false,"triggerThreshold":0}',
     '{"version":1,"enabled":true,"deadzone":0,"curve":1,"invertLeft":4,"invertRight":0,"swapSticks":false,"triggerThreshold":0}',
     '{"version":1,"enabled":true,"deadzone":0,"curve":1,"invertLeft":0,"invertRight":0,"swapSticks":false,"triggerThreshold":0.6}'
-  ]) assert.strictEqual(jsFixture(bad).c.ControllerTuning.get().enabled, false, bad);
+  ]) {
+    const invalid = jsFixture(bad).c.ControllerTuning.get();
+    assert.strictEqual(invalid.profiles.xbox.enabled, false, bad);
+    assert.strictEqual(invalid.profiles.playstation.enabled, false, bad);
+    assert.strictEqual(invalid.profiles.nintendo.enabled, false, bad);
+  }
 
   cfg = f.c.ControllerTuning.defaults();
-  cfg.enabled = true;
-  cfg.deadzone = 0.1;
-  cfg.curve = 1.5;
-  cfg.invertLeft = 1;
-  cfg.invertRight = 2;
-  cfg.swapSticks = true;
-  cfg.triggerThreshold = 0.1;
+  cfg.profiles.xbox.enabled = true;
+  cfg.profiles.xbox.deadzone = 0.1;
+  cfg.profiles.xbox.curve = 1.5;
+  cfg.profiles.xbox.invertLeft = 1;
+  cfg.profiles.xbox.invertRight = 2;
+  cfg.profiles.xbox.swapSticks = true;
+  cfg.profiles.xbox.triggerThreshold = 0.1;
   assert(f.c.ControllerTuning.save(cfg));
   assert.strictEqual(f.writes(), 1);
   assert(f.c.ControllerTuning.configureSession());
-  assert.deepStrictEqual(f.calls()[0], [1, 100, 150, 1, 2, 1, 100]);
-  cfg.deadzone = 0;
-  assert.strictEqual(f.c.ControllerTuning.get().deadzone, 0.1, 'save copies');
+  assert.strictEqual(f.calls().length, 3, 'one native configuration per family');
+  assert.deepStrictEqual(f.calls()[0], [1, 1, 100, 150, 1, 2, 1, 100]);
+  assert.deepStrictEqual(f.calls()[1], [2, 0, 0, 100, 0, 0, 0, 0]);
+  assert.deepStrictEqual(f.calls()[2], [3, 0, 0, 100, 0, 0, 0, 0]);
+  cfg.profiles.xbox.deadzone = 0;
+  assert.strictEqual(f.c.ControllerTuning.get().profiles.xbox.deadzone, 0.1, 'save copies');
 
   f = jsFixture(f.stored());
-  assert(f.c.ControllerTuning.get().enabled, 'reload restores the opt-in response');
+  cfg = f.c.ControllerTuning.get();
+  assert(cfg.profiles.xbox.enabled, 'reload restores the opt-in response');
+  assert(!cfg.profiles.playstation.enabled, 'reload keeps other families separate');
   f.c.isInGame = true;
   assert(!f.c.ControllerTuning.save(f.c.ControllerTuning.defaults()), 'cannot save during a stream');
   f.c.isInGame = false;
@@ -66,6 +86,22 @@ function jsFixture(stored) {
   assert(!f.c.ControllerTuning.save(f.c.ControllerTuning.defaults()));
   assert.strictEqual(f.stored(), previous, 'failed storage keeps the previous values');
 
+  const legacy = JSON.stringify({version: 1, enabled: true, deadzone: 0.1, curve: 1.5,
+    invertLeft: 1, invertRight: 2, swapSticks: true, triggerThreshold: 0.1});
+  const migrated = jsFixture(null, legacy);
+  cfg = migrated.c.ControllerTuning.get();
+  for (const family of ['xbox','playstation','nintendo']) {
+    assert(cfg.profiles[family].enabled, family + ' inherits the legacy response');
+    assert.strictEqual(cfg.profiles[family].deadzone, 0.1);
+  }
+  assert(migrated.c.ControllerTuning.configureSession());
+  assert.deepStrictEqual(migrated.calls().map(call => call[0]), [1, 2, 3]);
+
+  cfg = migrated.c.ControllerTuning.get();
+  migrated.c.ControllerTuning.reset(cfg, 'xbox');
+  assert.strictEqual(cfg.profiles.xbox.enabled, false, 'reset clears the selected family');
+  assert.strictEqual(cfg.profiles.playstation.enabled, true, 'reset keeps other families');
+
   const source = fs.readFileSync('wasm/platform/controller-tuning.js', 'utf8');
   assert(!/setTimeout|setInterval|requestAnimationFrame|document\.|console\./.test(source), 'no timer, frame loop, DOM or logs');
 }
@@ -73,8 +109,9 @@ function jsFixture(stored) {
 {
   const menu = fs.readFileSync('wasm/platform/controller-mapping-menu.js', 'utf8');
   for (const id of ['cm-tuning-enabled', 'cm-deadzone', 'cm-curve', 'cm-invert-left',
-    'cm-invert-right', 'cm-swap-sticks', 'cm-trigger-threshold']) assert(menu.includes(id), id);
+    'cm-invert-right', 'cm-swap-sticks', 'cm-trigger-threshold', 'cm-analog-back']) assert(menu.includes(id), id);
   assert(menu.includes('ControllerTuning.save(tuning)'), 'editor saves the analog response');
+  assert(menu.includes('ControllerTuning.reset(tuning, family)'), 'editor resets only the selected family');
   const index = fs.readFileSync('wasm/platform/index.js', 'utf8');
   const start = index.slice(index.indexOf('function startGame('), index.indexOf('// Stop the running app title'));
   assert(start.includes('ControllerTuning.configureSession()'), 'one native configuration before startRequest');
@@ -111,8 +148,8 @@ extern "C" int LiSendScrollEvent(signed char){return 0;} extern "C" int LiSendMo
 `;
   const body = native.replace(/^#include[^\n]*\n/gm, '');
   const tests = `
-void publish(MoonlightInstance& app,float lx,float ly,float rx,float ry,float lt,float rt) {
- GamepadSnapshot s{};s.numGamepads=4;s.pads[0].connected=1;s.pads[0].controllerType=2;
+void publish(MoonlightInstance& app,float lx,float ly,float rx,float ry,float lt,float rt,int type=2) {
+ GamepadSnapshot s{};s.numGamepads=4;s.pads[0].connected=1;s.pads[0].controllerType=type;
  const int32_t owner=1;std::memcpy(reinterpret_cast<char*>(&s.pads[0])+12,&owner,4);s.pads[0].numButtons=17;
  s.pads[0].capabilities=LI_CCAP_ANALOG_TRIGGERS|LI_CCAP_RUMBLE;
  s.pads[0].axis[0]=lx;s.pads[0].axis[1]=ly;s.pads[0].axis[2]=rx;s.pads[0].axis[3]=ry;
@@ -133,7 +170,7 @@ int main(int argc,char** argv) {
  publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f);
  Event base=last();
  assert(base.lt==51&&base.rt==204&&base.x==16384&&base.y==8192&&base.rx==26214&&base.ry==29490);
- configureGamepadTuning(1,100,100,0,0,0,0);
+ configureGamepadTuning(2,1,100,100,0,0,0,0);
  publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f);
  Event dead=last();
  assert(dead.x<base.x&&dead.x>0);assert(dead.y<base.y&&dead.y>0);
@@ -141,23 +178,33 @@ int main(int argc,char** argv) {
  assert(dead.lt==base.lt&&dead.rt==base.rt);
  publish(app,.05f,-.25f,.8f,-.9f,.2f,.8f);
  assert(last().x==0);
- configureGamepadTuning(1,0,200,0,0,0,0);
+ configureGamepadTuning(2,1,0,200,0,0,0,0);
  publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f);
  assert(last().x==8192);
- configureGamepadTuning(1,0,100,1,0,0,0);
+ configureGamepadTuning(2,1,0,100,1,0,0,0);
  publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f);
  assert(last().x==-16384);
- configureGamepadTuning(1,0,100,0,0,1,0);
+ configureGamepadTuning(2,1,0,100,0,0,1,0);
  publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f);
  assert(last().x==26214&&last().rx==16384);
- configureGamepadTuning(1,0,100,0,0,0,500);
+ configureGamepadTuning(2,1,0,100,0,0,0,500);
  publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f);
  assert(last().lt==0&&last().rt==153);
- configureGamepadTuning(0,0,100,0,0,0,0);
+ configureGamepadTuning(2,0,0,100,0,0,0,0);
  publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f);
  Event off=last();
  assert(off.lt==base.lt&&off.rt==base.rt&&off.x==base.x&&off.y==base.y&&off.rx==base.rx&&off.ry==base.ry);
- std::cout<<"controller tuning native: neutral identity, deadzone, curve, invert, swap, trigger threshold and disabled reset PASS\\n";
+ configureGamepadTuning(1,1,200,100,0,0,0,0);
+ configureGamepadTuning(2,1,100,100,0,0,0,0);
+ configureGamepadTuning(3,1,0,150,0,0,0,0);
+ publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f,1);Event xbox=last();
+ publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f,2);Event ps=last();
+ publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f,3);Event sw=last();
+ assert(xbox.x<ps.x);
+ assert(sw.rx<ps.rx);
+ publish(app,.5f,-.25f,.8f,-.9f,.2f,.8f,0);Event unknown=last();
+ assert(unknown.x==base.x&&unknown.rx==base.rx);
+ std::cout<<"controller tuning native: neutral identity, per-type deadzone/curve, invert, swap, trigger threshold and disabled reset PASS\\n";
 }
 `;
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'controller-tuning-'));
@@ -172,7 +219,7 @@ int main(int argc,char** argv) {
     const bin = build('current', body);
     cp.execFileSync(bin, [], {stdio: 'inherit'});
     const old = cp.execFileSync('git', ['show', 'a434117:wasm/gamepad.cpp'], {encoding: 'utf8'});
-    const baseline = build('baseline', old + '\nextern "C" void configureGamepadTuning(int,int,int,int,int,int,int) {}\n');
+    const baseline = build('baseline', old + '\nextern "C" void configureGamepadTuning(int,int,int,int,int,int,int,int) {}\n');
     assert.strictEqual(cp.execFileSync(bin, ['healthy'], {encoding: 'utf8'}),
       cp.execFileSync(baseline, ['healthy'], {encoding: 'utf8'}),
       'disabled tuning keeps the previous native event exactly');
@@ -180,4 +227,4 @@ int main(int argc,char** argv) {
 }
 
 nativeFixture();
-console.log('controller_tuning_test: validation, opt-in persistence, one native configure, exact neutral path and native deadzone/curve/invert/swap/threshold PASS');
+console.log('controller_tuning_test: per-family validation, v1 migration, three native profiles, exact neutral path and native per-type deadzone/curve/invert/swap/threshold PASS');

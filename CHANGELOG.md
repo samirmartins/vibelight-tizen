@@ -28,6 +28,9 @@ that reason: the two lines are separate and should never be read as one.
 - Adds L1/R1 family switching, focus-follows-selection, deterministic grid
   navigation, remembered family/button and a footer shortcut hint in the
   controller mapping editor
+- Stores analog tuning separately for Xbox, PlayStation and Switch and applies
+  each profile by the controller type reported by the TV. The analog panel
+  opens with A or Down, keeps focus inside, and exits with B, Back or Up
 - Adds LB/RB library filters, LT/RT and horizontal right-stick paging, Start
   quick help and Guide navigation guide. Quick help and the guide use the
   controller that actually opened them
