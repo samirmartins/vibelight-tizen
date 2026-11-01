@@ -21,8 +21,8 @@ that reason: the two lines are separate and should never be read as one.
 - Plays interface tones from the first gamepad event on every menu screen,
   including all buttons and both sticks, while keeping text fields and streams
   silent and raising the menu sound level
-- Aligns the new Interface sounds control with the existing settings row,
-  dropdown and focus styling
+- Aligns the new Interface sounds control with the existing settings row and
+  focus styling
 - Keeps navigation tones when focus is on a switch or range control
 
 ## v4.0.1

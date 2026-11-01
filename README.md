@@ -14,7 +14,7 @@ Stream PC games through [VibeShine](https://github.com/Nonary/VibeShine) (recomm
 
 ## Interface
 
-![VibeLight interface: Wake PC, library in English, Brazilian Portuguese and Spanish, settings, Add Host, Xbox/PlayStation/Switch controller mapping, analog tuning and in-game menu](docs/images/interface.gif)
+![VibeLight interface: Wake PC, library in English, Brazilian Portuguese and Spanish, settings, interface sounds, Add Host, Xbox/PlayStation/Switch controller mapping, analog tuning and in-game menu](docs/images/interface.gif)
 
 Simulated UI preview · [Image credits and licenses](docs/images/ATTRIBUTION.md).
 
@@ -53,7 +53,7 @@ The in-app *Game Mode* switch is separate; see the FAQ below.
 
 - **Video:** hardware decoding, H.264/HEVC/AV1 (depending on TV hardware), configurable frame pacing, TV-aware timing and stream recovery.
 - **Audio:** AudioWorklet where supported, with adaptive buffering and a compatibility fallback.
-- **Controls:** rumble, saved button remapping and visual button testing.
+- **Controls:** rumble, optional menu navigation sounds, saved button remapping and visual button testing.
 - **Library:** controller-first navigation, favorites, recent games, cached covers,
   Play, Resume and Wake PC.
 - **Languages:** English, Brazilian Portuguese and Spanish. Select from the header; your choice is saved across sessions.
@@ -67,6 +67,7 @@ The in-app *Game Mode* switch is separate; see the FAQ below.
 - **Frame pacing:** on by default; configurable in Video Settings, effective on the next stream. May add latency; saved choices are preserved.
 - **Rumble:** on by default.
 - **Audio buffer:** adaptive, with a default 100 ms ceiling—not fixed latency.
+- **Interface sounds:** on by default; disable in Audio Settings. They stop before streaming starts.
 - **Smart Hub:** disconnects the client; the game stays available for Resume.
 - **Session diagnosis:** off at startup; stores only the latest report locally.
 
