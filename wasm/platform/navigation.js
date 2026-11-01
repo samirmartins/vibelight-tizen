@@ -1256,42 +1256,10 @@ const Views = {
       unmark(this.view.current());
     },
   },
-  SelectScreensaverMenu: {
-    isActive: () => isPopupMenuActive('screensaverMenu'),
-    view: new ListView(() =>
-      menuItems('screensaverMenu')),
-    up: function() {
-      this.view.prevOption();
-    },
-    down: function() {
-      this.view.nextOption();
-    },
-    left: function() {},
-    right: function() {},
-    accept: function() {
-      clickElement(this.view.current());
-      closeActiveVisibleMenu();
-      setTimeout(() => focusElement('selectScreensaver'), 250);
-    },
-    back: function() {
-      closePopupMenu('selectScreensaver');
-      closeActiveVisibleMenu();
-      focusElement('selectScreensaver');
-    },
-    press: function() {},
-    switch: function() {},
-    enter: function() {
-      mark(this.view.current());
-    },
-    leave: function() {
-      unmark(this.view.current());
-    },
-  },
   AdvancedSettings: {
     view: new ListView(() => [
       'disableWarningsBtn',
       'performanceStatsBtn',
-      'selectScreensaver',
       'diagnosticsBtn',
       'diagnosticsReportBtn'
     ]),
@@ -1682,13 +1650,11 @@ const Navigation = (function() {
         running = true;
         window.addEventListener('mousemove', loseFocus);
       }
-      if (typeof AmbientMode !== 'undefined' && typeof AmbientMode.start === 'function') AmbientMode.start();
       if (typeof InterfaceSounds !== 'undefined' && typeof InterfaceSounds.start === 'function') InterfaceSounds.start();
     }
 
     function stop() {
       if (typeof MenuI18n !== 'undefined') MenuI18n.stop();
-      if (typeof AmbientMode !== 'undefined' && typeof AmbientMode.stop === 'function') AmbientMode.stop();
       if (typeof InterfaceSounds !== 'undefined' && typeof InterfaceSounds.stop === 'function') InterfaceSounds.stop();
       if (typeof LibraryNavigation !== 'undefined') LibraryNavigation.reset();
       if (running) {

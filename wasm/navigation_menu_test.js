@@ -45,8 +45,7 @@ function fixture() {
     ['videoBitrateMenu', 3, 'SelectBitrateMenu'],
     ['audioJitterMenu', 3, 'SelectAudioJitterMenu'],
     ['audioConfigMenu', 3, 'SelectAudioMenu'],
-    ['videoCodecMenu', 3, 'SelectCodecMenu'],
-    ['screensaverMenu', 4, 'SelectScreensaverMenu']
+    ['videoCodecMenu', 3, 'SelectCodecMenu']
   ];
   for (const [id, count] of menus) f.add(id, count);
   for (const [id, count, viewName] of menus) {
@@ -65,23 +64,12 @@ function fixture() {
   f.wrappers.videoResolutionMenu.closest = () => null;
   assert.strictEqual(f.c.Views.SelectResolutionMenu.view.func().length, 0);
   {
-    const advanced = Array.from(f.c.Views.AdvancedSettings.view.func());
-    assert.deepStrictEqual(advanced, [
-      'disableWarningsBtn', 'performanceStatsBtn', 'selectScreensaver',
-      'diagnosticsBtn', 'diagnosticsReportBtn'
-    ], 'screensaver follows performance statistics in Advanced');
-    assert(f.c.Views.VideoSettings.view.func().indexOf('selectScreensaver') === -1,
-      'screensaver is absent from Video');
-  }
-  {
     const lifecycle = fixture();
-    let ambientRunning = null, soundsRunning = null;
-    lifecycle.c.AmbientMode = {start() { ambientRunning = lifecycle.c.Navigation.isRunning(); }, stop() {}};
+    let soundsRunning = null;
     lifecycle.c.InterfaceSounds = {start() { soundsRunning = lifecycle.c.Navigation.isRunning(); }, stop() {}};
     lifecycle.c.Navigation.start();
-    assert.strictEqual(ambientRunning, true, 'menu lifecycle starts after Navigation.isRunning');
     assert.strictEqual(soundsRunning, true, 'sound lifecycle starts after Navigation.isRunning');
     lifecycle.c.Navigation.stop();
   }
-  console.log('navigation_menu_test: seven settings menus resolve through menuItems, next/previous, lifecycle order and inert fallback PASS');
+  console.log('navigation_menu_test: six settings menus resolve through menuItems, next/previous, lifecycle order and inert fallback PASS');
 }

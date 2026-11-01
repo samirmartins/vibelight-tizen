@@ -762,8 +762,7 @@ body {
     border: 1px solid #FFA620;
 }
 #selectResolution, #selectFramerate, #selectBitrate, #removeAllHostsBtn,
-#selectAudio, #selectAudioJitter, #selectCodec, #selectScreensaver,
-#navigationGuideBtn, #restartAppBtn {
+#selectAudio, #selectAudioJitter, #selectCodec, #navigationGuideBtn, #restartAppBtn {
     font-size: 1.45rem;
     letter-spacing: 0.5px;
     text-indent: 36px;
@@ -772,7 +771,7 @@ body {
 #sortAppsListBtn, #optimizeGamesBtn, #removeAllHostsBtn, #rumbleFeedbackBtn, #mouseEmulationBtn,
 #selectAudio, #playHostAudioBtn, #interfaceSoundsBtn,
 #selectAudioJitter, #selectCodec, #hdrModeBtn, #fullRangeBtn, #gameModeBtn, #framePacingBtn,
-#selectScreensaver, #disableWarningsBtn, #performanceStatsBtn, #diagnosticsBtn, #navigationGuideBtn, #restartAppBtn {
+#disableWarningsBtn, #performanceStatsBtn, #diagnosticsBtn, #navigationGuideBtn, #restartAppBtn {
     color: #ececec;
     background-color: #404354;
     width: 100%;
@@ -825,13 +824,11 @@ body {
     background-color: #484C5F;
 }
 .videoResolutionMenu, .videoFramerateMenu, .videoBitrateMenu,
-.audioConfigMenu, .audioJitterMenu, .videoCodecMenu, .screensaverMenu,
-.mdl-menu__container {
+.audioConfigMenu, .audioJitterMenu, .videoCodecMenu, .mdl-menu__container {
     width: 59.4% !important;
 }
 .videoResolutionMenu, .videoFramerateMenu, .videoBitrateMenu,
-.audioConfigMenu, .audioJitterMenu, .videoCodecMenu, .screensaverMenu,
-.mdl-menu__outline {
+.audioConfigMenu, .audioJitterMenu, .videoCodecMenu, .mdl-menu__outline {
     width: 100% !important;
     top: 2.5px !important;
     border-radius: 0 0 8px 8px;
@@ -870,8 +867,7 @@ body {
 }
 #videoResolutionMenu > #selectResolution, #videoFramerateMenu > #selectFramerate,
 #videoBitrateMenu > #selectBitrate, #audioConfigMenu > #selectAudio,
-#audioJitterMenu > #selectAudioJitter, #videoCodecMenu > #selectCodec,
-#screensaverMenu > #selectScreensaver {
+#audioJitterMenu > #selectAudioJitter, #videoCodecMenu > #selectCodec {
     color: #ececec;
     background: url('../res/ic_arrow_drop_down_48px.svg') 94.8% 50% no-repeat rgba(64, 67, 84, 1);
 }
@@ -902,7 +898,6 @@ body {
 #playHostAudioBtn:hover, #playHostAudioBtn:focus, #interfaceSoundsBtn:hover, #interfaceSoundsBtn:focus,
 #selectCodec:hover, #selectCodec:focus, #hdrModeBtn:hover, #hdrModeBtn:focus, #fullRangeBtn:hover,
 #fullRangeBtn:focus, #gameModeBtn:hover, #gameModeBtn:focus, #framePacingBtn:hover, #framePacingBtn:focus,
-#selectScreensaver:hover, #selectScreensaver:focus,
 #disableWarningsBtn:hover, #disableWarningsBtn:focus, #performanceStatsBtn:hover, #performanceStatsBtn:focus,
 #diagnosticsBtn:hover, #diagnosticsBtn:focus,
 #systemInfoBtn:hover, #systemInfoBtn:focus, #navigationGuideBtn:hover, #navigationGuideBtn:focus,

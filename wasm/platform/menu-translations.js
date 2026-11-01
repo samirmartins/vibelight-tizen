@@ -488,10 +488,4 @@ var MenuTranslations = [
   ["Interface sounds", "Sons da interface", "Sonidos de la interfaz"],
   ["- Short navigation tones for menus. They stop before streaming starts.", "- Tons curtos de navegação nos menus. Eles param antes do streaming começar.", "- Tonos cortos de navegación en los menús. Se detienen antes de iniciar la transmisión."],
   ["Play navigation sounds in menus", "Reproduzir sons de navegação nos menus", "Reproducir sonidos de navegación en los menús"],
-  ["Screensaver", "Proteção de tela", "Protector de pantalla"],
-  ["- Dim the menu after inactivity to reduce retention on OLED/QLED panels. Any input wakes it; gameplay is not dimmed.", "- Escurece o menu após inatividade para reduzir retenção em painéis OLED/QLED. Qualquer entrada desperta; o gameplay não é escurecido.", "- Oscurece el menú tras la inactividad para reducir la retención en paneles OLED/QLED. Cualquier entrada lo despierta; el juego no se oscurece."],
-  ["Off", "Desligado", "Desactivado"],
-  ["1 minute", "1 minuto", "1 minuto"],
-  ["5 minutes", "5 minutos", "5 minutos"],
-  ["10 minutes", "10 minutos", "10 minutos"]
 ];

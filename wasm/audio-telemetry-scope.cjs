@@ -52,8 +52,7 @@ function assertFrozen(reference, paths) {
     // Git pathspecs may include all native sources. Permit only the exact,
     // independently tested overlay aggregation move, never a whole-file mask.
     const changed = cp.execFileSync('git', ['diff', '--name-only', reference, '--', ...rest], {encoding:'utf8'}).trim().split('\n').filter(Boolean);
-    const menuOnly = ['wasm/platform/ambient-mode.js', 'wasm/platform/interface-sounds.js',
-      'wasm/static/css/ambient-mode.css'];
+    const menuOnly = ['wasm/platform/interface-sounds.js'];
     for (const file of changed) {
       if (menuOnly.includes(file)) continue;
       if (file === 'wasm/static/css/menu-i18n.css') {
