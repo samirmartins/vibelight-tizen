@@ -7,6 +7,28 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## v4.0.2
+
+### Added
+- Adds optional menu-only interface sounds: short navigation, confirm and
+  cancel tones, a persisted off switch and no UI audio path while streaming
+- Adds a menu-only screensaver that dims after 1, 5 or 10 minutes of inactivity
+  (or stays off), wakes on any input and never dims gameplay
+
+### Fixed
+- Makes controller mapping navigation deterministic on the selected-button
+  inspector, target chooser and footer; the existing grid layout is unchanged
+  and Back closes the analog panel or target chooser before leaving the editor
+- Moves Screensaver to Advanced Settings before Session diagnosis, opens the
+  dropdown on the saved value and shows the dim layer without relying on
+  requestAnimationFrame
+- Plays interface tones from the first gamepad event on every menu screen,
+  including all buttons and both sticks, while keeping text fields and streams
+  silent and raising the menu sound level
+- Aligns the new Interface sounds and Screensaver controls with the existing
+  settings row, dropdown and focus styling
+- Keeps navigation tones when focus is on a switch or range control
+
 ## v4.0.1
 
 ### Improved

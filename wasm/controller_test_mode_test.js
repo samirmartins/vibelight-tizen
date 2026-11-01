@@ -11,9 +11,9 @@ function fixture() {
   function element(tag='div') {
     const node={tagName:tag.toUpperCase(),children:[],className:'',style:{},disabled:false,hidden:false,
       setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];},getClientRects:()=>[{}],scrollIntoView(){},
-      focus(){document.activeElement=this;},getBoundingClientRect:()=>({left:0,right:10,top:0,bottom:10}),
+      focus(){document.activeElement=this;},click(){if(this.onclick)this.onclick();},getBoundingClientRect:()=>({left:0,right:10,top:0,bottom:10}),
       addEventListener(){},appendChild(child){this.children.push(child);if(child.id)nodes.set(child.id,child);},
-      querySelectorAll(selector){return [...nodes.values()].filter(n=>selector==='button'?n.tagName==='BUTTON':n.classList.contains('cm-active')||n.classList.contains('cm-pressed'));}};
+      querySelectorAll(selector){return [...nodes.values()].filter(n=>selector==='button'?n.tagName==='BUTTON':selector[0]==='.'?n.classList.contains(selector.slice(1)):n.classList.contains('cm-active')||n.classList.contains('cm-pressed'));}};
     node.classList=classes(node);
     Object.defineProperty(node,'textContent',{get(){return this.text||'';},set(value){this.text=value;this.children=[];}});
     Object.defineProperty(node,'innerHTML',{set(html){
@@ -49,7 +49,23 @@ function fixture() {
     dispatch,listeners:name=>(listeners.get(name)||[]).length};
 }
 const f=fixture();f.open();
-assert(f.node('controllerMappingDialog').open);
+const dialog=f.node('controllerMappingDialog');
+assert(dialog.open);
+// Escape/Back closes the analog panel before leaving the editor.
+f.node('cm-analog-row').onclick();
+let cancel={preventDefault(){this.prevented=true;}};
+dialog.oncancel(cancel);
+assert.strictEqual(cancel.prevented,true);
+assert.strictEqual(f.node('cm-analog-panel').hidden,true,'Back closes the analog panel first');
+assert.strictEqual(dialog.open,true,'Back keeps the editor open after closing the panel');
+dialog.oncancel(cancel);
+assert.strictEqual(dialog.open,false,'Back then leaves the editor');
+f.open();
+f.node('cm-analog-row').onclick();
+assert.strictEqual(f.node('cm-analog-panel').hidden,false);
+f.node('cm-cancel').onclick();
+f.open();
+assert.strictEqual(f.node('cm-analog-panel').hidden,true,'reopening starts with the analog panel closed');
 assert.strictEqual(f.node('cm-family-xbox').className.includes('cm-active'),true);
 assert.strictEqual(f.node('cm-art').src,'static/res/controller-xbox.png');
 assert.strictEqual(f.node('cm-key-grid').children.length,16,'all editable physical buttons have a key');
@@ -61,10 +77,32 @@ f.c.view.right();
 assert.strictEqual(f.node('cm-selected').textContent,'X','right moves to X');
 f.c.view.left();
 assert.strictEqual(f.node('cm-selected').textContent,'B','left returns to B');
+f.node('cm-key-3').onclick();
+assert.strictEqual(f.node('cm-selected').textContent,'Y','8-column grid selects Y');
+f.c.view.down();
+assert.strictEqual(f.node('cm-selected').textContent,'RS','Down moves to the next grid row');
+f.c.view.up();
+assert.strictEqual(f.node('cm-selected').textContent,'Y','Up returns to the previous grid row');
+f.node('cm-key-1').onclick();
+assert.strictEqual(f.node('cm-selected').textContent,'B','restore B for the remaining flow');
 f.c.view.accept();
 assert.strictEqual(f.node('cm-choice').hidden,false,'A opens Change for the focused key');
+assert.strictEqual(f.c.document.activeElement.id,'cm-target-1','target chooser starts on the current target');
+f.c.view.right();
+assert.strictEqual(f.c.document.activeElement.id,'cm-target-0','Right wraps inside the two-column target row');
+f.c.view.left();
+assert.strictEqual(f.c.document.activeElement.id,'cm-target-1');
+f.c.view.down();
+assert.strictEqual(f.c.document.activeElement.id,'cm-target-3','Down moves to the next target row');
+f.c.view.up();
+assert.strictEqual(f.c.document.activeElement.id,'cm-target-1');
+for(let i=0;i<7;i++)f.c.view.down();
+assert.strictEqual(f.c.document.activeElement.id,'cm-choice-cancel','Down from the last target reaches Back');
+f.c.view.up();
+assert.strictEqual(f.c.document.activeElement.id,'cm-target-15','Up from Back returns to the last target');
 f.c.view.back();
 assert.strictEqual(f.node('cm-choice').hidden,true,'Back closes the target chooser');
+assert.strictEqual(f.c.document.activeElement.id,'cm-change','Back returns to Change');
 // L1/R1 switch family with wrap, keeping the selected key.
 f.dispatch('gamepadinputchanged',{detail:{changes:[{type:'button',index:4,pressed:true}]}});
 assert(f.node('cm-family-nintendo').classList.contains('cm-active'),'L1 wraps to Switch');
@@ -104,7 +142,20 @@ f.c.view.back();
 assert.strictEqual(f.node('cm-analog-panel').hidden,true,'B closes the analog panel');
 assert.strictEqual(f.node('cm-analog-row').classList.contains('cm-selected'),false);
 f.c.view.down();
-assert.strictEqual(f.node('cm-analog-panel').hidden,false,'Down opens the analog panel');
+assert.strictEqual(f.node('cm-analog-panel').hidden,true,'Down moves to the footer, not the panel');
+assert.strictEqual(f.c.document.activeElement.id,'cm-cancel','Down lands on Cancel');
+f.c.view.left();
+assert.strictEqual(f.c.document.activeElement.id,'cm-reset','Left from Cancel reaches Restore');
+f.c.view.right();
+assert.strictEqual(f.c.document.activeElement.id,'cm-cancel','Right from Restore returns to Cancel');
+f.c.view.right();
+assert.strictEqual(f.c.document.activeElement.id,'cm-save','Right from Cancel reaches Save');
+f.c.view.right();
+assert.strictEqual(f.c.document.activeElement.id,'cm-reset','Footer cycles with wrap');
+f.c.view.up();
+assert.strictEqual(f.c.document.activeElement.id,'cm-analog-row','Up returns to Analog row');
+f.c.view.accept();
+assert.strictEqual(f.node('cm-analog-panel').hidden,false,'A opens the analog panel');
 assert(f.node('cm-analog-help').textContent.includes('B'),'analog panel shows the exit hint');
 f.c.view.back();
 f.node('cm-test').onclick();
@@ -138,4 +189,4 @@ for(const name of art){const path='wasm/static/res/'+name;assert(fs.statSync(pat
 const css=fs.readFileSync('wasm/static/css/controller-mapping.css','utf8');
 for(const selector of ['.cm-key-grid','.cm-key','.cm-tabs','.cm-targets','.cm-analog-row'])assert(css.includes(selector),selector);
 assert(!css.includes('.cm-sprite'),'old atlas test styles removed');
-console.log('controller_test_mode_test: per-family tabs/art, L1/R1 and grid navigation, A-to-change, per-family analog panel entry/exit, physical key grid, Switch A/B/X/Y and -/+ labels, Guide exit hint, reported layout, target choice, analog 25% limits, test highlights, independent saves and new styles PASS');
+console.log('controller_test_mode_test: per-family tabs/art, L1/R1 and grid navigation, A-to-change, per-family analog panel entry/exit, footer focus group and wrap, physical key grid, Switch A/B/X/Y and -/+ labels, Guide exit hint, reported layout, target choice, analog 25% limits, test highlights, independent saves and new styles PASS');

@@ -1,6 +1,7 @@
 'use strict';
 // Exact menu-only integration points. Unknown neighboring edits remain visible.
 function normalize(file, source) {
+  source = require('./interface-settings-scope.cjs').normalize(file, source);
   source = require('./branding-scope.cjs').normalize(file, source);
   if (file === 'wasm/platform/controller-mapping-menu.js') return source.replace(
     "    if (typeof LibraryNavigation !== 'undefined') LibraryNavigation.reset();\n", '');

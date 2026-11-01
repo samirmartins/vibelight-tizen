@@ -95,6 +95,47 @@ var ControllerMappingMenu = (function() {
     if (index < 0 || index > 15 || !draft) return;
     selected = index; render(); focus('cm-key-' + index);
   }
+  var footerIds = ['cm-reset','cm-cancel','cm-save'];
+  function footerControls() {
+    return footerIds.map(function(id) { return el(id); }).filter(function(node) {
+      return node && !node.disabled && !node.hidden && node.getClientRects().length;
+    });
+  }
+  function moveFooter(dx) {
+    var items = footerControls();
+    if (!items.length) return false;
+    var index = items.indexOf(el(focused));
+    if (index === -1) { focus(items[0].id); return true; }
+    focus(items[(index + dx + items.length) % items.length].id);
+    return true;
+  }
+  function targetControls() {
+    return Array.from(dialog.querySelectorAll('.cm-target')).filter(function(node) {
+      return !node.disabled && !node.hidden && node.getClientRects().length;
+    });
+  }
+  function moveTargets(dx, dy) {
+    var items = targetControls();
+    if (!items.length) return false;
+    var index = items.indexOf(el(focused));
+    if (index === -1) { focus(items[0].id); return true; }
+    var columns = 2, row = Math.floor(index / columns), column = index % columns;
+    if (dx) {
+      var next = row * columns + (column + dx + columns) % columns;
+      focus(items[Math.min(items.length - 1, next)].id);
+      return true;
+    }
+    if (dy < 0) {
+      if (row > 0) focus(items[index - columns].id);
+      return true;
+    }
+    if (dy > 0) {
+      var below = index + columns;
+      focus(below < items.length ? items[below].id : 'cm-choice-cancel');
+      return true;
+    }
+    return true;
+  }
   function move(dx, dy) {
     var current = el(focused), items = controls();
     if (!current || !items.includes(current)) { if (items.length) focus(items[0].id); return; }
@@ -106,15 +147,34 @@ var ControllerMappingMenu = (function() {
       if (!moveWithin(panelItems, dx, dy) && dy < 0) closeAnalog();
       return;
     }
+    if (choosing) {
+      if (focused === 'cm-choice-cancel') {
+        if (dy < 0) {
+          var targets = targetControls();
+          if (targets.length) focus(targets[targets.length - 1].id);
+        }
+        return;
+      }
+      moveTargets(dx, dy);
+      return;
+    }
     if (focused === 'cm-analog-row') {
-      if (dy > 0) { openAnalog(); return; }
+      if (dy > 0) { focus('cm-cancel'); return; }
       if (dy < 0) { focus('cm-test'); return; }
       if (dx < 0) { focus('cm-reset'); return; }
       if (dx > 0) { focus('cm-save'); return; }
       return;
     }
-    if ((focused === 'cm-change' || focused === 'cm-test') && dy > 0) {
-      focus('cm-analog-row'); return;
+    if (footerIds.indexOf(focused) !== -1) {
+      if (dy < 0) { focus('cm-analog-row'); return; }
+      if (dx) { moveFooter(dx); return; }
+      return;
+    }
+    if (focused === 'cm-change' || focused === 'cm-test') {
+      if (dy > 0) { focus('cm-analog-row'); return; }
+      if (dy < 0) { focus('cm-key-' + selected); return; }
+      if (dx) { focus(focused === 'cm-change' ? 'cm-test' : 'cm-change'); return; }
+      return;
     }
     var key = /^cm-key-(\d+)$/.exec(focused);
     if (key) {
@@ -430,6 +490,7 @@ var ControllerMappingMenu = (function() {
     document.removeEventListener('visibilitychange', hidden);
     closeUtilityDialog('controllerMappingDialog');
     root.style.display = 'none'; draft = null; tuning = null; testing = false; choosing = false;
+    var panel = el('cm-analog-panel'); if (panel) panel.hidden = true;
     focusElement('controllerMappingBtn');
   }
   function save() {
@@ -453,6 +514,9 @@ var ControllerMappingMenu = (function() {
     render();
     setStatus('Select a physical button, then Change. Cancel leaves saved settings unchanged.');
     openUtilityDialog('controllerMappingDialog', ['cm-family-xbox','cm-cancel'], 'cm-cancel');
+    // openUtilityDialog installs a generic cancel handler. Keep B/Back inside
+    // the editor so it closes the analog panel or target chooser first.
+    dialog.oncancel = function(event) { event.preventDefault(); view.back(); };
     document.addEventListener('visibilitychange', hidden);
     familyInput = function(event) {
       if (testing || choosing) return;

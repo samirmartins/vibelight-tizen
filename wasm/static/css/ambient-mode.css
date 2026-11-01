@@ -1,0 +1,20 @@
+#ambientOverlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 998;
+  background: #000;
+  opacity: 0;
+  pointer-events: auto;
+  transition: opacity 700ms ease;
+}
+
+#ambientOverlay.ambient-visible {
+  opacity: 0.8;
+}
+
+#ambientOverlay[hidden] {
+  display: none;
+}

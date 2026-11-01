@@ -11,6 +11,7 @@ const hashes = {
   'wasm/platform/remote_controller.js': 'b4201bda42150e280df263203cdbebd9feaa476188f4aebdb38869af336e8b74'
 };
 function normalize(file, source) {
+  source = require('./interface-settings-scope.cjs').normalize(file, source);
   source = require('./pairing-text-scope.cjs').normalize(file, source);
   if (!hashes[file] || crypto.createHash('sha256').update(source).digest('hex') !== hashes[file]) return source;
   return cp.execFileSync('git', ['show', '31cdde3:' + file], {encoding: 'utf8'});

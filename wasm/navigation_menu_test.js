@@ -19,11 +19,12 @@ function fixture() {
       querySelectorAll() { return []; }
     },
     window: {addEventListener() {}, removeEventListener() {}},
-    LibraryNavigation: undefined, MenuI18n: undefined, ConsoleLibrary: undefined
+    LibraryNavigation: undefined, MenuI18n: undefined, ConsoleLibrary: undefined,
+    addEventListener() {}, removeEventListener() {}
   };
   c.window = c;
   vm.createContext(c);
-  vm.runInContext(fs.readFileSync('wasm/platform/navigation.js', 'utf8') + '\nglobalThis.Views = Views;', c);
+  vm.runInContext(fs.readFileSync('wasm/platform/navigation.js', 'utf8') + '\nglobalThis.Views = Views; globalThis.Navigation = Navigation;', c);
   function add(id, count) {
     const option = {querySelector(selector) {
       return selector === '.mdl-menu' ? {children: items[id]} : null;
@@ -44,7 +45,8 @@ function fixture() {
     ['videoBitrateMenu', 3, 'SelectBitrateMenu'],
     ['audioJitterMenu', 3, 'SelectAudioJitterMenu'],
     ['audioConfigMenu', 3, 'SelectAudioMenu'],
-    ['videoCodecMenu', 3, 'SelectCodecMenu']
+    ['videoCodecMenu', 3, 'SelectCodecMenu'],
+    ['screensaverMenu', 4, 'SelectScreensaverMenu']
   ];
   for (const [id, count] of menus) f.add(id, count);
   for (const [id, count, viewName] of menus) {
@@ -62,5 +64,24 @@ function fixture() {
   // A wrapper without a menu is inert rather than throwing through children[3].
   f.wrappers.videoResolutionMenu.closest = () => null;
   assert.strictEqual(f.c.Views.SelectResolutionMenu.view.func().length, 0);
-  console.log('navigation_menu_test: six settings menus resolve through menuItems, next/previous and inert fallback PASS');
+  {
+    const advanced = Array.from(f.c.Views.AdvancedSettings.view.func());
+    assert.deepStrictEqual(advanced, [
+      'disableWarningsBtn', 'performanceStatsBtn', 'selectScreensaver',
+      'diagnosticsBtn', 'diagnosticsReportBtn'
+    ], 'screensaver follows performance statistics in Advanced');
+    assert(f.c.Views.VideoSettings.view.func().indexOf('selectScreensaver') === -1,
+      'screensaver is absent from Video');
+  }
+  {
+    const lifecycle = fixture();
+    let ambientRunning = null, soundsRunning = null;
+    lifecycle.c.AmbientMode = {start() { ambientRunning = lifecycle.c.Navigation.isRunning(); }, stop() {}};
+    lifecycle.c.InterfaceSounds = {start() { soundsRunning = lifecycle.c.Navigation.isRunning(); }, stop() {}};
+    lifecycle.c.Navigation.start();
+    assert.strictEqual(ambientRunning, true, 'menu lifecycle starts after Navigation.isRunning');
+    assert.strictEqual(soundsRunning, true, 'sound lifecycle starts after Navigation.isRunning');
+    lifecycle.c.Navigation.stop();
+  }
+  console.log('navigation_menu_test: seven settings menus resolve through menuItems, next/previous, lifecycle order and inert fallback PASS');
 }

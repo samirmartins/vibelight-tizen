@@ -484,5 +484,14 @@ var MenuTranslations = [
   ["Trigger threshold: {0}%", "Limiar dos gatilhos: {0}%", "Umbral de gatillos: {0}%"],
   ["Optional response for the next stream. Defaults keep the original sticks and triggers.", "Resposta opcional para o próximo streaming. O padrão mantém os analógicos e gatilhos originais.", "Respuesta opcional para la próxima transmisión. El valor predeterminado mantiene los sticks y gatillos originales."],
   ["Original button assignments and analog defaults restored. Save to keep them.", "Mapeamento original e padrões analógicos restaurados. Salve para mantê-los.", "Asignación original y valores analógicos predeterminados restaurados. Guarda para conservarlos."],
-  ["Could not save the analog response. Check storage and try again.", "Não foi possível salvar a resposta analógica. Verifique o armazenamento e tente novamente.", "No se pudo guardar la respuesta analógica. Comprueba el almacenamiento e inténtalo de nuevo."]
+  ["Could not save the analog response. Check storage and try again.", "Não foi possível salvar a resposta analógica. Verifique o armazenamento e tente novamente.", "No se pudo guardar la respuesta analógica. Comprueba el almacenamiento e inténtalo de nuevo."],
+  ["Interface sounds", "Sons da interface", "Sonidos de la interfaz"],
+  ["- Short navigation tones for menus. They stop before streaming starts.", "- Tons curtos de navegação nos menus. Eles param antes do streaming começar.", "- Tonos cortos de navegación en los menús. Se detienen antes de iniciar la transmisión."],
+  ["Play navigation sounds in menus", "Reproduzir sons de navegação nos menus", "Reproducir sonidos de navegación en los menús"],
+  ["Screensaver", "Proteção de tela", "Protector de pantalla"],
+  ["- Dim the menu after inactivity to reduce retention on OLED/QLED panels. Any input wakes it; gameplay is not dimmed.", "- Escurece o menu após inatividade para reduzir retenção em painéis OLED/QLED. Qualquer entrada desperta; o gameplay não é escurecido.", "- Oscurece el menú tras la inactividad para reducir la retención en paneles OLED/QLED. Cualquier entrada lo despierta; el juego no se oscurece."],
+  ["Off", "Desligado", "Desactivado"],
+  ["1 minute", "1 minuto", "1 minuto"],
+  ["5 minutes", "5 minutos", "5 minutos"],
+  ["10 minutes", "10 minutos", "10 minutos"]
 ];

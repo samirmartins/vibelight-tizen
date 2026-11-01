@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="static/css/console-library.css">
   <link rel="stylesheet" href="static/css/console-controls.css">
   <link rel="stylesheet" href="static/css/stream-overlay.css">
+  <link rel="stylesheet" href="static/css/ambient-mode.css">
   <link rel="stylesheet" href="static/css/menu-i18n.css">
   <link rel="stylesheet" href="static/css/controller-mapping.css">
   <link rel="stylesheet" href="static/css/vibelight.css">
@@ -268,6 +269,18 @@
                 </label>
               </div>
             </div>
+            <div class="setting-option">
+              <label>Interface sounds</label>
+              <span class="mdl-list__item-text-body">
+                - Short navigation tones for menus. They stop before streaming starts.
+              </span>
+              <div id="interfaceSoundsMenu">
+                <label id="interfaceSoundsBtn" class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="interfaceSoundsSwitch">
+                  <input type="checkbox" id="interfaceSoundsSwitch" class="mdl-switch__input">
+                  <span class="mdl-switch__label">Play navigation sounds in menus</span>
+                </label>
+              </div>
+            </div>
           </div>
           <div id="videoSettings" class="settings-options">
             <div class="setting-option">
@@ -351,6 +364,21 @@
                   <span class="mdl-switch__label">Display real-time stream performance information while streaming</span>
                 </label>
               </div>
+            </div>
+            <div class="setting-option">
+              <label>Screensaver</label>
+              <span class="mdl-list__item-text-body">
+                - Dim the menu after inactivity to reduce retention on OLED/QLED panels. Any input wakes it; gameplay is not dimmed.
+              </span>
+              <div id="screensaverMenu">
+                <button type="button" id="selectScreensaver" class="mdl-button mdl-js-button mdl-js-ripple-effect" data-value="5">5 minutes</button>
+              </div>
+              <ul class="screensaverMenu mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect" for="selectScreensaver">
+                <li class="mdl-menu__item" data-value="0">Off</li>
+                <li class="mdl-menu__item" data-value="1">1 minute</li>
+                <li class="mdl-menu__item" data-value="5">5 minutes</li>
+                <li class="mdl-menu__item" data-value="10">10 minutes</li>
+              </ul>
             </div>
             <div class="setting-option">
               <label>Session diagnosis</label>
@@ -453,6 +481,8 @@
   <script type="text/javascript" src="platform/diagnostics.js"></script>
   <script type="text/javascript" src="platform/index.js"></script>
   <script type="text/javascript" src="platform/navigation.js"></script>
+  <script type="text/javascript" src="platform/ambient-mode.js"></script>
+  <script type="text/javascript" src="platform/interface-sounds.js"></script>
   <script type="text/javascript" src="platform/quick-help.js"></script>
   <script type="text/javascript" src="platform/focus-manager.js"></script>
   <script type="text/javascript" src="platform/stream-session.js"></script>
