@@ -18,12 +18,11 @@ The stacked README composition uses `vibelight-readme-logo.svg` and
 proportions, with the name below the original symbol.
 `interface.gif` shows Wake PC/Play, the Resume library in English, settings,
 the same library in Brazilian Portuguese, the initial Add Host screen, the
-library in Spanish and controller button testing, in that order, with two
-seconds per frame. The three language views are separated by other screens.
-The seven screen captures are retained as lossless 2048 × 1152 PNGs; the GIF is scaled to
-1920 × 1080. Its current controller-test capture includes cyan input highlights,
-the approved block layout and the CC0 artwork credited in
-[the application asset notice](../../wasm/static/res/controller-dualsense-LICENSE.txt).
+library in Spanish, the Switch controller mapping grid and the per-family
+analog tuning panel, in that order, with two seconds per frame. The three
+language views are separated by other screens. The eight screen captures are
+1920 × 1080; the mapping and analog frames use the shipped controller artwork
+credited in [the application asset notice](../../wasm/static/res/controller-dualsense-LICENSE.txt).
 
 ## Controller artwork source
 
