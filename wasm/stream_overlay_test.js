@@ -356,18 +356,18 @@ function fixture(options = {}) {
   }
 
   {
-    // Nintendo reports physical A on button 1 and B on button 0.
+    // Nintendo reports physical A on button 0 and B on button 1.
     const f = fixture();
     f.c.ControllerIdentity = {familyAt: () => 'nintendo'};
     f.setPad({});
     assert.strictEqual(f.c.StreamOverlay.open(), true);
     f.step();
     f.c.FocusManager.select(1);
-    f.press({1: true});
+    f.press({0: true});
     assert.strictEqual(f.c.tizen.tvaudiocontrol.muted, true, 'physical A activates the selected action');
     assert.strictEqual(f.c.StreamOverlay.isOpen(), true);
     f.release();
-    f.press({0: true});
+    f.press({1: true});
     f.release();
     assert.strictEqual(f.c.StreamOverlay.isOpen(), false, 'physical B closes the menu');
     assert.deepStrictEqual(f.calls.suppressed, [1, 0]);

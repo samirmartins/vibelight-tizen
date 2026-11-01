@@ -15,12 +15,13 @@ var ControllerMappingMenu = (function() {
     },
     nintendo: {
       name: 'Switch', image: 'static/res/controller-switch.png',
-      source: ['B','A','Y','X','L','R','ZL','ZR','Minus','Plus','L3','R3','↑','↓','←','→','Home','Capture','Mute'],
-      target: ['B','A','Y','X','L','R','ZL','ZR','Minus','Plus','L3','R3','↑','↓','←','→','Home']
+      source: ['A','B','X','Y','L','R','ZL','ZR','-','+','L3','R3','↑','↓','←','→','Home','Capture','Mute'],
+      target: ['A','B','X','Y','L','R','ZL','ZR','-','+','L3','R3','↑','↓','←','→','Home']
     }
   };
   var root, dialog, draft, tuning, family = 'xbox', selected = 0, choosing = false, testing = false;
   var focused = 'cm-family-xbox', statusText = '', testInput = null;
+  var guideHoldTimer = 0, guideHoldTicker = 0, guideHoldStart = 0;
 
   function el(id) { return document.getElementById(id); }
   function translate(value) {
@@ -40,6 +41,45 @@ var ControllerMappingMenu = (function() {
     return value;
   }
   function setStatus(text) { statusText = text || ''; if (el('cm-status')) el('cm-status').textContent = translate(statusText); }
+  function guideLabel() {
+    if (typeof ControllerIdentity !== 'undefined' && typeof ControllerIdentity.labels === 'function') {
+      return ControllerIdentity.labels(family).guide;
+    }
+    return 'Guide';
+  }
+  function formatGuide(source, count) {
+    var text = source.replace('{0}', guideLabel());
+    if (count !== undefined) text = text.replace('{1}', String(count));
+    return translate(text);
+  }
+  function setTestHint(text) {
+    var hint = el('cm-test-hint');
+    if (!hint) return;
+    hint.hidden = !testing;
+    if (text !== undefined && el('cm-test-hint-text')) el('cm-test-hint-text').textContent = text;
+  }
+  function clearGuideHold() {
+    if (guideHoldTimer) { clearTimeout(guideHoldTimer); guideHoldTimer = 0; }
+    if (guideHoldTicker) { clearInterval(guideHoldTicker); guideHoldTicker = 0; }
+    guideHoldStart = 0;
+  }
+  function startGuideHold() {
+    if (guideHoldTimer) return;
+    guideHoldStart = Date.now();
+    setTestHint(formatGuide('Keep holding {0}: {1} s', 3));
+    guideHoldTicker = setInterval(function() {
+      var remaining = Math.max(0, 3 - Math.floor((Date.now() - guideHoldStart) / 1000));
+      setTestHint(formatGuide('Keep holding {0}: {1} s', remaining));
+    }, 250);
+    guideHoldTimer = setTimeout(function() {
+      clearGuideHold();
+      stopTest();
+    }, 3000);
+  }
+  function cancelGuideHold() {
+    clearGuideHold();
+    if (testing) setTestHint(formatGuide('Hold {0} for 3 seconds to exit the test.'));
+  }
   function focus(id) {
     var node = el(id);
     if (node && !node.disabled) { focused = id; node.focus(); if (node.scrollIntoView) node.scrollIntoView({block:'nearest'}); }
@@ -174,6 +214,7 @@ var ControllerMappingMenu = (function() {
     if (choosing) renderTargets();
     renderChanges(); renderTuning();
     el('cm-status').textContent = translate(statusText);
+    if (el('cm-test-hint')) el('cm-test-hint').hidden = !testing;
   }
   function ensure() {
     if (root) return;
@@ -186,6 +227,7 @@ var ControllerMappingMenu = (function() {
       '<button type="button" id="cm-family-playstation" class="cm-tab"><span></span>PlayStation</button>'+
       '<button type="button" id="cm-family-nintendo" class="cm-tab"><span></span>Switch</button></div></header>'+
       '<p id="cm-status" role="status"></p>'+
+      '<div id="cm-test-hint" class="cm-test-hint" hidden><span class="cm-test-dot"></span><span id="cm-test-hint-text"></span></div>'+
       '<div class="cm-body"><section class="cm-stage"><div class="cm-stage-head"><strong id="cm-profile-title">Xbox</strong>'+
       '<span id="cm-connection">Independent profile</span></div>'+
       '<div class="cm-art-wrap" id="cm-art-wrap"><img id="cm-art" alt=""></div>'+
@@ -257,23 +299,30 @@ var ControllerMappingMenu = (function() {
     testInput = function(event) {
       var changes = event && event.detail && event.detail.changes || [];
       changes.forEach(function(change) {
+        if (change.type === 'button' && change.index === 16) {
+          if (change.pressed) startGuideHold(); else cancelGuideHold();
+          return;
+        }
         if (change.type !== 'button' || change.index < 0 || change.index > 15) return;
         var node = el('cm-key-' + change.index);
         if (node) node.classList.toggle('cm-pressed', !!change.pressed);
       });
     };
     window.addEventListener('gamepadinputchanged', testInput, true);
-    setStatus('Press buttons to see them light up. Click Stop test when finished.');
+    setTestHint(formatGuide('Hold {0} for 3 seconds to exit the test.'));
+    setStatus('Press buttons to see them light up.');
     focus('cm-test');
   }
   function stopTest() {
     if (!testing) return;
+    clearGuideHold();
     testing = false;
     if (testInput) window.removeEventListener('gamepadinputchanged', testInput, true);
     testInput = null;
     if (typeof LibraryNavigation !== 'undefined' && LibraryNavigation.resume) LibraryNavigation.resume();
     for (var i = 0; i < 16; i++) { var node = el('cm-key-' + i); if (node) node.classList.remove('cm-pressed'); }
-    render(); setStatus('Test finished. Menu navigation stays on the original layout.');
+    render(); setTestHint('');
+    setStatus('Test finished. Menu navigation stays on the original layout.');
   }
   function hidden() { if (document.hidden) close(); }
   function close() {

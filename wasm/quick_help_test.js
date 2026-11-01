@@ -35,7 +35,7 @@ function fixture() {
       primaryFamily: () => 'playstation',
       familyAt: index => index === 2 ? 'nintendo' : 'playstation',
       labels: family => family === 'nintendo'
-        ? {accept: 'A', back: 'B', face2: 'Y', face3: 'X', lb: 'L', rb: 'R', lt: 'ZL', rt: 'ZR',
+        ? {accept: 'A', back: 'B', face2: 'X', face3: 'Y', lb: 'L', rb: 'R', lt: 'ZL', rt: 'ZR',
            select: 'Minus', start: 'Plus', guide: 'HOME'}
         : {accept: '✕', back: '○', face2: '□', face3: '△', lb: 'L1', rb: 'R1',
            lt: 'L2', rt: 'R2', select: 'Create', start: 'Options', guide: 'PS'}

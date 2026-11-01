@@ -7,6 +7,16 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## v4.1.1
+
+### Fixed
+- Switch controller labels, menu confirm/back and guide glyphs now follow the
+  TV-reported A/B/X/Y order; the mapping editor shows `-` and `+` instead of
+  `Minus` and `Plus`
+- The controller button test can be exited by holding Guide, PS or Home for
+  three seconds, with a visible countdown; the Stop test button remains
+  available as a fallback
+
 ## v4.1.0
 
 ### Improved

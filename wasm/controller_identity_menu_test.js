@@ -83,8 +83,8 @@ function pad(index, id) {
   assert.strictEqual(f.c.ControllerIdentity.familyAt(9), 'unknown');
   assert.strictEqual(f.c.ControllerIdentity.acceptButton(0), 0);
   assert.strictEqual(f.c.ControllerIdentity.backButton(0), 1);
-  assert.strictEqual(f.c.ControllerIdentity.acceptButton(2), 1, 'Nintendo physical A is button 1');
-  assert.strictEqual(f.c.ControllerIdentity.backButton(2), 0, 'Nintendo physical B is button 0');
+  assert.strictEqual(f.c.ControllerIdentity.acceptButton(2), 0, 'Nintendo physical A is button 0');
+  assert.strictEqual(f.c.ControllerIdentity.backButton(2), 1, 'Nintendo physical B is button 1');
 
   assert.deepStrictEqual(JSON.parse(JSON.stringify(f.c.ControllerIdentity.labels('xbox'))),
     {accept: 'A', back: 'B', face2: 'X', face3: 'Y', lb: 'LB', rb: 'RB', lt: 'LT', rt: 'RT',
@@ -92,6 +92,8 @@ function pad(index, id) {
   assert.strictEqual(f.c.ControllerIdentity.labels('playstation').accept, '✕');
   assert.strictEqual(f.c.ControllerIdentity.labels('playstation').back, '○');
   assert.strictEqual(f.c.ControllerIdentity.labels('nintendo').accept, 'A');
+  assert.strictEqual(f.c.ControllerIdentity.labels('nintendo').face2, 'X');
+  assert.strictEqual(f.c.ControllerIdentity.labels('nintendo').face3, 'Y');
   assert.strictEqual(f.c.ControllerIdentity.labels('nintendo').lb, 'L');
   assert.strictEqual(f.c.ControllerIdentity.labels('nintendo').rt, 'ZR');
 
@@ -131,6 +133,8 @@ function pad(index, id) {
   f.c.ControllerIdentity.localizeGuide();
   assert.strictEqual(f.spans.accept.textContent, 'A', 'controller 2 guide uses Nintendo accept');
   assert.strictEqual(f.spans.back.textContent, 'B', 'controller 2 guide uses Nintendo back');
+  assert.strictEqual(f.spans.face2.textContent, 'X', 'controller 2 guide uses Nintendo X');
+  assert.strictEqual(f.spans.face3.textContent, 'Y', 'controller 2 guide uses Nintendo Y');
   assert.strictEqual(f.spans.guide.textContent, 'HOME', 'controller 2 guide uses Home');
   assert.strictEqual(f.family.textContent, '(Switch)');
   f.setPads([pad(0, 'Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)')]);

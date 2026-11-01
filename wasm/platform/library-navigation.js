@@ -128,20 +128,12 @@ var LibraryNavigation = (function() {
     var index = detail.padIndex === undefined ? 0 : detail.padIndex;
     var pad = pads[index];
     if (!pad) pad = pads[index] = {buttons: Object.create(null), axes: [0, 0, 0, 0], x: 0, y: 0, rightDir: 0};
-    var accept = 0, back = 1, identityLoaded = false;
+    var accept = 0, back = 1;
     var action = null, extra = null, dpadBounce = false, now = Date.now();
     // Resolve the complete poll before choosing a direction: release order is
     // not meaningful when left and right change together.
     detail.changes.forEach(function(change) {
       if (change.type === 'button') {
-        if (!identityLoaded) {
-          identityLoaded = true;
-          if (typeof ControllerIdentity !== 'undefined') {
-            var family = ControllerIdentity.familyAt(index);
-            accept = family === 'nintendo' ? 1 : 0;
-            back = family === 'nintendo' ? 0 : 1;
-          }
-        }
         if ((change.index >= 4 && change.index <= 9) || change.index === 3 || change.index === 16 ||
             (change.index >= 12 && change.index <= 15) ||
             change.index === accept || change.index === back) {

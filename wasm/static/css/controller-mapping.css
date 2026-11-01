@@ -18,6 +18,9 @@
 .cm-tab.cm-active span { background:#fff; }
 #cm-family-xbox span { background:#6ee07a; } #cm-family-playstation span { background:#4d8dff; } #cm-family-nintendo span { background:#ff6b5f; }
 #cm-status { min-height:1.5em; margin:.5em 0 .2em; color:#80eee6; }
+.cm-test-hint { display:flex; align-items:center; gap:.55em; margin:.1em 0 .35em; padding:.55em .9em; border:1px solid rgba(255,220,122,.45); border-radius:10px; background:rgba(255,220,122,.08); color:#ffe7a8; font-size:.86em; }
+.cm-test-hint[hidden] { display:none; }
+.cm-test-dot { width:.55em; height:.55em; flex:0 0 auto; border-radius:50%; background:#ffdc7a; box-shadow:0 0 8px rgba(255,220,122,.75); }
 .cm-body { display:grid; grid-template-columns:1.25fr .85fr; gap:1.6vw; margin-top:1.2vh; min-height:0; }
 .cm-stage { background:radial-gradient(circle at 50% 45%,#2a3a50 0%,#1a2433 58%,#111722 100%); border:1px solid #303d52; border-radius:16px; padding:1.1vh 1.2vw .8vh; display:flex; flex-direction:column; min-height:0; }
 .cm-stage-head { display:flex; justify-content:space-between; align-items:center; color:#c4d2e6; font-size:.9em; }

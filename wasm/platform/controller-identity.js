@@ -87,7 +87,7 @@ var ControllerIdentity = (function() {
         select: 'Create', start: 'Options', guide: 'PS'};
     }
     if (family === 'nintendo') {
-      return {accept: 'A', back: 'B', face2: 'Y', face3: 'X',
+      return {accept: 'A', back: 'B', face2: 'X', face3: 'Y',
         lb: 'L', rb: 'R', lt: 'ZL', rt: 'ZR',
         select: '-', start: '+', guide: 'HOME'};
     }
@@ -96,8 +96,8 @@ var ControllerIdentity = (function() {
       select: 'View', start: 'Menu', guide: 'Guide'};
   }
 
-  function acceptButton(index) { return familyAt(index) === 'nintendo' ? 1 : 0; }
-  function backButton(index) { return familyAt(index) === 'nintendo' ? 0 : 1; }
+  function acceptButton(index) { return 0; }
+  function backButton(index) { return 1; }
 
   function refreshPlayers() {
     var node = document.getElementById('controllerPlayers');

@@ -517,10 +517,10 @@ var StreamOverlay = (function() {
       var guide = state.buttons[16];
       if (guide && !previous[16]) { close(); return; }
       if (busy) continue;
-      // Physical accept/back follow the connected family, matching the menu and
-      // the quick-help glyphs (Nintendo reports A on button 1 and B on button 0).
-      var acceptIndex = state.family === 'nintendo' ? 1 : 0;
-      var backIndex = state.family === 'nintendo' ? 0 : 1;
+      // All supported families report physical accept on button 0 and back on
+      // button 1, including the Switch A/B order.
+      var acceptIndex = 0;
+      var backIndex = 1;
       if (state.buttons[backIndex] && !previous[backIndex]) { back(); return; }
       if (state.buttons[acceptIndex] && !previous[acceptIndex]) { accept(); return; }
       var direction = directionOf(state);

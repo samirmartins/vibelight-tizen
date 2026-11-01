@@ -235,8 +235,8 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
  assert.strictEqual(filters,2,'filters are inert while a dialog is open');
  f.c.isDialogOpen=false;
  f.c.ControllerIdentity={familyAt:()=> 'nintendo',refreshPlayers(){},localizeGuide(){},setGuideIndex(){}};
- f.button(1,true);f.advance(304);f.button(1,false);f.advance(320);
- f.button(0,true);f.advance(336);f.button(0,false);f.advance(352);
+ f.button(0,true);f.advance(304);f.button(0,false);f.advance(320);
+ f.button(1,true);f.advance(336);f.button(1,false);f.advance(352);
  assert.deepStrictEqual(f.moves.filter(move=>move[0]==='accept').length,1,'Nintendo physical A accepts');
  assert.deepStrictEqual(f.moves.filter(move=>move[0]==='back').length,1,'Nintendo physical B goes back');
 }
