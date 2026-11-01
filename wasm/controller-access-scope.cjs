@@ -1,8 +1,8 @@
 'use strict';
 // Only these reviewed diagnostic bytes may be reversed for historical contracts.
 const hashes = {
-  'wasm/platform/controller-mapping-menu.js': '70b82f3d7ba527eb60021a48cfd04c923e704de2aecad696c628d3096aff2d7b',
-  'wasm/static/css/controller-mapping.css': '2b41ee79fa8f0b14e6cea631861614f038af6b0539306bfd37386cae6bf590d5'
+  'wasm/platform/controller-mapping-menu.js': '8b29ef86eca169b8ab77a9e6f48018d0559c2afe22b0b14b31ad9cf96a57d569',
+  'wasm/static/css/controller-mapping.css': 'bfaa2dd10b11e2d5d769e9f223eb9c4f66f2a45b289e9591c37f5201109e1d7b'
 };
 function normalize(file, source) {
   if (!hashes[file] || require('crypto').createHash('sha256').update(source).digest('hex') !== hashes[file]) return source;

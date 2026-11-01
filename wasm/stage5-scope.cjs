@@ -7,7 +7,7 @@ const hashes = {
   'wasm/platform/index.js': '6b6462d99be75ed011412e4d2fb4966c705771314107f3826d40a7c043bcd30c',
   'wasm/platform/navigation.js': 'f513ae9ae535c2b16c46f593a327b0fcf89d9b16aa16df1dd31e39cc955ea1cf',
   'wasm/platform/app-lifecycle.js': 'f35bfca1aa8bcf21c24980e6b16e947eb20232c37b4ff8b8316fdece9be82ae2',
-  'wasm/platform/controller-mapping-menu.js': '70b82f3d7ba527eb60021a48cfd04c923e704de2aecad696c628d3096aff2d7b',
+  'wasm/platform/controller-mapping-menu.js': '8b29ef86eca169b8ab77a9e6f48018d0559c2afe22b0b14b31ad9cf96a57d569',
   'wasm/platform/remote_controller.js': 'b4201bda42150e280df263203cdbebd9feaa476188f4aebdb38869af336e8b74'
 };
 function normalize(file, source) {

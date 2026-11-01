@@ -7,17 +7,7 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
-## v4.1.1
-
-### Fixed
-- Switch controller labels, menu confirm/back and guide glyphs now follow the
-  TV-reported A/B/X/Y order; the mapping editor shows `-` and `+` instead of
-  `Minus` and `Plus`
-- The controller button test can be exited by holding Guide, PS or Home for
-  three seconds, with a visible countdown; the Stop test button remains
-  available as a fallback
-
-## v4.1.0
+## v4.0.1
 
 ### Improved
 - Adds an in-stream system overlay opened with Guide: Resume, TV volume,
@@ -35,6 +25,9 @@ that reason: the two lines are separate and should never be read as one.
   button test and a compact analog drawer. The PlayStation profile keeps its
   current layout and remains editable; the Switch profile uses the layout
   reported by the system with no default swaps
+- Adds L1/R1 family switching, focus-follows-selection, deterministic grid
+  navigation, remembered family/button and a footer shortcut hint in the
+  controller mapping editor
 - Adds LB/RB library filters, LT/RT and horizontal right-stick paging, Start
   quick help and Guide navigation guide. Quick help and the guide use the
   controller that actually opened them
@@ -50,6 +43,10 @@ that reason: the two lines are separate and should never be read as one.
 ### Fixed
 - The stream overlay now follows the Nintendo physical A/B buttons instead of
   treating them as the Xbox layout
+- Switch labels, menu confirm/back and guide glyphs now follow the TV-reported
+  A/B/X/Y order; the mapping editor shows `-` and `+` instead of Minus/Plus
+- The controller button test exits after holding Guide/PS/Home for three
+  seconds, with a visible countdown; Stop test remains available as a fallback
 - Horizontal right-stick paging reads the correct axis instead of the vertical
   stick axis
 - Confirm can mute and unmute the TV even when the firmware keeps reporting the

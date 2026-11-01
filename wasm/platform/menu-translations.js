@@ -206,6 +206,7 @@ var MenuTranslations = [
   ["Swapped", "Trocado", "Cambiado"],
   ["Changes in this profile", "Trocas neste perfil", "Cambios en este perfil"],
   ["No swaps", "Nenhuma troca", "Sin cambios"],
+  ["switch family", "trocar família", "cambiar familia"],
   ["Independent profile", "Perfil independente", "Perfil independiente"],
   ["Click a button or use the direction pad.", "Clique em um botão ou use o direcional.", "Haz clic en un botón o usa el direccional."],
   ["Analog tuning", "Ajuste analógico", "Ajuste analógico"],

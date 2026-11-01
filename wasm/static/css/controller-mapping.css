@@ -61,6 +61,7 @@
 .cm-tuning-grid button { text-align:left; }
 .cm-footer { display:flex; align-items:center; justify-content:space-between; gap:1em; border-top:1px solid #334055; margin-top:1.2vh; padding-top:1.1vh; }
 .cm-footer > div { display:flex; gap:.5em; }
+.cm-nav-hint { flex:1; text-align:center; color:#8fa3bd; font-size:.78em; }
 @media(max-width:1000px) {
   #controllerMappingDialog { width:94vw; padding:1.4vh 2vw; }
   .cm-body { grid-template-columns:1fr; }

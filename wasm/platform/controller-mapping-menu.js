@@ -20,7 +20,8 @@ var ControllerMappingMenu = (function() {
     }
   };
   var root, dialog, draft, tuning, family = 'xbox', selected = 0, choosing = false, testing = false;
-  var focused = 'cm-family-xbox', statusText = '', testInput = null;
+  var focused = 'cm-family-xbox', statusText = '', testInput = null, familyInput = null;
+  var lastFamily = null, lastSelected = null;
   var guideHoldTimer = 0, guideHoldTicker = 0, guideHoldStart = 0;
 
   function el(id) { return document.getElementById(id); }
@@ -90,9 +91,30 @@ var ControllerMappingMenu = (function() {
       return !node.disabled && !node.hidden && node.getClientRects().length;
     });
   }
+  function selectKey(index) {
+    if (index < 0 || index > 15 || !draft) return;
+    selected = index; render(); focus('cm-key-' + index);
+  }
   function move(dx, dy) {
     var current = el(focused), items = controls();
     if (!current || !items.includes(current)) { if (items.length) focus(items[0].id); return; }
+    if (testing) { if (focused !== 'cm-test') focus('cm-test'); return; }
+    var key = /^cm-key-(\d+)$/.exec(focused);
+    if (key) {
+      var index = Number(key[1]), row = Math.floor(index / 8);
+      if (dx) { selectKey(row * 8 + (index % 8 + dx + 8) % 8); return; }
+      if (dy < 0) { if (index < 8) focus('cm-family-' + family); else selectKey(index - 8); return; }
+      if (dy > 0) { if (index >= 8) focus('cm-change'); else selectKey(index + 8); return; }
+    }
+    if (focused.indexOf('cm-family-') === 0) {
+      if (dx) {
+        var familyIndex = families.indexOf(family);
+        selectFamily(families[(familyIndex + dx + families.length) % families.length]);
+        return;
+      }
+      if (dy > 0) focus('cm-key-' + selected);
+      return;
+    }
     var from = current.getBoundingClientRect(), best = null, distance = Infinity;
     items.forEach(function(node) {
       if (node === current) return;
@@ -108,7 +130,15 @@ var ControllerMappingMenu = (function() {
     enter:function() { focus(focused); }, leave:function() {},
     up:function() { move(0,-1); }, down:function() { move(0,1); },
     left:function() { move(-1,0); }, right:function() { move(1,0); },
-    accept:function() { var node = el(focused); if (node && !node.disabled) node.click(); },
+    accept:function() {
+      if (testing) { if (focused === 'cm-test') el('cm-test').click(); return; }
+      var key = /^cm-key-(\d+)$/.exec(focused);
+      if (key) {
+        selected = Number(key[1]);
+        choosing = true; render(); focus('cm-target-' + profile().map[selected]); return;
+      }
+      var node = el(focused); if (node && !node.disabled) node.click();
+    },
     back:function() {
       if (choosing) { choosing = false; render(); focus('cm-change'); return; }
       if (!el('cm-analog-panel').hidden) { el('cm-analog-panel').hidden = true; focus('cm-analog-row'); return; }
@@ -148,7 +178,7 @@ var ControllerMappingMenu = (function() {
       key.className = 'cm-key' + (selected === i ? ' cm-selected' : '') + (testing ? ' cm-testing' : '');
       key.textContent = faceText(sourceText(i));
       key.setAttribute('aria-label', sourceText(i));
-      key.onclick = (function(index) { return function() { selected = index; render(); focus('cm-key-' + index); }; })(i);
+      key.onclick = (function(index) { return function() { selectKey(index); }; })(i);
       box.appendChild(key);
     }
   }
@@ -215,6 +245,11 @@ var ControllerMappingMenu = (function() {
     renderChanges(); renderTuning();
     el('cm-status').textContent = translate(statusText);
     if (el('cm-test-hint')) el('cm-test-hint').hidden = !testing;
+    if (el('cm-family-hint')) {
+      var keys = typeof ControllerIdentity !== 'undefined' && typeof ControllerIdentity.labels === 'function'
+        ? ControllerIdentity.labels(family) : {lb:'L1', rb:'R1'};
+      el('cm-family-hint').textContent = keys.lb + '/' + keys.rb + ': ' + translate('switch family');
+    }
   }
   function ensure() {
     if (root) return;
@@ -254,6 +289,7 @@ var ControllerMappingMenu = (function() {
       '<button type="button" id="cm-trigger-threshold">Trigger threshold: none</button></div>'+
       '<p class="cm-note">Optional response for the next stream. Defaults keep the original sticks and triggers.</p></div>'+
       '<footer class="cm-footer"><button type="button" id="cm-reset" class="cm-ghost">Restore layout</button>'+
+      '<span id="cm-family-hint" class="cm-nav-hint"></span>'+
       '<div><button type="button" id="cm-cancel" class="cm-ghost">Cancel</button><button type="button" id="cm-save" class="cm-primary">Save</button></div></footer>'+
       '</dialog>';
     document.body.appendChild(root); dialog = el('controllerMappingDialog');
@@ -289,8 +325,19 @@ var ControllerMappingMenu = (function() {
   }
   function selectFamily(next) {
     if (!profiles[next]) return;
-    family = next; selected = 1; choosing = false;
-    render(); focus('cm-key-1');
+    var was = focused, wasChoosing = choosing;
+    family = next; choosing = false;
+    render();
+    if (wasChoosing) { focus('cm-key-' + selected); return; }
+    if (/^cm-key-\d+$/.test(was)) focus('cm-key-' + selected);
+    else if (was.indexOf('cm-family-') === 0) focus('cm-family-' + next);
+    else if (el(was)) focus(was);
+    else focus('cm-key-' + selected);
+  }
+  function switchFamily(delta) {
+    if (testing || choosing) return;
+    var index = families.indexOf(family);
+    selectFamily(families[(index + delta + families.length) % families.length]);
   }
   function startTest() {
     if (testing) return;
@@ -328,6 +375,9 @@ var ControllerMappingMenu = (function() {
   function close() {
     if (!dialog || !dialog.open) return;
     stopTest();
+    lastFamily = family; lastSelected = selected;
+    if (familyInput) window.removeEventListener('gamepadinputchanged', familyInput, true);
+    familyInput = null;
     document.removeEventListener('visibilitychange', hidden);
     closeUtilityDialog('controllerMappingDialog');
     root.style.display = 'none'; draft = null; tuning = null; testing = false; choosing = false;
@@ -343,19 +393,32 @@ var ControllerMappingMenu = (function() {
   function open() {
     if (isInGame || isDialogOpen || document.hidden) return;
     ensure();
-    family = 'xbox';
-    if (typeof ControllerIdentity !== 'undefined') {
+    family = profiles[lastFamily] ? lastFamily : 'xbox';
+    if (!profiles[lastFamily] && typeof ControllerIdentity !== 'undefined') {
       var primary = ControllerIdentity.primaryFamily();
       if (primary === 'playstation' || primary === 'nintendo') family = primary;
     }
     draft = ControllerMapping.get(); tuning = ControllerTuning.get();
-    selected = 1; choosing = false; testing = false; statusText = '';
+    selected = lastSelected !== null && lastSelected >= 0 && lastSelected < 16 ? lastSelected : 1;
+    choosing = false; testing = false; statusText = '';
     render();
     setStatus('Select a physical button, then Change. Cancel leaves saved settings unchanged.');
     openUtilityDialog('controllerMappingDialog', ['cm-family-xbox','cm-cancel'], 'cm-cancel');
     document.addEventListener('visibilitychange', hidden);
+    familyInput = function(event) {
+      if (testing || choosing) return;
+      var changes = event && event.detail && event.detail.changes || [];
+      for (var i = 0; i < changes.length; i++) {
+        var change = changes[i];
+        if (change.type === 'button' && change.pressed && (change.index === 4 || change.index === 5)) {
+          switchFamily(change.index === 5 ? 1 : -1);
+          return;
+        }
+      }
+    };
+    window.addEventListener('gamepadinputchanged', familyInput, true);
     Navigation.change(view);
-    focus('cm-key-1');
+    focus('cm-key-' + selected);
   }
   return {open:open, isTesting:function() { return testing; }};
 })();
