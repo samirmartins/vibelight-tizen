@@ -182,6 +182,32 @@ The path is `/home/moonlight/VibeLight-v<version>-samirmartins[-ForceGM].wgt`;
 substitute the version in `res/config.xml` and omit `-ForceGM` for Normal.
 Remove only the temporary container created for extraction.
 
+### Embind string protection
+
+The root, two-stage and maintainer's local packaging recipes patch the installed
+`build/widget/moonlight-wasm.js` before signing. The build-only image retains
+the original compiler output. `patch-embind-string.cjs` replaces exactly one
+known Samsung converter, preserves embedded NUL characters and uses bounded
+UTF-8 reads without temporary heap writes. Missing, repeated or already patched
+input fails instead of silently changing the toolchain contract.
+
+The behavioral fixture is extracted from the 4.0.2 package. Run:
+
+```bash
+node wasm/embind_string_test.js
+# Expected nonzero exit: demonstrate the transient out-of-bounds write.
+node wasm/embind_string_test.js --baseline
+# Optional: test against a generated, unpatched module from the actual build.
+node wasm/embind_string_test.js --artifact /path/to/moonlight-wasm.js
+python3 build-tools/verify-embind-wgt.py /path/to/candidate.wgt
+```
+
+The WGT checker requires Python 3 and Node, rejects duplicate ZIP members, and
+checks the actual root `moonlight-wasm.js`, using the same canonical verifier.
+It does not verify signatures or demonstrate Samsung playback. The maintainer's
+local builder calls it after extracting each signed WGT. Do not apply the patch
+to an already signed archive; regenerate and sign a new candidate instead.
+
 ## ForceGM
 
 Both variants use the same code. ForceGM adds this panel request to `config.xml`:

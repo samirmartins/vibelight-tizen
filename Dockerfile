@@ -95,8 +95,12 @@ COPY --chown=moonlight res/ ./moonlight-tizen/res/
 COPY --chown=moonlight wasm/index.html ./moonlight-tizen/wasm/
 COPY --chown=moonlight wasm/platform/ ./moonlight-tizen/wasm/platform/
 COPY --chown=moonlight wasm/static/ ./moonlight-tizen/wasm/static/
+COPY --chown=moonlight build-tools/patch-embind-string.cjs ./moonlight-tizen/build-tools/
 
 RUN cmake --install build --prefix build
+# Patch only the installed glue; all packages must use this verified copy.
+RUN /home/moonlight/emscripten-release-bundle/emsdk/node/12.9.1_64bit/bin/node moonlight-tizen/build-tools/patch-embind-string.cjs build/widget/moonlight-wasm.js && \
+    /home/moonlight/emscripten-release-bundle/emsdk/node/12.9.1_64bit/bin/node moonlight-tizen/build-tools/patch-embind-string.cjs --check build/widget/moonlight-wasm.js
 RUN cp moonlight-tizen/res/icon.png build/widget/
 
 # Build the ForceGM variant instead of the plain one. Both come from identical
