@@ -50,6 +50,9 @@ var AppLifecycle = (function() {
         Navigation.pop();
       }
       ++epoch;
+      if (typeof startGame === 'function' && startGame.pending) startGame.pending.cancel();
+      if (typeof StreamSession !== 'undefined') StreamSession.reset();
+      if (typeof api !== 'undefined' && api && api._quitOperation) api._quitOperation.cancel();
       if (isInGame && api) returnHost = api;
       restoreHostPolling = typeof hostPollScopes !== 'undefined' && Object.keys(hostPollScopes).length > 0;
       // Invalidate menu work and pending user-launch continuations before JS

@@ -271,6 +271,8 @@ for(const file of paths){
     assert.strictEqual(require('./stage5-scope.cjs').normalize(file,read(file)),old(file),'exact Stage 5 remote cleanup');
   else if(file==='wasm/platform/app-lifecycle.js'||file==='wasm/static/js/utils.js')
     assert.strictEqual(require('./stream-return-scope.cjs').normalize(file,read(file)),old(file),'exact tested stop-to-menu delta: '+file);
+  else if(file==='wasm/http.cpp')
+    assert.strictEqual(require('./session-transition-scope.cjs').normalize(file,read(file)),old(file),'exact tested host-quit deadline only');
   else if (require('./frame-pacing-scope.cjs').files.includes(file))
     assert.strictEqual(require('./frame-pacing-scope.cjs').normalize(file,read(file)),old(file),'exact optional pacing integration: '+file);
   else assert.deepStrictEqual(require('./branding-scope.cjs').asset(file,fs.readFileSync(file)),cp.execFileSync('git',['show','v3.4.8:'+file]),'unchanged runtime bytes or exact approved icon: '+file);

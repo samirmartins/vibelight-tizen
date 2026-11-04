@@ -162,10 +162,11 @@ void MoonlightInstance::OpenUrl(int callbackId, std::string url, std::string ppk
 
 void MoonlightInstance::OpenUrlScoped(int callbackId, std::string url, std::string ppk,
                                       bool binaryResponse, int timeoutMs) {
-  // Only menu metadata/artwork uses this path; launch/resume/pair stay unchanged.
+  // Metadata/artwork and explicit host quit share per-request cancellation.
+  // Launch/resume/pair keep their existing serialization and transport.
   const auto cancelled = std::make_shared<int>(0);
   const auto deadline = std::chrono::steady_clock::now() +
-    std::chrono::milliseconds(std::max(1, std::min(timeoutMs, 10000)));
+    std::chrono::milliseconds(std::max(1, std::min(timeoutMs, 15000)));
   {
     std::lock_guard<std::mutex> lock(menuRequestMutex);
     menuRequests[callbackId] = cancelled;

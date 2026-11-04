@@ -261,6 +261,8 @@ var MenuTranslations = [
   ["A pairing request is currently in progress. Please wait for it to timeout or finish before trying again.", "Há um pareamento em andamento. Aguarde sua conclusão ou o tempo limite antes de tentar novamente.", "Hay un emparejamiento en curso. Espera a que termine o agote el tiempo antes de volver a intentarlo."],
   ["Something went wrong with the pairing certificate. Please try pairing with the host PC again.", "Ocorreu um problema com o certificado de pareamento. Tente parear novamente.", "Se produjo un problema con el certificado de emparejamiento. Intenta emparejar de nuevo."],
   ["Scanning the local network to discover new hosts...", "Procurando PCs na rede local...", "Buscando PCs en la red local..."],
+  ["Closing on the PC may continue.", "O encerramento no PC pode continuar.", "El cierre en el PC puede continuar."],
+  ["Finishing previous session...", "Finalizando sessão anterior...", "Finalizando la sesión anterior..."],
   ["Previous stream is still closing. Retry shortly.", "A sessão anterior ainda está encerrando. Tente novamente em instantes.", "La sesión anterior aún se está cerrando. Vuelve a intentarlo en unos instantes."],
   ["In order for your changes to take effect, a restart of the application is required.", "É necessário reiniciar o aplicativo para aplicar estas alterações.", "Es necesario reiniciar la aplicación para aplicar estos cambios."],
   ["Please enter the following PIN on the target PC:", "Insira o seguinte PIN no PC:", "Introduce el siguiente PIN en el PC:"],

@@ -51,6 +51,19 @@ delayed launch/resume replies, stale connection messages and preserved launch
 payloads. `input_focus_test.js` checks held-input release before disconnect;
 blur alone does not stop a stream. Hardware suspension/EMSS still needs a TV test.
 
+Host quit and app switching: `host_quit_test.js` exercises a single 15-second
+budget for the quit request and authenticated host-closure confirmation, per-request
+native cancellation, refusal, a stalled host, late replies and callback/timer cleanup.
+Only an explicit user quit starts temporary status checks; the quit command is
+sent once. The stream overlay keeps local Disconnect available; disconnecting
+cannot undo a quit already received by the PC. `session_transition_test.js` covers
+manual and confirmed close-and-start launches, event-driven native cleanup,
+supersession, Smart Hub cancellation and bounded missing completion. It replaces
+the fixed three-second switch delay, preserving launch/resume parameters and
+media/input algorithms. Existing native teardown safety remains in force; no
+forced release occurs after a decoder-close failure. Mock transport/platform
+fixtures do not establish Samsung HTTP/decoder behavior or physical latency.
+
 Extended native HTTP/RTP, browser layout/navigation and actual WGT signature/privacy
 checks are coordinated by the maintainer's local tools, separately from public CI.
 Browser/EMSS adapters are not a Samsung decoder or a physical controller.

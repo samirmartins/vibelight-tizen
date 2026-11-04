@@ -1714,9 +1714,14 @@ function prepareStreamAudio() {
 }
 
 function startGame(host, appID, audioPrepared) {
+  // Retire a superseded launch before waiting for the previous native session.
+  if (startGame.pending) startGame.pending.cancel();
+  var launchScope = createMenuRequestScope();
+  startGame.pending = launchScope;
   // Invalidate only continuations from before a Smart Hub transition.
   const lifecycleEpoch = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;
-  const launchCurrent = function() { return typeof AppLifecycle === 'undefined' || AppLifecycle.current(lifecycleEpoch); };
+  const launchCurrent = function() { return launchScope.active && startGame.pending === launchScope &&
+    (typeof AppLifecycle === 'undefined' || AppLifecycle.current(lifecycleEpoch)); };
   if (!launchCurrent()) return;
   if (!host || !host.paired) {
     console.error('%c[index.js, startGame]', 'color: gray;', 'Operation failed; private details omitted.');
@@ -1731,7 +1736,12 @@ function startGame(host, appID, audioPrepared) {
   startAudioScheduler();
 
   // Refresh the server info, because the user might have quit the game
-  host.refreshServerInfo().then(function(ret) {
+  var closing = typeof AppLifecycle !== 'undefined' ? AppLifecycle.waitForStreamStop(launchScope) : null;
+  if (closing) snackbarLog('Finishing previous session...');
+  Promise.resolve(closing).then(function() {
+    if (!launchCurrent()) return;
+    return host.refreshServerInfo();
+  }).then(function(ret) {
     if (!launchCurrent()) return;
     host.getAppById(appID).then(function(appToStart) {
       if (!launchCurrent()) return;
@@ -1776,8 +1786,8 @@ function startGame(host, appID, audioPrepared) {
                 // Switch to Apps view
                 Navigation.change(Views.Apps);
               }, 1500);
-              // Please, don't infinite loop with recursion
-              setTimeout(() => { if (launchCurrent()) startGame(host, appID); }, 3000);
+              // Host quit was confirmed; the next launcher awaits native cleanup.
+              if (launchCurrent()) startGame(host, appID);
             });
             quitAppOverlay.style.display = 'none';
             quitAppDialog.close();
@@ -1945,44 +1955,39 @@ function startGame(host, appID, audioPrepared) {
     });
   }, function(failedRefreshInfo) {
     if (!launchCurrent()) return;
+    if (failedRefreshInfo && failedRefreshInfo.clientStreamStopping) {
+      snackbarLogLong('Previous stream is still closing. Retry shortly.');
+      return;
+    }
     console.error('%c[index.js, startGame]', 'color: gray;', 'Operation failed; private details omitted.'); // Logging both object (for console) and toString-ed object (for text logs)
   });
 }
 
 // Stop the running app title, refresh the server info, and then return to Apps grid
 function stopGame(host, callbackFunction) {
+  var epoch = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;
+  var current = function() { return typeof AppLifecycle === 'undefined' || AppLifecycle.current(epoch); };
   isInGame = false;
-
-  if (!host.paired) {
-    return;
-  }
-
-  host.refreshServerInfo().then(function(ret) {
-    host.getAppById(host.currentGame).then(function(runningApp) {
-      if (!runningApp) {
-        snackbarLog('No app is currently running.');
-        return;
-      }
-      var appTitle = runningApp.title;
-      snackbarLog('Quitting ' + appTitle + '...');
-      host.quitApp().then(function(ret2) {
-        snackbarLog('Successfully quit ' + appTitle);
-        host.refreshServerInfo().then(function(ret3) {
-          // Refresh to show no app is currently running
-          showApps(host).finally(() => {
-            if (typeof(callbackFunction) === "function") callbackFunction();
-          });
-        }, function(failedRefreshInfo2) {
-          console.error('%c[index.js, stopGame]', 'color: gray;', 'Operation failed; private details omitted.'); // Logging both object (for console) and toString-ed object (for text logs)
-        });
-      }, function(failedQuitApp) {
-        console.error('%c[index.js, stopGame]', 'color: gray;', 'Operation failed; private details omitted.');
-      });
-    }, function(failedGetApp) {
-      console.error('%c[index.js, stopGame]', 'color: gray;', 'Operation failed; private details omitted.');
+  if (!host.paired) return Promise.resolve();
+  function finished(title) {
+    if (!current()) return;
+    if (title) snackbarLog('Successfully quit ' + title);
+    return showApps(host).then(function() {
+      if (current() && typeof callbackFunction === 'function') callbackFunction();
     });
-  }, function(failedRefreshInfo) {
-    console.error('%c[index.js, stopGame]', 'color: gray;', 'Operation failed; private details omitted.');
+  }
+  return host.refreshServerInfo().then(function() {
+    if (!current()) return;
+    // The user or host may already have closed it before this check.
+    if (host.currentGame === 0) return finished();
+    return host.getAppById(host.currentGame).then(function(runningApp) {
+      if (!current()) return;
+      if (!runningApp) throw new Error('Unknown running app');
+      snackbarLog('Quitting ' + runningApp.title + '...');
+      return host.quitApp().then(function() { return finished(runningApp.title); });
+    });
+  }).catch(function() {
+    if (current()) snackbarLogLong('Could not close the game on the PC.');
   });
 }
 

@@ -164,6 +164,13 @@ function assertFrozen(reference, paths) {
         assert.strictEqual(normalizeVersion(current), normalizeVersion(old), 'approved version bump only');
         continue;
       }
+      if (file === 'wasm/http.cpp') {
+        const old = cp.execFileSync('git', ['cat-file', 'blob', reference+':'+file], {encoding:'utf8'});
+        const transition = require('./session-transition-scope.cjs').normalize;
+        assert.strictEqual(transition(file, fs.readFileSync(file,'utf8')), old,
+          'only the separately tested scoped-quit deadline may differ');
+        continue;
+      }
       assert.strictEqual(file, 'wasm/wasmplayer.cpp', 'unrelated inputs unchanged');
       const old = cp.execFileSync('git', ['show', reference+':'+file], {encoding:'utf8'});
       const overlay = require('./overlay-aggregation-scope.cjs').normalize;

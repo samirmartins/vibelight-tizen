@@ -331,6 +331,20 @@ function fixture(options = {}) {
     assert.deepStrictEqual(f.calls.suppressed, [1, 0]);
   }
 
+  { // Busy end-on-PC still exposes local Disconnect to controller input.
+    const f = fixture();let cancelled=0;f.deferred.promise.cancel=()=>cancelled++;
+    f.setPad({});f.c.StreamOverlay.open();f.step();f.c.FocusManager.select(4);
+    f.press({0:true});f.release();f.press({12:true});f.release();f.press({0:true});f.release();
+    assert(f.c.StreamSession.isPending());assert(!f.document.getElementById('streamOverlayActions').hidden);
+    assert.equal(f.text('streamOverlay-disconnect-meta'),'O encerramento no PC pode continuar.');
+    assert.equal(f.c.FocusManager.current().id,'streamOverlay-disconnect');
+    f.press({0:true});assert.equal(f.calls.stop,1);assert.equal(cancelled,1);
+    f.deferred.resolve();await f.flush();assert.equal(f.calls.stop,1);
+    f.c.StreamSession.terminated();
+    f.c.StreamOverlay.open();assert(!f.document.getElementById('streamOverlay-resume').disabled);
+    f.c.StreamOverlay.close(true);
+  }
+
   {
     const f = fixture({stored: '{broken'});
     f.setPad({});

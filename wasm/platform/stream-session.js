@@ -2,7 +2,15 @@
 // the only path back to the library: "Disconnect" and "End game on PC" both
 // converge on one native stop and never open a second return path.
 var StreamSession = (function() {
-  var pending = null; // 'disconnect' | 'endHostGame' while one action owns the end
+  var pending = null; // The action object owns the current end, including cancellation.
+
+  function retire() {
+    var previous = pending;
+    pending = null;
+    if (previous && previous.request && typeof previous.request.cancel === 'function') {
+      try { previous.request.cancel(); } catch (error) { /* Local stop must remain available. */ }
+    }
+  }
 
   function overlay() {
     return typeof StreamOverlay !== 'undefined' ? StreamOverlay : null;
@@ -39,8 +47,9 @@ var StreamSession = (function() {
 
   // Idempotent: the first request owns the stop until native termination.
   function disconnect() {
-    if (pending) return false;
-    pending = 'disconnect';
+    if (pending && pending.kind === 'disconnect') return false;
+    retire();
+    pending = {kind: 'disconnect'};
     var menu = overlay();
     // Keep native suppression until the stream is gone, so no held overlay
     // button reaches the host during teardown.
@@ -58,17 +67,21 @@ var StreamSession = (function() {
     if (pending) return false;
     var host = typeof api !== 'undefined' ? api : null;
     if (!host || typeof host.quitApp !== 'function') return false;
-    pending = 'endHostGame';
+    var action = {kind: 'endHostGame', request: null};
+    pending = action;
     var menu = overlay();
     if (menu && typeof menu.busy === 'function') menu.busy(true);
-    host.quitApp().then(function() {
-      if (pending !== 'endHostGame') return;
+    try { action.request = host.quitApp(); } catch (error) {
+      action.request = Promise.reject(error);
+    }
+    action.request.then(function() {
+      if (pending !== action) return;
       // Hide now but keep the native mask until native termination, so the A
       // that confirmed the dialog is never delivered to the closing game.
       if (menu && typeof menu.hide === 'function') menu.hide();
       if (!stopNative()) failedStop(menu);
     }, function() {
-      if (pending !== 'endHostGame') return;
+      if (pending !== action) return;
       pending = null;
       if (menu) {
         if (typeof menu.busy === 'function') menu.busy(false);
@@ -83,19 +96,20 @@ var StreamSession = (function() {
   // Called by the single native termination handler before it returns to the
   // library. Releases the mask even when the stream ended without the overlay.
   function terminated() {
-    pending = null;
+    retire();
     releaseSuppression();
     var menu = overlay();
     if (menu && typeof menu.close === 'function') menu.close(true);
   }
 
-  function reset() { pending = null; }
+  function reset() { retire(); }
 
   return {
     disconnect: disconnect,
     endHostGame: endHostGame,
     terminated: terminated,
     reset: reset,
-    isPending: function() { return pending !== null; }
+    isPending: function() { return pending !== null; },
+    isEndingHostGame: function() { return !!pending && pending.kind === 'endHostGame'; }
   };
 })();

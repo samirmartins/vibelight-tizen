@@ -2,6 +2,7 @@
 // Exact exceptions for the separately tested Smart Hub policy. Unknown changes
 // remain visible to the historical source-identity checks.
 function launch(source) {
+ source = require('./session-transition-scope.cjs').launch(source);
  source = require('./controller-mapping-scope.cjs').launch(source);
  return source.replace('  // Invalidate only continuations from before a Smart Hub transition.\n' +
   "  const lifecycleEpoch = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;\n" +

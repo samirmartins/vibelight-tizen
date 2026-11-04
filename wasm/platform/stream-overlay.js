@@ -15,7 +15,7 @@ var StreamOverlay = (function() {
   var maskState = 0;
   var root = null, title = null, status = null, list = null, hint = null, confirmBox = null;
   var confirmText = null;
-  var actionButtons = [], actionLabels = [], confirmButtons = [];
+  var actionButtons = [], actionLabels = [], actionMetas = [], confirmButtons = [];
   var frameHandle = 0, releaseTimer = 0, nextRefresh = 0, lastToggleAt = 0;
   var resumeFocus = false;
   var pads = Object.create(null);
@@ -169,7 +169,7 @@ var StreamOverlay = (function() {
       {id: 'stats', icon: 'bar_chart', label: statsLabel, meta: 'Show or hide',
        run: toggleStats},
       {id: 'disconnect', icon: 'link_off', label: function() { return translate('Disconnect'); },
-       meta: 'Keeps the game on the PC',
+       meta: busy ? 'Closing on the PC may continue.' : 'Keeps the game on the PC',
        run: function() {
          if (typeof StreamSession === 'undefined' || !StreamSession.disconnect()) {
            failed('Could not stop the stream.');
@@ -208,6 +208,7 @@ var StreamOverlay = (function() {
     var defs = actions();
     actionButtons = [];
     actionLabels = [];
+    actionMetas = [];
     for (var i = 0; i < defs.length; i++) {
       var classes = 'console-button streamOverlayAction';
       if (defs[i].primary) classes += ' streamOverlayPrimary';
@@ -230,6 +231,7 @@ var StreamOverlay = (function() {
       list.appendChild(button);
       actionButtons.push(button);
       actionLabels.push(label);
+      actionMetas.push(meta);
     }
     confirmBox = create('div', 'streamOverlayConfirm', 'streamOverlayConfirm');
     confirmBox.hidden = true;
@@ -266,7 +268,9 @@ var StreamOverlay = (function() {
     for (var i = 0; i < defs.length && i < actionButtons.length; i++) {
       var label = defs[i].label();
       setText(actionLabels[i], label);
+      setText(actionMetas[i], translate(defs[i].meta));
       if (actionButtons[i]) {
+        actionButtons[i].disabled = busy && defs[i].id !== 'disconnect';
         actionButtons[i].setAttribute('aria-label',
           label + (defs[i].meta ? '. ' + translate(defs[i].meta) : ''));
       }
@@ -315,7 +319,8 @@ var StreamOverlay = (function() {
     if (open || closing) return false;
     if (typeof isInGame !== 'undefined' && !isInGame) return false;
     if (typeof document !== 'undefined' && document.hidden) return false;
-    if (typeof StreamSession !== 'undefined' && StreamSession.isPending()) return false;
+    if (typeof StreamSession !== 'undefined' && StreamSession.isPending() &&
+        !StreamSession.isEndingHostGame()) return false;
     config = loadConfig();
     build();
     muteState = null;
@@ -329,8 +334,9 @@ var StreamOverlay = (function() {
     pads = Object.create(null);
     resumeFocus = false;
     setSuppressed(1);
-    FocusManager.open(actionButtons, 0);
     refresh();
+    FocusManager.open(actionButtons, 0);
+    if (typeof StreamSession !== 'undefined' && StreamSession.isEndingHostGame()) busyState(true);
     nextRefresh = 0;
     startFrames();
     return true;
@@ -394,6 +400,12 @@ var StreamOverlay = (function() {
 
   function busyState(value) {
     busy = !!value;
+    if (open) {
+      confirm = false;
+      confirmBox.hidden = true;
+      list.hidden = false;
+      FocusManager.open(busy ? [actionButtons[3]] : actionButtons, busy ? 0 : 4);
+    }
     refresh();
   }
 
@@ -425,7 +437,10 @@ var StreamOverlay = (function() {
   }
 
   function accept() {
-    if (busy) return;
+    if (busy) {
+      if (typeof StreamSession !== 'undefined') StreamSession.disconnect();
+      return;
+    }
     if (confirm) {
       var chosen = FocusManager.index();
       if (chosen === 0) {
@@ -445,12 +460,13 @@ var StreamOverlay = (function() {
   }
 
   function back() {
-    if (busy) return;
+    if (busy) { close(); return; }
     if (confirm) { cancelConfirm(); return; }
     close();
   }
 
   function step(direction) {
+    if (busy) return;
     if (confirm) {
       FocusManager.move(direction === 'up' || direction === 'left' ? -1 : 1);
       return;
@@ -516,7 +532,6 @@ var StreamOverlay = (function() {
       sample(state, pad);
       var guide = state.buttons[16];
       if (guide && !previous[16]) { close(); return; }
-      if (busy) continue;
       // All supported families report physical accept on button 0 and back on
       // button 1, including the Switch A/B order.
       var acceptIndex = 0;

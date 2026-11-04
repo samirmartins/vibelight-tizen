@@ -6,6 +6,7 @@ const hashes={
   'wasm/platform/gamepad.js':'7911117858a07ead64632e2038ca88433158115ade5dcf6ccf7b3bd23128244d'
 };
 function normalize(file,source) {
+  source=require('./session-transition-scope.cjs').normalize(file,source);
   if(!hashes[file]||crypto.createHash('sha256').update(source).digest('hex')!==hashes[file])return source;
   return cp.execFileSync('git',['show','7b08c77:'+file],{encoding:'utf8'});
 }

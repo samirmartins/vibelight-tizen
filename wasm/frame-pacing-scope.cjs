@@ -25,6 +25,7 @@ function normalize(file, source) {
   return cp.execFileSync('git', ['show', 'v3.4.11:' + file], {encoding: 'utf8'});
 }
 function launch(source) {
+  source = require('./session-transition-scope.cjs').launch(source);
   return source.replace(
     "      // Freeze the pacing preference for this stream; Play and Resume share it.\n" +
     "      const framePacing = $('#framePacingSwitch').parent().hasClass('is-checked') ? 1 : 0;",

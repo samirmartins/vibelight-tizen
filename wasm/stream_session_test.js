@@ -136,6 +136,19 @@ function sessionFixture(options = {}) {
     assert.strictEqual(c.StreamSession.isPending(), false);
   }
 
+  { // A stale request cannot stop the next session or steal its action.
+    const {c, calls, deferred} = sessionFixture();
+    let cancel=0; deferred.promise.cancel=()=>cancel++;
+    c.StreamSession.endHostGame(); c.StreamSession.terminated();
+    const next={}; next.promise=new Promise(resolve=>next.resolve=resolve);
+    c.api.quitApp=()=>next.promise; c.StreamSession.endHostGame();
+    deferred.resolve(); await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(calls.stop,0); assert.equal(cancel,1);
+    assert(c.StreamSession.disconnect(), 'local disconnect remains available while quit is pending');
+    assert.equal(calls.stop,1);
+    next.resolve(); await new Promise(resolve=>setImmediate(resolve)); assert.equal(calls.stop,1);
+  }
+
   const source = fs.readFileSync('wasm/platform/stream-session.js', 'utf8');
   assert(!/setTimeout|setInterval|requestAnimationFrame/.test(source), 'no timer or frame loop');
   assert(!/showApps\(|Navigation\./.test(source), 'native termination owns the single return');

@@ -746,13 +746,60 @@ NvHTTP.prototype = {
   },
 
   quitApp: function() {
-    // Refresh server info after quitting because it may silently fail if the session belongs to a different client
-    return sendMessage('openUrl', [
-      this._baseUrlHttps + '/cancel?' + this._buildUidStr(), this.ppkstr, false
-    ]).then(function() {
-      return this.refreshServerInfo();
-    }.bind(this));
-    // TODO: We should probably bubble this up to our caller.
+    // One user-requested operation owns HTTP, confirmation and the 15 s bound.
+    // This does not poll during ordinary streaming or repeat the quit command.
+    if (this._quitOperation) return this._quitOperation;
+    var self = this, scope = createMenuRequestScope(), delay = 0, rejectDelay;
+    var deadline = Date.now() + 15000;
+    function cancel() {
+      scope.cancel();
+      clearTimeout(delay); delay = 0;
+      if (rejectDelay) { rejectDelay(new Error('Host quit cancelled')); rejectDelay = null; }
+    }
+    function confirm() {
+      if (!scope.active) return Promise.reject(new Error('Host quit cancelled'));
+      if (Date.now() >= deadline) return Promise.reject(new Error('Host quit timed out'));
+      var remaining = Math.max(1, deadline - Date.now());
+      return scope.request(function() {
+        return sendMessage('openUrlScoped', [self._baseUrlHttps + '/serverinfo?' + self._buildUidStr(),
+          self.ppkstr, false, Math.min(4500, remaining)]);
+      }, Math.min(5000, remaining)).then(function(xml) {
+        if (!scope.active) throw new Error('Host quit cancelled');
+        var state = self._parseXML(xml).find('root').find('state').text().trim();
+        if ((!state.endsWith('_SERVER_FREE') && !state.endsWith('_SERVER_BUSY')) ||
+            !self._parseServerInfo(xml, true)) throw new Error('Invalid host quit confirmation');
+        if (state.endsWith('_SERVER_FREE') && self.currentGame === 0) return;
+        return new Promise(function(resolve, reject) {
+          rejectDelay = reject;
+          delay = setTimeout(function() { delay = 0; rejectDelay = null; resolve(); },
+            Math.min(250, Math.max(1, deadline - Date.now())));
+        }).then(confirm);
+      });
+    }
+    var operation = scope.request(function() {
+      return sendMessage('openUrlScoped', [
+        self._baseUrlHttps + '/cancel?' + self._buildUidStr(), self.ppkstr, false, 15000
+      ]);
+    }, 15000).then(function(xml) {
+      if (!scope.active) throw new Error('Host quit cancelled');
+      var result = self._parseXML(xml).find('root');
+      if (result.length !== 1 || result.attr('status_code') != 200 ||
+          result.find('cancel').text().trim() !== '1') {
+        throw new Error('Host refused to close the game');
+      }
+      return confirm();
+    });
+    function cleanup() {
+      cancel();
+      if (self._quitOperation === result) self._quitOperation = null;
+    }
+    var result = withTimeout(operation, 15000, 'Host quit timed out', cancel).then(function() {
+      cleanup();
+    }, function(error) { cleanup(); throw error; });
+    result.cancel = cancel;
+    // Runtime ownership must not enter saved host preferences.
+    Object.defineProperty(this, '_quitOperation', {value: result, writable: true, configurable: true});
+    return result;
   },
 
   updateExternalAddressIP4: function() {
