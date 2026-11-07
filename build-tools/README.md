@@ -154,6 +154,25 @@ and H.264 Exp-Golomb/array-bound failures are covered by defensive repairs and
 regression tests. Valid SPS decoding preserves pixels, profile, level and references.
 Fuzz success is bounded input evidence, not proof against every malformed stream.
 
+## Correction regression coverage
+
+The review correction tests exercise the production pairing handshake with a
+local synthetic peer (SHA-1/SHA-256, malformed fields, allocation failures and
+challenge authentication), empty HTTP responses, synchronized stop notification,
+launch/quit identity, cancellation and storage recovery. Native tests use
+ASan/UBSan by default. The new native fixture drivers also accept
+`ML_NATIVE_SANITIZERS=undefined` for environments where ASan cannot initialize;
+that does not change the sanitizer flags in other existing fixtures.
+
+Audio overflow recovery requires a consumer ACK before the producer can reuse
+PCM. A consumer gate protects callbacks during retirement and backend changes.
+The shared control block is now 18 words: indexes 0–14 are preserved, 15 is the
+reset position, 16 the ACK and 17 the ownership/retirement gate. Deploy WASM and
+JavaScript from the same build. Healthy PCM, adaptation and servo behavior are
+compared against the published baseline. Timeout/retirement tests compile the
+production feeder and cleanup with synthetic Opus and browser adapters; they do
+not establish Samsung runtime compatibility or physical playback quality.
+
 ## Local compilation and packaging
 
 The release builds recorded for this fork used a two-stage local path.

@@ -28,7 +28,7 @@ vm.runInContext(fs.readFileSync('wasm/platform/audio-worklet.js', 'utf8'), conte
 assert(ProcessorClass);
 
 const memory = new SharedArrayBuffer(4096);
-const control = new Int32Array(memory, 0, 16);
+const control = new Int32Array(memory, 0, 18);
 const pcmPtr = 128;
 const capacity = 512;
 const channels = 2;

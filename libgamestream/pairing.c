@@ -27,6 +27,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <limits.h>
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #include <openssl/rand.h>
@@ -42,36 +44,72 @@ extern EVP_PKEY *g_PrivateKey;
 extern char* g_UniqueId;
 extern char* g_CertHex;
 
+// Pairing fields are scalar values. Bound every search by the received length.
 static int xml_search(char* data, size_t len, char* node, char** result) {
-    char startTag[256];
-    char endTag[256];
-    char* startOffset;
-    char* endOffset;
-    
-    data = strdup(data);
-    
-    sprintf(startTag, "<%s>", node);
-    sprintf(endTag, "</%s>", node);
-    
-    startOffset = strstr(data, startTag);
-    if (startOffset == NULL) {
-        free(data);
-        return GS_FAILED;
+    char startTag[256], endTag[256];
+    *result = NULL;
+    if (!data || !node || strlen(node) > 250 || len == SIZE_MAX ||
+        memchr(data, 0, len) != NULL) return GS_INVALID;
+    char* copy = malloc(len + 1);
+    if (!copy) return GS_OUT_OF_MEMORY;
+    memcpy(copy, data, len);
+    copy[len] = 0;
+    snprintf(startTag, sizeof(startTag), "<%s>", node);
+    snprintf(endTag, sizeof(endTag), "</%s>", node);
+    char* start = strstr(copy, startTag);
+    char* end = strstr(copy, endTag);
+    int ret = GS_INVALID;
+    if (start && end && end >= start + strlen(startTag) &&
+        !strstr(start + strlen(startTag), startTag) &&
+        !strstr(end + strlen(endTag), endTag)) {
+        start += strlen(startTag);
+        if (memchr(start, '<', (size_t)(end-start)) == NULL) {
+            size_t count = (size_t)(end - start);
+            *result = malloc(count + 1);
+            if (*result) {
+                memcpy(*result, start, count);
+                (*result)[count] = 0;
+                ret = GS_OK;
+            } else ret = GS_OUT_OF_MEMORY;
+        }
     }
-    
-    endOffset = strstr(data, endTag);
-    if (endOffset == NULL) {
-        free(data);
-        return GS_FAILED;
+    free(copy);
+    return ret;
+}
+
+static int hex_nibble(unsigned char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+static bool decode_hex(const char* hex, unsigned char* out, size_t size) {
+    if (!hex || strlen(hex) != size * 2) return false;
+    for (size_t i = 0; i < size; i++) {
+        int hi = hex_nibble(hex[i*2]), lo = hex_nibble(hex[i*2+1]);
+        if (hi < 0 || lo < 0) return false;
+        out[i] = (unsigned char)((hi << 4) | lo);
     }
-    
-    *endOffset = 0;
-    
-    *result = malloc(strlen(startOffset + strlen(startTag)) + 1);
-    strcpy(*result, startOffset + strlen(startTag));
-    
-    free(data);
-    return GS_OK;
+    return true;
+}
+
+static bool challenge_hash(int version, const unsigned char* challenge,
+                           X509* cert, const unsigned char* secret,
+                           unsigned char* digest) {
+    const ASN1_BIT_STRING* signature = NULL;
+    X509_get0_signature(&signature, NULL, cert);
+    if (!signature || signature->length <= 0) return false;
+    EVP_MD_CTX* ctx = EVP_MD_CTX_create();
+    if (!ctx) return false;
+    unsigned int size = 0;
+    bool ok = EVP_DigestInit_ex(ctx, version >= 7 ? EVP_sha256() : EVP_sha1(), NULL) == 1 &&
+        EVP_DigestUpdate(ctx, challenge, 16) == 1 &&
+        EVP_DigestUpdate(ctx, signature->data, signature->length) == 1 &&
+        EVP_DigestUpdate(ctx, secret, 16) == 1 &&
+        EVP_DigestFinal_ex(ctx, digest, &size) == 1 && size == (version >= 7 ? 32u : 20u);
+    EVP_MD_CTX_destroy(ctx);
+    return ok;
 }
 
 static void bytes_to_hex(unsigned char *in, char *out, size_t len) {
@@ -125,91 +163,62 @@ static int sign_it(const unsigned char *msg, size_t mlen, unsigned char **sig, s
     
 cleanup:
     EVP_MD_CTX_destroy(ctx);
-    ctx = NULL;
+    if (result != GS_OK) {
+        OPENSSL_free(*sig);
+        *sig = NULL;
+        *slen = 0;
+    }
     
     return result;
 }
 
 static bool verifySignature(const unsigned char *data, int dataLength, unsigned char *signature, int signatureLength, X509 *cert) {
-    EVP_PKEY* pubKey = X509_get_pubkey(cert);
-    EVP_MD_CTX *mdctx = NULL;
-    mdctx = EVP_MD_CTX_create();
-    EVP_DigestVerifyInit(mdctx, NULL, EVP_sha256(), NULL, pubKey);
-    EVP_DigestVerifyUpdate(mdctx, data, dataLength);
-    int result = EVP_DigestVerifyFinal(mdctx, signature, signatureLength);
-
+    EVP_PKEY* pubKey = cert ? X509_get_pubkey(cert) : NULL;
+    EVP_MD_CTX* ctx = EVP_MD_CTX_create();
+    bool ok = pubKey && ctx && EVP_PKEY_base_id(pubKey) == EVP_PKEY_RSA &&
+        EVP_PKEY_size(pubKey) == signatureLength &&
+        EVP_DigestVerifyInit(ctx, NULL, EVP_sha256(), NULL, pubKey) == 1 &&
+        EVP_DigestVerifyUpdate(ctx, data, dataLength) == 1 &&
+        EVP_DigestVerifyFinal(ctx, signature, signatureLength) == 1;
     EVP_PKEY_free(pubKey);
-    EVP_MD_CTX_destroy(mdctx);
-    
-    return result > 0;
+    EVP_MD_CTX_destroy(ctx);
+    return ok;
 }
 
 X509* get_cert(PHTTP_DATA data) {
-    char *pemcerthex;
-
-    if (xml_search(data->memory, data->size, "plaincert", &pemcerthex) != GS_OK)
-        return NULL;
-
-    // Convert cert from hex string to the PEM string and null terminate
-    int hexstrlen = strlen(pemcerthex);
-    char *pemcert = malloc(hexstrlen / 2 + 1);
-    for (int count = 0; count < hexstrlen; count += 2) {
-        sscanf(&pemcerthex[count], "%2hhx", &pemcert[count / 2]);
+    char* hex = NULL;
+    if (!data || xml_search(data->memory, data->size, "plaincert", &hex) != GS_OK) return NULL;
+    size_t n = strlen(hex) / 2;
+    unsigned char* pem = n > 0 && n <= INT_MAX ? malloc(n) : NULL;
+    X509* cert = NULL;
+    if (pem && decode_hex(hex, pem, n)) {
+        BIO* bio = BIO_new_mem_buf(pem, (int)n);
+        if (bio) { cert = PEM_read_bio_X509(bio, NULL, NULL, NULL); BIO_free(bio); }
     }
-    pemcert[hexstrlen / 2] = 0;
-    free(pemcerthex);
-
-    // pemcert is referenced, but NOT copied!
-    BIO* bio = BIO_new_mem_buf(pemcert, -1);
-
-    if (bio) {
-        X509* cert = PEM_read_bio_X509(bio, NULL, NULL, NULL);
-        BIO_free_all(bio);
-        free(pemcert);
-        return cert;
-    }
-    else {
-        free(pemcert);
-        return NULL;
-    }
+    free(pem);
+    free(hex);
+    return cert;
 }
 
-static char* x509_to_curl_ppk_string(X509* x509) {
+static char* x509_to_curl_ppk_string(X509* cert) {
     BIO* bio = BIO_new(BIO_s_mem());
-
-    // Get x509 public key alone in DER format
-    EVP_PKEY* pubkey = X509_get_pubkey(x509);
-    i2d_PUBKEY_bio(bio, pubkey);
-    EVP_PKEY_free(pubkey);
-
-    BUF_MEM* mem;
-    BIO_get_mem_ptr(bio, &mem);
-
-    // SHA256 hash the resulting DER string
-    unsigned char pubkeyhash[32];
-    SHA256((unsigned char*)mem->data, mem->length, pubkeyhash);
+    EVP_PKEY* key = X509_get_pubkey(cert);
+    char* result = NULL;
+    if (bio && key && i2d_PUBKEY_bio(bio, key) == 1) {
+        BUF_MEM* mem = NULL;
+        BIO_get_mem_ptr(bio, &mem);
+        unsigned char hash[32];
+        if (mem && SHA256((unsigned char*)mem->data, mem->length, hash)) {
+            result = malloc(8 + 44 + 1);
+            if (result) {
+                memcpy(result, "sha256//", 8);
+                EVP_EncodeBlock((unsigned char*)result+8, hash, sizeof(hash));
+            }
+        }
+    }
+    EVP_PKEY_free(key);
     BIO_free(bio);
-
-    // Base64-encode the resulting SHA256 hash
-    bio = BIO_new(BIO_s_mem());
-    BIO* b64 = BIO_new(BIO_f_base64());
-    bio = BIO_push(b64, bio);
-    BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
-    BIO_write(bio, pubkeyhash, sizeof(pubkeyhash));
-    BIO_flush(bio);
-
-    BIO_get_mem_ptr(bio, &mem);
-
-    // Assemble the final curl PPK string
-    const char* prefix = "sha256//";
-    char* ret = malloc(strlen(prefix) + mem->length + 1);
-    memcpy(ret, prefix, strlen(prefix));
-    memcpy(&ret[strlen(prefix)], mem->data, mem->length);
-    ret[strlen(prefix) + mem->length] = 0;
-
-    BIO_free_all(bio);
-
-    return ret;
+    return result;
 }
 
 // Safely wraps IPv6 addresses in brackets for URL construction.
@@ -253,14 +262,19 @@ int gs_unpair(const char* address, unsigned short httpPort) {
 }
 
 int gs_pair(int serverMajorVersion, const char* address, unsigned short httpPort, const char* pin, char** curl_ppk_string) {
+  if (!curl_ppk_string) return GS_INVALID;
+  *curl_ppk_string = NULL;
+  if (!pin || strlen(pin) != 4 || !g_Cert || !g_PrivateKey) return GS_INVALID;
   int ret = GS_OK;
+  unsigned char* signature = NULL;
+  size_t s_len = 0;
   char* result = NULL;
   X509* server_cert = NULL;
   char url[4096];
   unsigned short sanitizedHttpPort = sanitize_http_port(httpPort);
   unsigned char salt_data[16];
   char salt_hex[33];
-  RAND_bytes(salt_data, 16);
+  if (RAND_bytes(salt_data, 16) != 1) return GS_FAILED;
   bytes_to_hex(salt_data, salt_hex, 16);
 
   char host_for_url[256];
@@ -301,13 +315,15 @@ int gs_pair(int serverMajorVersion, const char* address, unsigned short httpPort
   else
     SHA1(salt_pin, 20, aes_key_hash);
 
-  AES_set_encrypt_key((unsigned char *)aes_key_hash, 128, &enc_key);
-  AES_set_decrypt_key((unsigned char *)aes_key_hash, 128, &dec_key);
+  if (AES_set_encrypt_key(aes_key_hash, 128, &enc_key) != 0 ||
+      AES_set_decrypt_key(aes_key_hash, 128, &dec_key) != 0) {
+    ret = GS_FAILED; goto cleanup;
+  }
 
   unsigned char challenge_data[16];
   unsigned char challenge_enc[16];
   char challenge_hex[33];
-  RAND_bytes(challenge_data, 16);
+  if (RAND_bytes(challenge_data, 16) != 1) { ret = GS_FAILED; goto cleanup; }
   AES_encrypt(challenge_data, challenge_enc, &enc_key);
   bytes_to_hex(challenge_enc, challenge_hex, 16);
 
@@ -334,8 +350,8 @@ int gs_pair(int serverMajorVersion, const char* address, unsigned short httpPort
 
   unsigned char challenge_response_data_enc[48];
   unsigned char challenge_response_data[48];
-  for (int count = 0; count < strlen(result); count += 2) {
-    sscanf(&result[count], "%2hhx", &challenge_response_data_enc[count / 2]);
+  if (!decode_hex(result, challenge_response_data_enc, sizeof(challenge_response_data_enc))) {
+    ret = GS_INVALID; goto cleanup;
   }
 
   for (int i = 0; i < 48; i += 16) {
@@ -343,22 +359,15 @@ int gs_pair(int serverMajorVersion, const char* address, unsigned short httpPort
   }
 
   unsigned char client_secret_data[16];
-  RAND_bytes(client_secret_data, 16);
+  if (RAND_bytes(client_secret_data, 16) != 1) { ret = GS_FAILED; goto cleanup; }
 
-  ASN1_BIT_STRING *asnSignature;
-  X509_get0_signature(&asnSignature, NULL, g_Cert);
-
-  unsigned char challenge_response[16 + 256 + 16];
-  unsigned char challenge_response_hash[32];
+  unsigned char challenge_response_hash[32] = {0};
   unsigned char challenge_response_hash_enc[32];
   char challenge_response_hex[65];
-  memcpy(challenge_response, challenge_response_data + hash_length, 16);
-  memcpy(challenge_response + 16, asnSignature->data, 256);
-  memcpy(challenge_response + 16 + 256, client_secret_data, 16);
-  if (serverMajorVersion >= 7)
-    SHA256(challenge_response, 16 + 256 + 16, challenge_response_hash);
-  else
-    SHA1(challenge_response, 16 + 256 + 16, challenge_response_hash);
+  if (!challenge_hash(serverMajorVersion, challenge_response_data + hash_length,
+                      g_Cert, client_secret_data, challenge_response_hash)) {
+    ret = GS_FAILED; goto cleanup;
+  }
 
   for (int i = 0; i < 32; i += 16) {
     AES_encrypt(&challenge_response_hash[i], &challenge_response_hash_enc[i], &enc_key);
@@ -387,8 +396,8 @@ int gs_pair(int serverMajorVersion, const char* address, unsigned short httpPort
   }
 
   unsigned char pairing_secret[16 + 256];
-  for (int count = 0; count < strlen(result); count += 2) {
-    sscanf(&result[count], "%2hhx", &pairing_secret[count / 2]);
+  if (!decode_hex(result, pairing_secret, sizeof(pairing_secret))) {
+    ret = GS_INVALID; goto cleanup;
   }
 
   if (!verifySignature(pairing_secret, 16, pairing_secret+16, 256, server_cert)) {
@@ -396,9 +405,12 @@ int gs_pair(int serverMajorVersion, const char* address, unsigned short httpPort
     goto cleanup;
   }
 
-  unsigned char *signature = NULL;
-  size_t s_len;
-  if (sign_it(client_secret_data, 16, &signature, &s_len, g_PrivateKey) != GS_OK) {
+  unsigned char expected_hash[32] = {0};
+  if (!challenge_hash(serverMajorVersion, challenge_data, server_cert, pairing_secret, expected_hash) ||
+      CRYPTO_memcmp(expected_hash, challenge_response_data, hash_length) != 0) {
+    ret = GS_FAILED; goto cleanup;
+  }
+  if (sign_it(client_secret_data, 16, &signature, &s_len, g_PrivateKey) != GS_OK || s_len != 256) {
     ret = GS_FAILED;
     goto cleanup;
   }
@@ -424,8 +436,10 @@ int gs_pair(int serverMajorVersion, const char* address, unsigned short httpPort
   }
 
   *curl_ppk_string = x509_to_curl_ppk_string(server_cert);
+  if (!*curl_ppk_string) ret = GS_OUT_OF_MEMORY;
 
   cleanup:
+  OPENSSL_free(signature);
   if (ret != GS_OK)
     gs_unpair(address, sanitizedHttpPort);
   

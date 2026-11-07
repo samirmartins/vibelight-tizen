@@ -9,13 +9,13 @@ const runtime=['wasm/gamepad.cpp','wasm/main.cpp','wasm/moonlight_wasm.hpp',
 for(const file of runtime) assert(!/flipABfaceButtons|flipXYfaceButtons|buttonMasksAB|buttonMasksXY/.test(read(file)),file+' has no legacy flip path');
 const index=read('wasm/platform/index.js'),main=read('wasm/main.cpp'),header=read('wasm/moonlight_wasm.hpp');
 // Exercise the production preference branch, not a duplicate default rule.
-const preferenceStart=index.indexOf("  getData('rumbleFeedback', function(previousValue) {");
+const preferenceStart=index.indexOf("  getPreferenceData('rumbleFeedback', function(previousValue) {");
 const preferenceEnd=index.indexOf('\n  });',preferenceStart)+'\n  });'.length;
 assert(preferenceStart>0&&preferenceEnd>preferenceStart);
 for(const [saved,expected] of [[undefined,true],[null,true],[false,false],[true,true]]) {
  let state=null;
  vm.runInNewContext(index.slice(preferenceStart,preferenceEnd),{
-  getData(key,callback){assert.strictEqual(key,'rumbleFeedback');callback({rumbleFeedback:saved});},
+  getPreferenceData(key,callback){assert.strictEqual(key,'rumbleFeedback');callback({rumbleFeedback:saved});},
   document:{querySelector(selector){assert.strictEqual(selector,'#rumbleFeedbackBtn');return {MaterialSwitch:{on(){state=true;},off(){state=false;}}};}}
  });
  assert.strictEqual(state,expected,'new default or stored rumble preference');
@@ -38,7 +38,7 @@ const expected=['host.address','host.httpPort','streamWidth','streamHeight','fra
  'audioConfig','audioJitterMs','playHostAudio','videoCodec','hdrMode','fullRange','gameMode','disableWarnings',
  'performanceStats','clientRefreshRateX100'];
 const calls=[...index.matchAll(/sendMessage\('startRequest', \[([\s\S]*?)\]\)/g)];
-assert.strictEqual(calls.length,2,'both Play and Resume');
+assert.strictEqual(calls.length,1,'Play and Resume share the validated native payload');
 for(const call of calls) assert.deepStrictEqual(call[1].split(',').map(s=>s.trim()),expected);
 const nativeExpected=['host','httpPort','width','height','fps','bitrate','rikey','rikeyid','appversion','gfeversion',
  'rtspurl','serverCodecModeSupport',...expected.slice(12)];

@@ -104,6 +104,7 @@ static AudioPcmRing<kPcmRingFrames, kMaxAudioChannels> s_pcmRing;
 // a frame published by the previous stream's feeder while teardown was still in
 // flight cannot be scheduled against the new stream's clock.
 static std::atomic<uint32_t> s_audioGeneration{0};
+static uint32_t s_audioSessionGeneration = 0;
 
 // ─── Feeder thread ───────────────────────────────────────────────────────────
 static std::thread s_feederThread;
@@ -146,6 +147,15 @@ static void FeederLoop() {
         );
       }
 
+      if (s_pcmRing.ResetPending() && s_pcmRing.RecoveryExpired(LiGetMillis())) {
+        MAIN_THREAD_ASYNC_EM_ASM({
+          if (typeof Module !== 'undefined' && Module.sessionGeneration === $0) {
+            if (typeof sendMessage === 'function') sendMessage('stopRequest', []).catch(function() {});
+            if (typeof snackbarLogLong === 'function') snackbarLogLong('Audio recovery timed out. Reconnect to retry.');
+          }
+        }, (int)s_audioSessionGeneration);
+      }
+
       if (decodeLen <= 0) {
         LogAudioThrottled("Audio: Opus decode failed");
         continue;
@@ -176,6 +186,7 @@ static void FeederLoop() {
 }
 
 int MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONFIGURATION opusConfig, void* context, int arFlags) {
+  if (!g_Instance->m_AudioQuiescent.load(std::memory_order_acquire)) return -1;
   // Read the negotiated configuration rather than assuming 240 samples, which
   // is what CAPABILITY_SUPPORTS_ARBITRARY_AUDIO_DURATION requires of us
   s_channelCount = static_cast<size_t>(opusConfig->channelCount);
@@ -209,6 +220,7 @@ int MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONF
   s_pktHead = s_pktTail = s_pktCount = 0;
   s_lastAudioLogMs.store(0, std::memory_order_relaxed);
 
+  s_audioSessionGeneration = g_Instance->m_SessionGeneration.load();
   const uint32_t generation =
     s_audioGeneration.fetch_add(1, std::memory_order_acq_rel) + 1;
 
@@ -254,6 +266,8 @@ int MoonlightInstance::AudDecInit(int audioConfiguration, POPUS_MULTISTREAM_CONF
 void MoonlightInstance::AudDecCleanup(void) {
   // Retire the generation before stopping the feeder, so anything still in
   // flight towards the main thread is recognised as stale on arrival.
+  g_Instance->m_AudioQuiescent.store(false, std::memory_order_release);
+  s_pcmRing.control()->consumerGate.fetch_or(4, std::memory_order_acq_rel);
   const uint32_t retiring = s_audioGeneration.load(std::memory_order_relaxed);
   s_pcmRing.control()->mode.store(3, std::memory_order_release);
   MAIN_THREAD_ASYNC_EM_ASM({
@@ -263,18 +277,30 @@ void MoonlightInstance::AudDecCleanup(void) {
   }, (int)retiring);
 
   if (s_feederThread.joinable()) {
-    s_feederRunning.store(false, std::memory_order_release);
+    {
+      std::lock_guard<std::mutex> lock(s_pktMutex);
+      s_feederRunning.store(false, std::memory_order_release);
+    }
     s_pktCv.notify_all();
     s_feederThread.join();
   }
 
+  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+  while ((s_pcmRing.control()->consumerGate.load(std::memory_order_acquire) & 11) != 0) {
+    if (std::chrono::steady_clock::now() >= deadline) {
+      PostToJs("DialogMsg: Audio did not stop safely. Restart VibeLight.");
+      return;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
   s_pcmRing.control()->generation.store(0, std::memory_order_release);
+  g_Instance->m_AudioQuiescent.store(true, std::memory_order_release);
 
   MAIN_THREAD_ASYNC_EM_ASM({
-    if (typeof stopAudioScheduler === 'function') {
+    if (typeof stopAudioScheduler === 'function' && _audGeneration === $0) {
       stopAudioScheduler();
     }
-  });
+  }, (int)retiring);
 
   s_pktQueue.clear();
   s_pktQueue.shrink_to_fit();
@@ -310,6 +336,7 @@ void MoonlightInstance::AudDecDecodeAndPlaySample(char* sampleData, int sampleLe
 
   {
     std::unique_lock<std::mutex> lock(s_pktMutex);
+    if (!s_feederRunning.load(std::memory_order_relaxed)) return;
     if (s_pktCount >= s_pktCap) {
       // Full: discard the oldest, which is the one least worth keeping
       s_pktHead = (s_pktHead + 1) % s_pktCap;

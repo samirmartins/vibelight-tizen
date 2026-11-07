@@ -3,6 +3,8 @@
 // Unknown executable changes remain visible; branding_test freezes the result
 // against the latest published runtime, independently of the older contracts.
 function asset(file, data) {
+  const review = require('./review-corrections-scope.cjs');
+  if (review.matches(file,data.toString('utf8'))) return Buffer.from(review.normalize(file,data.toString('utf8')));
   const access = require('./controller-access-scope.cjs');
   if (access.files.includes(file)) return Buffer.from(access.normalize(file,data.toString('utf8')));
   const hashes = {'wasm/static/favicon/favicon.png': '5c08a469de0c4ebf01522a9ea073f3aab01d59dbcf0c4e991b7573f30f599ef3'};

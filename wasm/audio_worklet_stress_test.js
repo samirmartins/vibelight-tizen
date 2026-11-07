@@ -8,7 +8,7 @@ for(const rate of [44100,48000,96000]) for(const channels of [1,2,6,8]) {
   registerProcessor(n,p){Processor=p;},sampleRate:rate,Atomics,Int16Array,Int32Array,Math,String};
  vm.runInNewContext(fs.readFileSync('wasm/platform/audio-worklet.js','utf8'),c);
  const capacity=16384,memory=new SharedArrayBuffer(128+capacity*channels*2);
- const control=new Int32Array(memory,0,16),pcm=new Int16Array(memory,128,capacity*channels);
+ const control=new Int32Array(memory,0,18),pcm=new Int16Array(memory,128,capacity*channels);
  for(let i=0;i<capacity;i++)for(let ch=0;ch<channels;ch++)pcm[i*channels+ch]=(ch+1)*1000;
  control[2]=7;control[3]=1;control[6]=2048;control[13]=2048;control[14]=4800;
  if(seconds)control[0]=control[9]=-4096;

@@ -32,7 +32,16 @@ int main() {
   assert(!ring.Push(overflow, 6, 2));
   assert(ring.control()->overruns.load() == 1);
   assert(ring.control()->epoch.load() == oldEpoch + 1);
-  assert(ring.control()->readFrame.load() == 10);
+  assert(ring.control()->readFrame.load() == 4);
+  assert(ring.control()->resetAt.load() == 10);
+  assert(!ring.Push(overflow, 6, 2));
+  assert(ring.control()->writeFrame.load() == 10);
+  assert(!ring.RecoveryExpired(UINT32_MAX - 500));
+  assert(!ring.RecoveryExpired(498));
+  assert(ring.RecoveryExpired(499));
+  assert(!ring.RecoveryExpired(2000));
+  ring.control()->readFrame.store(10);
+  ring.control()->resetAck.store(ring.control()->epoch.load());
   assert(ring.control()->writeFrame.load() == 10);
   assert(ring.Push(overflow, 6, 2));
   assert(ring.control()->writeFrame.load() == 16);

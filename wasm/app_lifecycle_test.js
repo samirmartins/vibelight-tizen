@@ -118,7 +118,6 @@ function realLauncher(f,stage,resume=false,source=launcher) {
  // Pending refresh/app lookup/launch/resume responses cannot start WASM, both
  // while hidden and after returning. Rejections are equally inert.
  for(const stage of ['refresh','app','result'])for(const resume of [false,true])for(const fail of [false,true])for(const returned of [false,true]) {
-  if(stage==='app'&&fail)continue; // Existing app-cache lookup has no failure callback.
   f=fixture();const r=realLauncher(f,stage,resume);
   f.c.startGame(f.host,2,false);await f.flush();f.visibility(true);
   if(returned){f.visibility(false);await f.flush();}

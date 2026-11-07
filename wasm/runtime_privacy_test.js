@@ -31,7 +31,7 @@ for(const forbidden of ['Setting the Remote input key','Setting the RTSP session
  assert(!main.includes(forbidden),forbidden);
 }
 const index=fs.readFileSync('wasm/platform/index.js','utf8');
-assert.strictEqual((index.match(/handleMessage\('streamTerminated: 0'\);/g)||[]).length,2,'both native launch rejections recover the UI');
+assert.strictEqual((require('./review-corrections-scope.cjs').normalize('wasm/platform/index.js',index).match(/handleMessage\('streamTerminated: 0'\);/g)||[]).length,2,'both native launch rejections recover the UI');
 for(const forbidden of ['JSON.stringify(data)','readRequest.result','randomNumber','nvhttpHost.hostname','host.address']){
  for(const line of index.split('\n').filter(s=>s.includes('console.')))assert(!line.includes(forbidden),forbidden);
 }

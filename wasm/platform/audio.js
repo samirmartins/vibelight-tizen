@@ -22,6 +22,9 @@ var _AUD_CTL_STARTED = 11;
 var _AUD_CTL_EPOCH = 12;
 var _AUD_CTL_INITIAL_TARGET = 13;
 var _AUD_CTL_MAX_TARGET = 14;
+var _AUD_CTL_RESET_AT = 15;
+var _AUD_CTL_RESET_ACK = 16;
+var _AUD_CTL_GATE = 17;
 
 var _AUD_MODE_WAITING = 0;
 var _AUD_MODE_WORKLET = 1;
@@ -211,6 +214,7 @@ function _audPrepareBackend(ctx) {
 
 function _audDisconnectBackend(markStopped) {
   if (_audControl && markStopped) {
+    Atomics.or(_audControl, _AUD_CTL_GATE, 4);
     Atomics.store(_audControl, _AUD_CTL_MODE, _AUD_MODE_STOPPED);
   }
 
@@ -342,6 +346,16 @@ function _audFallbackUnderrun(outputBuffer, from) {
 }
 
 function _audProcessFallback(event) {
+  var control = _audControl;
+  if (!control || Atomics.compareExchange(control, _AUD_CTL_GATE, 0, 2) !== 0) {
+    _audClearOutput(event.outputBuffer, 0);
+    return;
+  }
+  try { _audRenderFallback(event); }
+  finally { Atomics.and(control, _AUD_CTL_GATE, ~3); }
+}
+
+function _audRenderFallback(event) {
   var output = event.outputBuffer;
   if (!_audControl || !_audPcm || _audGeneration === 0 ||
       (Atomics.load(_audControl, _AUD_CTL_MODE) | 0) !== _AUD_MODE_FALLBACK ||
@@ -351,13 +365,17 @@ function _audProcessFallback(event) {
   }
 
   var epoch = Atomics.load(_audControl, _AUD_CTL_EPOCH) >>> 0;
-  if (epoch !== _audFallbackEpoch) {
+  if (epoch !== (Atomics.load(_audControl, _AUD_CTL_RESET_ACK) >>> 0)) {
     _audFallbackEpoch = epoch;
-    _audFallbackReadFrame = Atomics.load(_audControl, _AUD_CTL_READ) >>> 0;
+    _audFallbackReadFrame = Atomics.load(_audControl, _AUD_CTL_RESET_AT) >>> 0;
     _audFallbackPhase = 0.0;
     _audFallbackStarted = false;
     _audFallbackStableFrames = 0;
     Atomics.store(_audControl, _AUD_CTL_STARTED, 0);
+    Atomics.store(_audControl, _AUD_CTL_READ, _audFallbackReadFrame | 0);
+    _audClearOutput(output, 0);
+    Atomics.store(_audControl, _AUD_CTL_RESET_ACK, epoch | 0);
+    return;
   }
 
   var writeFrame = Atomics.load(_audControl, _AUD_CTL_WRITE) >>> 0;
@@ -442,6 +460,13 @@ function _audActivateFallback(ctx, token) {
   if (token !== _audConfigToken || !_audControl || _audGeneration === 0) {
     return false;
   }
+  if (Atomics.compareExchange(_audControl, _AUD_CTL_GATE, 0, 8) !== 0) {
+    Atomics.or(_audControl, _AUD_CTL_GATE, 4);
+    Atomics.store(_audControl, _AUD_CTL_MODE, _AUD_MODE_STOPPED);
+    if (typeof sendMessage === 'function') sendMessage('stopRequest', []).catch(function() {});
+    if (typeof snackbarLogLong === 'function') snackbarLogLong('Audio could not switch safely. Reconnect to retry.');
+    return false;
+  }
   try {
     _audConfigureDestination(ctx, _audChannels);
     var create = ctx.createScriptProcessor || ctx.createJavaScriptNode;
@@ -459,7 +484,13 @@ function _audActivateFallback(ctx, token) {
     _audFallbackPhase = 0.0;
     _audFallbackStarted = false;
     _audFallbackStableFrames = 0;
-    node.onaudioprocess = _audProcessFallback;
+    var backendControl = _audControl, backendGeneration = _audGeneration;
+    node.onaudioprocess = function(event) {
+      if (token !== _audConfigToken || backendControl !== _audControl || backendGeneration !== _audGeneration) {
+        _audClearOutput(event.outputBuffer, 0); return;
+      }
+      _audProcessFallback(event);
+    };
     node.connect(ctx.destination);
     _audScriptNode = node;
     Atomics.store(_audControl, _AUD_CTL_MODE, _AUD_MODE_FALLBACK);
@@ -470,12 +501,18 @@ function _audActivateFallback(ctx, token) {
     Atomics.store(_audControl, _AUD_CTL_MODE, _AUD_MODE_STOPPED);
     _audStats.backend = 'unavailable';
     return false;
+  } finally {
+    // Native retirement may set bit 4 while this handoff owns bit 8.
+    Atomics.and(_audControl, _AUD_CTL_GATE, ~8);
   }
 }
 
 // Called once per negotiated stream by wasm/auddec.cpp.
 function configureAudioScheduler(targetMs, controlPtr, pcmPtr, capacityFrames,
                                  channels, sourceRate, generation) {
+  var incoming = new Int32Array(Module.HEAP32.buffer, controlPtr >>> 0, 18);
+  if ((Atomics.load(incoming, _AUD_CTL_GENERATION) >>> 0) !== (generation >>> 0) ||
+      (Atomics.load(incoming, _AUD_CTL_GATE) & 4)) return;
   _audDisconnectBackend(false);
   _audRequestedTargetMs = targetMs > 0 ? targetMs : 50;
   _audControlPtr = controlPtr >>> 0;
@@ -488,7 +525,7 @@ function configureAudioScheduler(targetMs, controlPtr, pcmPtr, capacityFrames,
   var token = _audConfigToken;
 
   try {
-    _audControl = new Int32Array(Module.HEAP32.buffer, _audControlPtr, 16);
+    _audControl = new Int32Array(Module.HEAP32.buffer, _audControlPtr, 18);
     _audPcm = new Int16Array(
       Module.HEAP16.buffer, _audPcmPtr, _audCapacityFrames * _audChannels);
   } catch (e) {

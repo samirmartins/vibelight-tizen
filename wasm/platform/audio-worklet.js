@@ -16,6 +16,9 @@ var ML_AUD_STARTED = 11;
 var ML_AUD_EPOCH = 12;
 var ML_AUD_INITIAL_TARGET = 13;
 var ML_AUD_MAX_TARGET = 14;
+var ML_AUD_RESET_AT = 15;
+var ML_AUD_RESET_ACK = 16;
+var ML_AUD_GATE = 17;
 
 function mlClamp(value, minimum, maximum) {
   return value < minimum ? minimum : (value > maximum ? maximum : value);
@@ -57,7 +60,7 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
       }
 
       try {
-        this.control = new Int32Array(data.memory, data.controlPtr, 16);
+        this.control = new Int32Array(data.memory, data.controlPtr, 18);
         this.pcm = new Int16Array(
           data.memory, data.pcmPtr, data.capacityFrames * data.channels);
         this.capacity = data.capacityFrames >>> 0;
@@ -66,7 +69,7 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
         this.sourceRate = data.sourceRate >>> 0;
         this.generation = data.generation >>> 0;
         this.readFrame = Atomics.load(this.control, ML_AUD_READ) >>> 0;
-        this.epoch = Atomics.load(this.control, ML_AUD_EPOCH) >>> 0;
+        this.epoch = Atomics.load(this.control, ML_AUD_RESET_ACK) >>> 0;
         this.phase = 0.0;
         this.started = false;
         this.stableOutputFrames = 0;
@@ -131,6 +134,16 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
   }
 
   process(inputs, outputList) {
+    var control = this.control, outputs = outputList[0];
+    if (!this.ready || !control || Atomics.compareExchange(control, ML_AUD_GATE, 0, 1) !== 0) {
+      if (outputs) this.clear(outputs, 0);
+      return true;
+    }
+    try { return this.render(inputs, outputList); }
+    finally { Atomics.and(control, ML_AUD_GATE, ~3); }
+  }
+
+  render(inputs, outputList) {
     var outputs = outputList[0];
     if (!outputs || outputs.length === 0) {
       return true;
@@ -144,13 +157,17 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
     }
 
     var currentEpoch = Atomics.load(this.control, ML_AUD_EPOCH) >>> 0;
-    if (currentEpoch !== this.epoch) {
+    if (currentEpoch !== (Atomics.load(this.control, ML_AUD_RESET_ACK) >>> 0)) {
       this.epoch = currentEpoch;
-      this.readFrame = Atomics.load(this.control, ML_AUD_READ) >>> 0;
+      this.readFrame = Atomics.load(this.control, ML_AUD_RESET_AT) >>> 0;
       this.phase = 0.0;
       this.started = false;
       this.stableOutputFrames = 0;
       Atomics.store(this.control, ML_AUD_STARTED, 0);
+      Atomics.store(this.control, ML_AUD_READ, this.readFrame | 0);
+      this.clear(outputs, 0);
+      Atomics.store(this.control, ML_AUD_RESET_ACK, currentEpoch | 0);
+      return true;
     }
 
     var writeFrame = Atomics.load(this.control, ML_AUD_WRITE) >>> 0;

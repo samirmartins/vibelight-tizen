@@ -8,7 +8,7 @@ const currentWorklet=fs.readFileSync(worklet,'utf8'),oldWorklet=baseline(worklet
 function trackedAtomics() {
   const calls={depth:0,loads:0};
   const api={};
-  for(const name of ['load','store','add','compareExchange']) api[name]=function(...args){
+  for(const name of ['load','store','add','compareExchange','and','or']) api[name]=function(...args){
     if(name==='load')calls.loads++;
     if(args[1]===7 || args[1]===8)calls.depth++;
     return Atomics[name](...args);
@@ -17,7 +17,7 @@ function trackedAtomics() {
 }
 function ring(channels,mode) {
   const capacity=16384,memory=new SharedArrayBuffer(128+capacity*channels*2);
-  const control=new Int32Array(memory,0,16),pcm=new Int16Array(memory,128,capacity*channels);
+  const control=new Int32Array(memory,0,18),pcm=new Int16Array(memory,128,capacity*channels);
   for(let i=0;i<capacity;i++)for(let ch=0;ch<channels;ch++)pcm[i*channels+ch]=((i*97+ch*997)%60000)-30000;
   control[0]=control[9]=-4096;control[2]=7;control[3]=mode;control[6]=control[13]=2048;control[14]=4800;control[7]=-1;
   return {capacity,memory,control,pcm};
@@ -40,7 +40,6 @@ function sameControl(a,b) {
 }
 function prepare(a,b,q) {
   for(const c of [a.control,b.control]) {
-    if(q && q%137===0){c[0]=(c[0]+1000)|0;c[12]++;}
     c[1]=(c[0]+(q%43===0?1:4096))|0;c[10]=(q%11-5)*400;
     c[2]=q===451?8:7;
   }

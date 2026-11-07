@@ -329,6 +329,7 @@ class MoonlightInstance {
   EmssReadyState m_EmssReadyState;
   std::atomic<bool> m_VideoStarted;
   std::atomic<bool> m_DecoderActive{false};
+  std::atomic<bool> m_AudioQuiescent{true};
   std::atomic<bool> m_DecoderPipelineFailed{false};
   std::atomic<bool> m_ConnectionCancelled;
   pthread_t m_StopThread;

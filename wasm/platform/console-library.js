@@ -143,7 +143,8 @@ var ConsoleLibrary = (function() {
     if (wakeScope) wakeScope.cancel();
     wakeScope = null;
   }
-  function hide() {
+  function hide(preserveLaunch) {
+    if (!preserveLaunch && typeof startGame === 'function' && startGame.pending) startGame.pending.cancel();
     cancel(); active = false;
     clearTimeout(launchTimer); launchTimer = 0; launchPending = false;
     document.body.classList.remove('console-library');
@@ -153,7 +154,7 @@ var ConsoleLibrary = (function() {
   }
   function suspend() {
     // Called before streaming. Late replies cannot render, save or start tasks.
-    hide();
+    hide(true);
     el('game-grid').textContent = '';
     selectedCard = null;
   }

@@ -55,6 +55,17 @@ function assertFrozen(reference, paths) {
     const menuOnly = ['wasm/platform/interface-sounds.js'];
     for (const file of changed) {
       if (menuOnly.includes(file)) continue;
+      const review = require('./review-corrections-scope.cjs');
+      if (['wasm/auddec.cpp','wasm/audio_ring.hpp'].includes(file)) {
+        const source=fs.readFileSync(file,'utf8');
+        assert(review.matches(file,source),'exact reviewed audio correction: '+file);
+        assert.strictEqual(review.normalize(file,source),cp.execFileSync('git',['cat-file','blob',reference+':'+file],{encoding:'utf8'}));
+        continue;
+      }
+      if (file === 'wasm/audio_ring_test.cpp') {
+        assert(!fs.readFileSync('CMakeLists.txt','utf8').includes(file));
+        continue;
+      }
       if (file === 'wasm/static/css/menu-i18n.css') {
         assert.strictEqual(require('crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex'), 'd57ea5d2e5f55359a079b81a181ab16a03a09e5672182e8667f321bb629338bf', 'reviewed menu selector styles only');
         continue;

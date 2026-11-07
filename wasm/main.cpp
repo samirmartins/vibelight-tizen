@@ -90,7 +90,11 @@ void MoonlightInstance::RequestStop(uint32_t error, bool stopCommon) {
       m_SessionPhase == mlsession::Phase::Stopping ||
       m_SessionPhase == mlsession::Phase::Blocked) return;
   m_SessionPhase = mlsession::Phase::Stopping;
-  m_ConnectionCancelled = true;
+  {
+    // Match WaitFor's mutex; notification cannot race its predicate-to-wait gap.
+    std::lock_guard<std::mutex> mediaGuard(m_Mutex);
+    m_ConnectionCancelled = true;
+  }
   if (m_FramePacer) m_FramePacer->Stop();
   if (stopCommon) m_StopNeedsLiStop.store(true, std::memory_order_release);
   m_Running = false;
@@ -135,7 +139,8 @@ bool MoonlightInstance::BeginSession() {
   std::lock_guard<std::mutex> guard(m_LifecycleMutex);
   if (m_SessionPhase == mlsession::Phase::Starting ||
       m_SessionPhase == mlsession::Phase::Running) return false;
-  if (!m_StopComplete.load(std::memory_order_acquire)) return false;
+  if (!m_StopComplete.load(std::memory_order_acquire) ||
+      !m_AudioQuiescent.load(std::memory_order_acquire)) return false;
   // Never join an unfinished worker on the main thread: its callbacks need it.
   if (m_StopThread != 0) {
     pthread_join(m_StopThread, NULL);
@@ -197,8 +202,9 @@ void* MoonlightInstance::StopThreadFunc(void* context) {
       safe = ticket->Wait(mlsession::kCloseTimeout);
     }
   }
+  safe = safe && me->m_AudioQuiescent.load(std::memory_order_acquire);
   if (safe) me->ReleaseMedia();
-  else PostToJs("DialogMsg: Decoder close is pending. Retry shortly or restart VibeLight.");
+  else PostToJs("DialogMsg: Stream cleanup did not complete safely. Restart VibeLight.");
   {
     std::lock_guard<std::mutex> guard(me->m_LifecycleMutex);
     me->m_SessionPhase = safe ? mlsession::Phase::Idle : mlsession::Phase::Blocked;
@@ -333,6 +339,10 @@ MessageResult MoonlightInstance::StartStream(std::string host, int httpPort, std
   bool disableWarnings, bool performanceStats, int clientRefreshRateX100) {
   
   if (!BeginSession()) {
+    if (m_StopComplete.load(std::memory_order_acquire) &&
+        !m_AudioQuiescent.load(std::memory_order_acquire)) {
+      return MessageResult::Reject(emscripten::val("Audio cleanup did not complete safely. Restart VibeLight."));
+    }
     return MessageResult::Reject(emscripten::val("Previous stream is still closing. Retry shortly."));
   }
   EM_ASM({ Module.sessionGeneration = $0; }, m_SessionGeneration.load());

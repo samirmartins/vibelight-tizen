@@ -129,7 +129,7 @@ require('./audio-telemetry-scope.cjs').assertFrozen('v3.3.10', frozen);
 const fs = require('fs'), cp = require('child_process'), assert = require('assert');
 // The identical v3.3.10 frozen-file set is checked above.
 const old = cp.execFileSync('git',['show','v3.3.10:wasm/platform/index.js'],{encoding:'utf8'});
-const now = fs.readFileSync('wasm/platform/index.js','utf8');
+const now = require('./review-corrections-scope.cjs').normalize('wasm/platform/index.js',fs.readFileSync('wasm/platform/index.js','utf8'));
 function between(s,a,b,from=0) { const start=s.indexOf(a,from),end=s.indexOf(b,start); assert(start>=0&&end>start); return s.slice(start,end).trim(); }
 // The only allowed change in this segment is safe text insertion in the
 // pre-launch confirmation. Stream arguments and scheduling remain identical.

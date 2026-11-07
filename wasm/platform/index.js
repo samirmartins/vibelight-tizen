@@ -1581,51 +1581,33 @@ function showApps(host) {
 
 // Show a confirmation with the Quit App dialog before stopping the running app
 function quitAppDialog() {
-  if (api.currentGame === 0) {
-    // If no app is running, show snackbar message
-    snackbarLog('No app is currently running.');
-    return;
-  } else {
-    api.getAppById(api.currentGame).then(function(currentGame) {
-      // Find the existing overlay and dialog elements
-      var quitAppOverlay = document.querySelector('#quitAppDialogOverlay');
-      var quitAppDialog = document.querySelector('#quitAppDialog');
-
-      // Change the dialog text element to include the game title
-      document.getElementById('quitAppDialogText').textContent = 'Are you sure you want to quit ' + currentGame.title + '? All unsaved data will be lost.';
-      
-      // Show the dialog and push the view
-      quitAppOverlay.style.display = 'flex';
-      quitAppDialog.showModal();
-      isDialogOpen = true;
-      Navigation.push(Views.QuitAppDialog);
-
-      // Cancel the operation if the Cancel button is pressed
-      $('#cancelQuitApp').off('click');
-      $('#cancelQuitApp').on('click', function() {
-        console.log('%c[index.js, quitAppDialog]', 'color: green;', 'Closing app dialog and returning.');
-        quitAppOverlay.style.display = 'none';
-        quitAppDialog.close();
-        isDialogOpen = false;
-        Navigation.pop();
-        Navigation.switch();
-      });
-
-      // Quit the running app if the Continue button is pressed
-      $('#continueQuitApp').off('click');
-      $('#continueQuitApp').on('click', function() {
-        console.log('%c[index.js, quitAppDialog]', 'color: green;', 'Quitting game, closing app dialog, and returning.');
-        quitAppOverlay.style.display = 'none';
-        quitAppDialog.close();
-        isDialogOpen = false;
-        Navigation.pop();
-        stopGame(api, function() {
-          // After stopping the game, set focus back to the 'Quit Running App' button
-          setTimeout(() => Navigation.switch(), 3000);
-        });
-      });
-    });
+  var host = api, appID = host && host.currentGame;
+  if (!appID) { snackbarLog('No app is currently running.'); return Promise.resolve(); }
+  var sequence = quitAppDialog.sequence = (quitAppDialog.sequence || 0) + 1;
+  var lifecycle = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;
+  function current() {
+    return api === host && host.currentGame === appID && quitAppDialog.sequence === sequence &&
+      (typeof AppLifecycle === 'undefined' || AppLifecycle.current(lifecycle));
   }
+  return Promise.resolve().then(function() { return host.getAppById(appID); }).then(function(game) {
+    if (!current()) return;
+    if (!game) throw new Error('Unknown running game');
+    var overlay = document.querySelector('#quitAppDialogOverlay');
+    var dialog = document.querySelector('#quitAppDialog');
+    document.getElementById('quitAppDialogText').textContent = 'Are you sure you want to quit ' + game.title + '? All unsaved data will be lost.';
+    overlay.style.display = 'flex'; dialog.showModal(); isDialogOpen = true;
+    Navigation.push(Views.QuitAppDialog);
+    function close() {
+      overlay.style.display = 'none'; dialog.close(); isDialogOpen = false;
+      Navigation.pop();
+    }
+    $('#cancelQuitApp').off('click').on('click', function() { quitAppDialog.sequence++; close(); Navigation.switch(); });
+    $('#continueQuitApp').off('click').on('click', function() {
+      var accepted = current(); quitAppDialog.sequence++; close();
+      if (!accepted) return;
+      return stopGame(host, function() { if (api === host) Navigation.switch(); });
+    });
+  }).catch(function() { if (current()) snackbarLogLong('Could not identify the running game.'); });
 }
 
 // Handle layout elements when displaying the Stream view
@@ -1714,96 +1696,85 @@ function prepareStreamAudio() {
 }
 
 function startGame(host, appID, audioPrepared) {
-  // Retire a superseded launch before waiting for the previous native session.
   if (startGame.pending) startGame.pending.cancel();
+  if (!host || !host.paired) return Promise.resolve();
   var launchScope = createMenuRequestScope();
   startGame.pending = launchScope;
-  // Invalidate only continuations from before a Smart Hub transition.
-  const lifecycleEpoch = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;
-  const launchCurrent = function() { return launchScope.active && startGame.pending === launchScope &&
-    (typeof AppLifecycle === 'undefined' || AppLifecycle.current(lifecycleEpoch)); };
-  if (!launchCurrent()) return;
-  if (!host || !host.paired) {
-    console.error('%c[index.js, startGame]', 'color: gray;', 'Operation failed; private details omitted.');
-    return;
+  var lifecycleEpoch = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;
+  var settled = false, handedOff = false, closeDialog = null;
+  function launchCurrent() {
+    return launchScope.active && startGame.pending === launchScope &&
+      (typeof AppLifecycle === 'undefined' || AppLifecycle.current(lifecycleEpoch));
   }
+  function releasePreparedAudio() {
+    if (settled) return;
+    settled = true;
+    if (closeDialog) closeDialog(false);
+    isInGame = false;
+    $('#loadingSpinnerMessage').text('');
+    if (typeof stopAudioScheduler === 'function') stopAudioScheduler(true);
+  }
+  var cancelRequests = launchScope.cancel;
+  launchScope.cancel = function() {
+    if (!handedOff && startGame.pending === launchScope) releasePreparedAudio();
+    cancelRequests();
+    if (startGame.pending === launchScope) startGame.pending = null;
+  };
   if (!audioPrepared) prepareStreamAudio();
   if (typeof ControllerMapping !== 'undefined') ControllerMapping.prepareSession();
-  // Freeze the optional analog response for this stream in one native call.
   if (typeof ControllerTuning !== 'undefined') ControllerTuning.configureSession();
-
-  // Reset the scheduler for the new stream, also inside the gesture handler
   startAudioScheduler();
 
-  // Refresh the server info, because the user might have quit the game
+  function confirmSwitch(appToStart, currentApp) {
+    if (!currentApp) throw new Error('Unknown running app');
+    return new Promise(function(resolve) {
+      var overlay = document.querySelector('#quitAppDialogOverlay');
+      var dialog = document.querySelector('#quitAppDialog');
+      document.getElementById('quitAppDialogText').textContent = currentApp.title +
+        ' is already running. Would you like to quit it and start ' + appToStart.title + '?';
+      overlay.style.display = 'flex'; dialog.showModal(); isDialogOpen = true;
+      Navigation.push(Views.QuitAppDialog);
+      closeDialog = function(accepted) {
+        closeDialog = null;
+        overlay.style.display = 'none'; dialog.close(); isDialogOpen = false;
+        Navigation.pop(); resolve(accepted);
+      };
+      $('#cancelQuitApp').off('click').on('click', function() { launchScope.cancel(); });
+      $('#continueQuitApp').off('click').on('click', function() {
+        if (!launchCurrent() || !closeDialog) return;
+        closeDialog(true);
+      });
+    }).then(function(accepted) {
+      if (!accepted || !launchCurrent()) return false;
+      var stopped = false;
+      return stopGame(host, function() { stopped = true; }, launchScope).then(function() {
+        if (launchCurrent() && !stopped) throw new Error('Could not close the running game');
+        return launchCurrent() && stopped;
+      });
+    });
+  }
+
   var closing = typeof AppLifecycle !== 'undefined' ? AppLifecycle.waitForStreamStop(launchScope) : null;
   if (closing) snackbarLog('Finishing previous session...');
-  Promise.resolve(closing).then(function() {
+  return Promise.resolve(closing).then(function() {
     if (!launchCurrent()) return;
-    return host.refreshServerInfo();
-  }).then(function(ret) {
+    return launchScope.request(function() { return host.refreshServerInfo(launchScope); }, 10000);
+  }).then(function() {
     if (!launchCurrent()) return;
-    host.getAppById(appID).then(function(appToStart) {
-      if (!launchCurrent()) return;
-      if (host.currentGame != 0 && host.currentGame != appID) {
-        host.getAppById(host.currentGame).then(function(currentApp) {
-          if (!launchCurrent()) return;
-          // Find the existing overlay and dialog elements
-          var quitAppOverlay = document.querySelector('#quitAppDialogOverlay');
-          var quitAppDialog = document.querySelector('#quitAppDialog');
-
-          // Change the dialog text element to include the game title
-          document.getElementById('quitAppDialogText').textContent = currentApp.title + ' is already running. Would you like to quit it and start ' + appToStart.title + '?';
-
-          // Show the dialog and push the view
-          quitAppOverlay.style.display = 'flex';
-          quitAppDialog.showModal();
-          isDialogOpen = true;
-          Navigation.push(Views.QuitAppDialog);
-
-          // Cancel the operation if the Cancel button is pressed
-          $('#cancelQuitApp').off('click');
-          $('#cancelQuitApp').on('click', function() {
-            if (!launchCurrent()) return;
-            console.log('%c[index.js, startGame]', 'color: green;', 'Closing app dialog and returning.');
-            quitAppOverlay.style.display = 'none';
-            quitAppDialog.close();
-            isDialogOpen = false;
-            Navigation.pop();
-          });
-
-          // Quit the running app if the Continue button is pressed
-          $('#continueQuitApp').off('click');
-          $('#continueQuitApp').on('click', function() {
-            if (!launchCurrent()) return;
-            console.log('%c[index.js, startGame]', 'color: green;', 'Quitting game, closing app dialog, and returning.');
-            stopGame(host, function() {
-              if (!launchCurrent()) return;
-              setTimeout(() => {
-                if (!launchCurrent()) return;
-                // Scroll to the current game row
-                Navigation.switch();
-                // Switch to Apps view
-                Navigation.change(Views.Apps);
-              }, 1500);
-              // Host quit was confirmed; the next launcher awaits native cleanup.
-              if (launchCurrent()) startGame(host, appID);
-            });
-            quitAppOverlay.style.display = 'none';
-            quitAppDialog.close();
-            isDialogOpen = false;
-            Navigation.pop();
-          });
-
-          return;
-        }, function(failedCurrentApp) {
-          if (!launchCurrent()) return;
-          console.error('%c[index.js, startGame]', 'color: gray;', 'Operation failed; private details omitted.'); // Logging both object (for console) and toString-ed object (for text logs)
-          return;
+    return launchScope.request(function() { return host.getAppById(appID); }, 10000);
+  }).then(function(appToStart) {
+    if (!launchCurrent()) return;
+    if (!appToStart || typeof appToStart.title !== 'string') throw new Error('Unknown app');
+    var ready = Promise.resolve(true);
+    if (host.currentGame != 0 && host.currentGame != appID) {
+      ready = launchScope.request(function() { return host.getAppById(host.currentGame); }, 10000)
+        .then(function(currentApp) {
+          if (!launchCurrent()) return false;
+          return confirmSwitch(appToStart, currentApp);
         });
-        return;
-      }
-
+    }
+    return ready.then(function(accepted) {
+      if (!accepted || !launchCurrent()) return;
       // Retrieve all stream configuration options from the Settings view
       var streamWidth = $('#selectResolution').data('value').split(':')[0];
       var streamHeight = $('#selectResolution').data('value').split(':')[1];
@@ -1838,135 +1809,54 @@ function startGame(host, appID, audioPrepared) {
       $('#loadingSpinnerMessage').text('Starting ' + appToStart.title + '...');
       showStreamMode();
 
-      // Check if user wants to resume the already-running app
-      if (host.currentGame == appID) {
-        // If the app is already running, we can just resume it
-        return host.resumeApp(
-          streamWidth + 'x' + streamHeight + 'x' + frameRate, // Resolution and frame rate
-          optimizeGames, // Optimize game settings (SOPS)
-          rikey, rikeyid, // Remote input key and key ID
-          hdrMode, // Auto HDR video streaming
-          playHostAudio, // Play audio on host and client device
-          0x030002, // Surround channel mask << 16 | Surround channel count
-          gamepadMask // Connect gamepad mask
-        ).then(function(launchResult) {
-          if (!launchCurrent()) return;
-          $xml = $($.parseXML(launchResult.toString()));
-          $root = $xml.find('root');
-          var status_code = $root.attr('status_code');
-          var status_message = $root.attr('status_message');
-          if (status_code != 200) {
-            $('#loadingSpinnerMessage').text('');
-            snackbarLogLong('Error ' + status_code + ': ' + status_message);
-            showApps(host).then(() => {
-              if (!launchCurrent()) return;
-              // Scroll to the current game row
-              Navigation.switch();
-              // Switch to Apps view
-              Navigation.change(Views.Apps);
-            });
-            return;
-          }
-          // Start stream request
-          sendMessage('startRequest', [
+      return launchScope.request(function() {
+        var mode = streamWidth + 'x' + streamHeight + 'x' + frameRate;
+        if (host.currentGame == appID) {
+          return host.resumeApp(mode, optimizeGames, rikey, rikeyid, hdrMode, playHostAudio, 0x030002, gamepadMask);
+        }
+        return host.launchApp(appID, mode, optimizeGames, rikey, rikeyid, hdrMode, playHostAudio, 0x030002, gamepadMask);
+      }, 30000).then(function(launchResult) {
+        if (!launchCurrent()) return;
+        var $xml = $($.parseXML(String(launchResult)));
+        var $root = $xml.find('root');
+        var code = $root.attr('status_code');
+        if (String(code) !== '200') throw new Error('Host rejected the stream');
+        if (!$root.find('sessionUrl0').text().trim()) throw new Error('Missing stream URL');
+        return sendMessage('startRequest', [
             host.address, host.httpPort, streamWidth, streamHeight, frameRate, bitrate.toString(), rikey, rikeyid.toString(),
             host.appVersion, host.gfeVersion, $root.find('sessionUrl0').text().trim(), host.serverCodecModeSupport,
             framePacing, optimizeGames, rumbleFeedback, mouseEmulation,
             audioConfig, audioJitterMs, playHostAudio, videoCodec, hdrMode, fullRange, gameMode, disableWarnings,
             performanceStats, clientRefreshRateX100
-          ]).catch(function() {
-            if (!launchCurrent()) return;
-            handleMessage('streamTerminated: 0');
-            snackbarLogLong('Previous stream is still closing. Retry shortly.');
-          });
-        }, function(failedResumeApp) {
+        ]).then(function() {
           if (!launchCurrent()) return;
-          console.error('%c[index.js, startGame]', 'color: gray;', 'Operation failed; private details omitted.');
-          snackbarLog('Failed to resume ' + appToStart.title);
-          showApps(host).then(() => {
-            if (!launchCurrent()) return;
-            // Scroll to the current game row
-            Navigation.switch();
-            // Switch to Apps view
-            Navigation.change(Views.Apps);
-          });
-          return;
+          handedOff = true;
+          settled = true;
+          startGame.pending = null;
+          cancelRequests();
         });
-      }
-
-      // If the user wants to launch the app, then we start launching it
-      host.launchApp(
-        appID, // App ID
-        streamWidth + 'x' + streamHeight + 'x' + frameRate, // Resolution and frame rate
-        optimizeGames, // Optimize game settings (SOPS)
-        rikey, rikeyid, // Remote input key and key ID
-        hdrMode, // Auto HDR video streaming
-        playHostAudio, // Play audio on host and client device
-        0x030002, // Surround channel mask << 16 | Surround channel count
-        gamepadMask // Connect gamepad mask
-      ).then(function(launchResult) {
-        if (!launchCurrent()) return;
-        $xml = $($.parseXML(launchResult.toString()));
-        $root = $xml.find('root');
-        var status_code = $root.attr('status_code');
-        var status_message = $root.attr('status_message');
-        if (status_code != 200) {
-          if (status_code == 4294967295 && status_message == 'Invalid') {
-            // Special case handling an audio capture error which GFE doesn't provide any useful status message
-            status_code = 418;
-            status_message = 'Audio capture device is missing. Please reinstall the audio drivers.';
-          }
-          $('#loadingSpinnerMessage').text('');
-          snackbarLogLong('Error ' + status_code + ': ' + status_message);
-          showApps(host).then(() => {
-            if (!launchCurrent()) return;
-            // Scroll to the current game row
-            Navigation.switch();
-            // Switch to Apps view
-            Navigation.change(Views.Apps);
-          });
-          return;
-        }
-        // Start stream request
-        sendMessage('startRequest', [
-          host.address, host.httpPort, streamWidth, streamHeight, frameRate, bitrate.toString(), rikey, rikeyid.toString(),
-          host.appVersion, host.gfeVersion, $root.find('sessionUrl0').text().trim(), host.serverCodecModeSupport,
-          framePacing, optimizeGames, rumbleFeedback, mouseEmulation,
-          audioConfig, audioJitterMs, playHostAudio, videoCodec, hdrMode, fullRange, gameMode, disableWarnings,
-          performanceStats, clientRefreshRateX100
-        ]).catch(function() {
-            if (!launchCurrent()) return;
-            handleMessage('streamTerminated: 0');
-            snackbarLogLong('Previous stream is still closing. Retry shortly.');
-          });
-      }, function(failedLaunchApp) {
-        if (!launchCurrent()) return;
-        console.error('%c[index.js, startGame]', 'color: gray;', 'Operation failed; private details omitted.');
-        snackbarLog('Failed to launch ' + appToStart.title + '.');
-        showApps(host).then(() => {
-          if (!launchCurrent()) return;
-          // Scroll to the current game row
-          Navigation.switch();
-          // Switch to Apps view
-          Navigation.change(Views.Apps);
-        });
-        return;
       });
     });
-  }, function(failedRefreshInfo) {
+  }).catch(function(error) {
     if (!launchCurrent()) return;
-    if (failedRefreshInfo && failedRefreshInfo.clientStreamStopping) {
-      snackbarLogLong('Previous stream is still closing. Retry shortly.');
-      return;
-    }
-    console.error('%c[index.js, startGame]', 'color: gray;', 'Operation failed; private details omitted.'); // Logging both object (for console) and toString-ed object (for text logs)
+    releasePreparedAudio();
+    launchScope.cancel();
+    var blockedAudio = 'Audio cleanup did not complete safely. Restart VibeLight.';
+    snackbarLogLong(error === blockedAudio || (error && error.message === blockedAudio) ? blockedAudio : error && error.clientStreamStopping ?
+      'Previous stream is still closing. Retry shortly.' : 'Could not start the stream. Please try again.');
+    return Promise.resolve(showApps(host)).then(function() {
+      if (startGame.pending || isInGame || (typeof api !== 'undefined' && api !== host) ||
+          (typeof AppLifecycle !== 'undefined' && !AppLifecycle.current(lifecycleEpoch))) return;
+      Navigation.switch(); Navigation.change(Views.Apps);
+    }).catch(function() { snackbarLogLong('Could not restore the game library.'); });
   });
 }
 
 // Stop the running app title, refresh the server info, and then return to Apps grid
-function stopGame(host, callbackFunction) {
+function stopGame(host, callbackFunction, requestScope) {
   var epoch = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;
-  var current = function() { return typeof AppLifecycle === 'undefined' || AppLifecycle.current(epoch); };
+  var current = function() { return (!requestScope || requestScope.active) &&
+    (typeof AppLifecycle === 'undefined' || AppLifecycle.current(epoch)); };
   isInGame = false;
   if (!host.paired) return Promise.resolve();
   function finished(title) {
@@ -1976,7 +1866,7 @@ function stopGame(host, callbackFunction) {
       if (current() && typeof callbackFunction === 'function') callbackFunction();
     });
   }
-  return host.refreshServerInfo().then(function() {
+  return host.refreshServerInfo(requestScope).then(function() {
     if (!current()) return;
     // The user or host may already have closed it before this check.
     if (host.currentGame === 0) return finished();
@@ -1984,7 +1874,8 @@ function stopGame(host, callbackFunction) {
       if (!current()) return;
       if (!runningApp) throw new Error('Unknown running app');
       snackbarLog('Quitting ' + runningApp.title + '...');
-      return host.quitApp().then(function() { return finished(runningApp.title); });
+      var quit = requestScope ? requestScope.request(function() { return host.quitApp(); }, 15000) : host.quitApp();
+      return quit.then(function() { return finished(runningApp.title); });
     });
   }).catch(function() {
     if (current()) snackbarLogLong('Could not close the game on the PC.');
@@ -2010,130 +1901,97 @@ function createObjectStore(dataBase) {
   }
 }
 
-function openIndexDB(callback) {
-  if (db) {
-    // Database already opened
-    callback();
-    return;
-  }
-
-  console.log('%c[index.js, openIndexDB]', 'color: green;', 'Opening IndexedDB...');
-  if (navigator.storage && navigator.storage.persist) {
-    navigator.storage.persisted().then(persistent => {
-      if (persistent) {
-        console.log('%c[index.js, openIndexDB]', 'color: green;', 'Storage will not be cleared except by explicit user action.');
-      } else {
-        console.log('%c[index.js, openIndexDB]', 'color: green;', 'Storage may be cleared by the UA under storage pressure.');
-      }
-    });
-  } else {
-    console.warn('%c[index.js, openIndexDB]', 'color: green;', 'Warning: Persistent storage is not available!');
-  }
-
-  if (!indexedDB) {
-    indexedDB = self.indexedDB || self.webkitIndexedDB || self.mozIndexedDB || self.OIndexedDB || self.msIndexedDB;
-  }
-
-  // Create/open database
-  const request = indexedDB.open(dbName, dbVersion);
-
-  request.onerror = function(e) {
-    console.error('%c[index.js, openIndexDB]', 'color: gray;', 'Operation failed; private details omitted.');
-  };
-
-  request.onsuccess = function(e) {
-    console.log('%c[index.js, openIndexDB]', 'color: gray;', 'Operation recorded; private details omitted.');
-    db = request.result;
-
-    db.onerror = function(e) {
-      console.error('%c[index.js, openIndexDB]', 'color: gray;', 'Operation failed; private details omitted.');
-    };
-
-    // Interim solution to create an objectStore
-    if (db.setVersion && db.version != dbVersion) {
-      const setVersion = db.setVersion(dbVersion);
-      setVersion.onsuccess = function() {
-        createObjectStore(db);
-        callback();
-      };
-    } else {
-      callback();
-    }
-  };
-
-  request.onupgradeneeded = function(e) {
-    createObjectStore(e.target.result);
+var storageOpening = null;
+var storageReadErrors = new Set();
+function storageOnce(callback) {
+  var done = false;
+  return function(result) {
+    if (done) return;
+    done = true;
+    if (callback) callback(result);
   };
 }
-
-function callCb(key, value, callbackFunction) {
-  let obj = {};
-  obj[key] = value;
-  callbackFunction(obj);
+function openIndexDB(callback) {
+  if (db) { callback({status: 'ok'}); return; }
+  if (storageOpening) { storageOpening.push(callback); return; }
+  var listeners = storageOpening = [callback];
+  var finish = storageOnce(function(result) {
+    if (storageOpening === listeners) storageOpening = null;
+    listeners.forEach(function(cb) { cb(result); });
+  });
+  try {
+    indexedDB = self.indexedDB || self.webkitIndexedDB || self.mozIndexedDB || self.OIndexedDB || self.msIndexedDB;
+    if (!indexedDB) throw new Error('Storage unavailable');
+    var request = indexedDB.open(dbName, dbVersion);
+    request.onerror = request.onblocked = function() { finish({status: 'error', code: 'open'}); };
+    request.onupgradeneeded = function(e) {
+      try { createObjectStore(e.target.result); }
+      catch (error) { e.target.transaction.abort(); finish({status: 'error', code: 'upgrade'}); }
+    };
+    request.onsuccess = function() {
+      // A blocked request may finish after the attempt was already rejected.
+      var opened = request.result;
+      if (storageOpening !== listeners) { opened.close(); return; }
+      db = opened;
+      db.onversionchange = function() { opened.close(); if (db === opened) db = null; };
+      finish({status: 'ok'});
+    };
+  } catch (e) { finish({status: 'error', code: 'open'}); }
 }
 
 function getData(key, callbackFunction) {
-  let cb = function() {
+  var finish = storageOnce(function(result) {
+    if (result.status === 'error') storageReadErrors.add(key);
+    else storageReadErrors.delete(key);
+    callbackFunction(result);
+  });
+  openIndexDB(function(opened) {
+    if (opened.status !== 'ok') { finish(opened); return; }
     try {
-      // Open a transaction to the database
-      const transaction = db.transaction(storeName, 'readonly');
-      const readRequest = transaction.objectStore(storeName).get(key);
-
-      // Retrieve the data that was stored
-      readRequest.onsuccess = function(e) {
-        console.log('%c[index.js, getData]', 'color: gray;', 'Operation recorded; private details omitted.');
-        let value = null;
-        if (readRequest.result) {
-          value = JSON.parse(readRequest.result);
-        }
-        callCb(key, value, callbackFunction);
+      var transaction = db.transaction(storeName, 'readonly');
+      var request = transaction.objectStore(storeName).get(key);
+      var result;
+      request.onsuccess = function() {
+        try {
+          result = request.result === undefined ? {status: 'missing'} :
+            {status: 'ok', value: JSON.parse(request.result)};
+        } catch (e) { finish({status: 'error', code: 'parse'}); }
       };
-
-      transaction.onerror = function(e) {
-        console.error('%c[index.js, getData]', 'color: gray;', 'Operation failed; private details omitted.');
-        callCb(key, value, callbackFunction);
+      request.onerror = transaction.onerror = transaction.onabort = function() {
+        finish({status: 'error', code: 'read'});
       };
-    } catch (err) {
-      console.error('%c[index.js, getData]', 'color: gray;', 'Operation failed; private details omitted.');
-      callCb(key, value, callbackFunction);
+      transaction.oncomplete = function() { finish(result || {status: 'error', code: 'read'}); };
+    } catch (e) { finish({status: 'error', code: 'read'}); }
+  });
+}
+
+// Preferences may use temporary defaults, but never overwrite a failed read.
+function getPreferenceData(key, callback) {
+  getData(key, function(result) {
+    if (result.status === 'ok' && result.value !== null &&
+        (!['string', 'number', 'boolean'].includes(typeof result.value) ||
+        (key === 'resolution' && typeof result.value !== 'string'))) {
+      result = {status: 'error', code: 'shape'};
+      storageReadErrors.add(key);
     }
-  };
-
-  if (db) {
-    cb();
-  } else {
-    openIndexDB(cb);
-  }
+    var previous = {};
+    previous[key] = result.status === 'ok' ? result.value : null;
+    callback(previous, result);
+  });
 }
 
 function storeData(key, data, callbackFunction) {
-  let cb = function() {
+  var finish = storageOnce(callbackFunction);
+  if (storageReadErrors.has(key)) { finish({status: 'error', code: 'read-pending'}); return; }
+  openIndexDB(function(opened) {
+    if (opened.status !== 'ok') { finish(opened); return; }
     try {
-      // Open a transaction to the database
-      const transaction = db.transaction(storeName, 'readwrite');
-      // Put the text into the database
-      const put = transaction.objectStore(storeName).put(JSON.stringify(data), key);
-
-      transaction.oncomplete = function(e) {
-        console.log('%c[index.js, storeData]', 'color: gray;', 'Operation recorded; private details omitted.');
-        if (callbackFunction) {
-          callbackFunction();
-        }
-      };
-
-      transaction.onerror = function(e) {
-        console.error('%c[index.js, storeData]', 'color: gray;', 'Operation failed; private details omitted.');
-      };
-    } catch (err) {
-      console.error('%c[index.js, storeData]', 'color: gray;', 'Operation failed; private details omitted.');
-    }
-  };
-
-  if (db) {
-    cb();
-  } else {
-    openIndexDB(cb);
-  }
+      var transaction = db.transaction(storeName, 'readwrite');
+      var request = transaction.objectStore(storeName).put(JSON.stringify(data), key);
+      request.onerror = transaction.onerror = transaction.onabort = function() { finish({status: 'error', code: 'write'}); };
+      transaction.oncomplete = function() { finish({status: 'ok'}); };
+    } catch (e) { finish({status: 'error', code: 'write'}); }
+  });
 }
 
 // Storing data takes the data as an object, and shoves it into JSON to store.
@@ -2697,12 +2555,12 @@ function getAppVariant() {
 
 function loadUserData() {
   console.log('%c[index.js, loadUserData]', 'color: gray;', 'Operation recorded; private details omitted.');
-  openIndexDB(loadUserDataCb);
+  loadUserDataCb();
 }
 
 function loadUserDataCb() {
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored resolution preferences.');
-  getData('resolution', function(previousValue) {
+  getPreferenceData('resolution', function(previousValue) {
     if (previousValue.resolution != null) {
       var resWidth = parseInt(previousValue.resolution.split(':')[0], 10);
       if (resWidth > maxSupportedWidth) {
@@ -2720,7 +2578,7 @@ function loadUserDataCb() {
 
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored frameRate preferences.');
-  getData('frameRate', function(previousValue) {
+  getPreferenceData('frameRate', function(previousValue) {
     if (previousValue.frameRate != null) {
       $('.videoFramerateMenu li').each(function() {
         if ($(this).data('value') === previousValue.frameRate) {
@@ -2732,7 +2590,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored bitrate preferences.');
-  getData('bitrate', function(previousValue) {
+  getPreferenceData('bitrate', function(previousValue) {
     $('#bitrateSlider')[0].MaterialSlider.change(previousValue.bitrate != null ? previousValue.bitrate : '30');
     // Update the video bitrate field based on the given value
     $('#selectBitrate').html($('#bitrateSlider').val() + ' Mbps');
@@ -2740,7 +2598,7 @@ function loadUserDataCb() {
 
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored ipAddressFieldMode preferences.');
-  getData('ipAddressFieldMode', function(previousValue) {
+  getPreferenceData('ipAddressFieldMode', function(previousValue) {
     if (previousValue.ipAddressFieldMode == null) {
       document.querySelector('#ipAddressFieldModeBtn').MaterialSwitch.off(); // Set the default state
     } else if (previousValue.ipAddressFieldMode == false) {
@@ -2753,7 +2611,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored sortAppsList preferences.');
-  getData('sortAppsList', function(previousValue) {
+  getPreferenceData('sortAppsList', function(previousValue) {
     if (previousValue.sortAppsList == null) {
       document.querySelector('#sortAppsListBtn').MaterialSwitch.off(); // Set the default state
     } else if (previousValue.sortAppsList == false) {
@@ -2764,7 +2622,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored optimizeGames preferences.');
-  getData('optimizeGames', function(previousValue) {
+  getPreferenceData('optimizeGames', function(previousValue) {
     if (previousValue.optimizeGames == null) {
       document.querySelector('#optimizeGamesBtn').MaterialSwitch.on(); // Set the default state
     } else if (previousValue.optimizeGames == false) {
@@ -2775,7 +2633,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored rumbleFeedback preferences.');
-  getData('rumbleFeedback', function(previousValue) {
+  getPreferenceData('rumbleFeedback', function(previousValue) {
     if (previousValue.rumbleFeedback == null) {
       document.querySelector('#rumbleFeedbackBtn').MaterialSwitch.on(); // Set the default state
     } else if (previousValue.rumbleFeedback == false) {
@@ -2786,7 +2644,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored mouseEmulation preferences.');
-  getData('mouseEmulation', function(previousValue) {
+  getPreferenceData('mouseEmulation', function(previousValue) {
     if (previousValue.mouseEmulation == null) {
       document.querySelector('#mouseEmulationBtn').MaterialSwitch.off(); // Set the default state
     } else if (previousValue.mouseEmulation == false) {
@@ -2797,7 +2655,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored audioConfig preferences.');
-  getData('audioConfig', function(previousValue) {
+  getPreferenceData('audioConfig', function(previousValue) {
     if (previousValue.audioConfig != null) {
       $('.audioConfigMenu li').each(function() {
         if ($(this).data('value') === previousValue.audioConfig) {
@@ -2809,8 +2667,8 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored audioJitterMs preferences.');
-  getData('audioJitterDefaultRevision', function(previousRevision) {
-    getData('audioJitterMs', function(previousValue) {
+  getPreferenceData('audioJitterDefaultRevision', function(previousRevision, revisionResult) {
+    getPreferenceData('audioJitterMs', function(previousValue, jitterResult) {
       var storedValue = previousValue.audioJitterMs != null
         ? String(previousValue.audioJitterMs) : null;
       var isLegacyDefault = previousRevision.audioJitterDefaultRevision == null &&
@@ -2820,6 +2678,7 @@ function loadUserDataCb() {
       $('#jitterSlider')[0].MaterialSlider.change(value);
       $('#selectAudioJitter').html(value + ' ms');
 
+      if (revisionResult.status === 'error' || jitterResult.status === 'error') return;
       if (storedValue !== value) {
         storeData('audioJitterMs', value, null);
       }
@@ -2828,7 +2687,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored playHostAudio preferences.');
-  getData('playHostAudio', function(previousValue) {
+  getPreferenceData('playHostAudio', function(previousValue) {
     if (previousValue.playHostAudio == null) {
       document.querySelector('#playHostAudioBtn').MaterialSwitch.off(); // Set the default state
     } else if (previousValue.playHostAudio == false) {
@@ -2839,7 +2698,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored videoCodec preferences.');
-  getData('videoCodec', function(previousValue) {
+  getPreferenceData('videoCodec', function(previousValue) {
     if (previousValue.videoCodec != null) {
       $('.videoCodecMenu li').each(function() {
         if ($(this).data('value') === previousValue.videoCodec) {
@@ -2851,7 +2710,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored hdrMode preferences.');
-  getData('hdrMode', function(previousValue) {
+  getPreferenceData('hdrMode', function(previousValue) {
     if (previousValue.hdrMode == null) {
       document.querySelector('#hdrModeBtn').MaterialSwitch.off(); // Set the default state
     } else if (previousValue.hdrMode == false) {
@@ -2862,7 +2721,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored fullRange preferences.');
-  getData('fullRange', function(previousValue) {
+  getPreferenceData('fullRange', function(previousValue) {
     if (previousValue.fullRange == null) {
       document.querySelector('#fullRangeBtn').MaterialSwitch.off(); // Set the default state
     } else if (previousValue.fullRange == false) {
@@ -2873,7 +2732,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored gameMode preferences.');
-  getData('gameMode', function(previousValue) {
+  getPreferenceData('gameMode', function(previousValue) {
     if (previousValue.gameMode == null) {
       // Off on every version: this is the switch that freezes playback on some
       // models, and it must stay off in the ForceGM build
@@ -2889,7 +2748,7 @@ function loadUserDataCb() {
   });
 
 
-  getData('framePacingExperimental', function(previousValue) {
+  getPreferenceData('framePacingExperimental', function(previousValue) {
     const control = document.querySelector('#framePacingBtn').MaterialSwitch;
     // Keep the existing storage key and explicit saved choices across updates.
     if (previousValue.framePacingExperimental == null || previousValue.framePacingExperimental === true) control.on();
@@ -2897,7 +2756,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored disableWarnings preferences.');
-  getData('disableWarnings', function(previousValue) {
+  getPreferenceData('disableWarnings', function(previousValue) {
     if (previousValue.disableWarnings == null) {
       document.querySelector('#disableWarningsBtn').MaterialSwitch.off(); // Set the default state
     } else if (previousValue.disableWarnings == false) {
@@ -2908,7 +2767,7 @@ function loadUserDataCb() {
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored performanceStats preferences.');
-  getData('performanceStats', function(previousValue) {
+  getPreferenceData('performanceStats', function(previousValue) {
     if (previousValue.performanceStats == null) {
       document.querySelector('#performanceStatsBtn').MaterialSwitch.off(); // Set the default state
     } else if (previousValue.performanceStats == false) {
@@ -2919,76 +2778,87 @@ function loadUserDataCb() {
   });
 }
 
-function loadHTTPCerts() {
-  console.log('%c[index.js, loadHTTPCerts]', 'color: green;', 'Loading stored HTTP certificates...');
-  openIndexDB(loadHTTPCertsCb);
+function storageInitializationError() {
+  $('#loadingSpinnerMessage').text('Could not load saved data. Retry to preserve pairing.');
+  snackbarLogLong('Could not load saved data. Retry to preserve pairing.');
+  var retry = document.getElementById('storageRetry');
+  if (!retry) {
+    retry = document.createElement('button');
+    retry.id = 'storageRetry';
+    retry.textContent = 'Retry';
+    document.getElementById('loadingSpinnerMessage').appendChild(retry);
+  }
+  retry.onclick = loadHTTPCerts;
 }
 
-function loadHTTPCertsCb() {
-  console.log('%c[index.js, loadHTTPCertsCb]', 'color: green;', 'Load the HTTP certificate and unique ID if they are already available.');
-  getData('cert', function(savedCert) {
-    if (savedCert.cert != null) { // We have a saved cert
-      pairingCert = savedCert.cert;
+function loadHTTPCerts() {
+  if (loadHTTPCerts.pending) return loadHTTPCerts.pending;
+  function read(key) {
+    return new Promise(function(resolve, reject) {
+      getData(key, function(result) {
+        if (result.status === 'error') reject(new Error('Saved data unavailable'));
+        else resolve(result);
+      });
+    });
+  }
+  function write(key, value) {
+    return new Promise(function(resolve, reject) {
+      storeData(key, value, function(result) {
+        if (result.status !== 'ok') reject(new Error('Saved data unavailable'));
+        else resolve();
+      });
+    });
+  }
+  loadHTTPCerts.pending = Promise.all([read('cert'), read('uniqueid'), read('hosts')]).then(function(values) {
+    var cert = values[0], uid = values[1], savedHosts = values[2];
+    if ((cert.status === 'ok' && (!cert.value || typeof cert.value.cert !== 'string' || !cert.value.cert ||
+        typeof cert.value.privateKey !== 'string' || !cert.value.privateKey)) ||
+        (uid.status === 'ok' && (typeof uid.value !== 'string' || !uid.value)) ||
+        (savedHosts.status === 'ok' && (!savedHosts.value || typeof savedHosts.value !== 'object' || Array.isArray(savedHosts.value)))) {
+      throw new Error('Invalid saved identity');
     }
-
-    getData('uniqueid', function(savedUniqueid) {
-      if (savedUniqueid && savedUniqueid.uniqueid != null) { // We have a saved uniqueid
-        myUniqueid = savedUniqueid.uniqueid;
-      } else {
-        myUniqueid = uniqueid();
-        storeData('uniqueid', myUniqueid, null);
-      }
-
-      if (!pairingCert) { // We couldn't load a cert. Let's attempt to generate a new one.
-        console.warn('%c[index.js, loadHTTPCertsCb]', 'color: green;', 'Warning: Local certificate not found! Generating a new one...');
-        sendMessage('makeCert', []).then(function(cert) {
-          storeData('cert', cert, null);
-          pairingCert = cert;
-        }, function(failedCert) {
-          console.error('%c[index.js, loadHTTPCertsCb]', 'color: gray;', 'Operation failed; private details omitted.');
-        }).then(function(ret) {
-          sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function(ret) {
-            restoreUiAfterWasmLoad();
-          }, function(failedInit) {
-            console.error('%c[index.js, loadHTTPCertsCb]', 'color: gray;', 'Operation failed; private details omitted.');
-          });
+    var restoredHosts = savedHosts.status === 'ok' ? savedHosts.value : {};
+    Object.keys(restoredHosts).forEach(function(key) {
+      var host = restoredHosts[key];
+      if (!host || typeof host !== 'object' || typeof host.address !== 'string') throw new Error('Invalid saved host');
+    });
+    var id = uid.status === 'ok' ? uid.value : uniqueid();
+    var certificate = cert.status === 'ok' ? Promise.resolve(cert.value) : sendMessage('makeCert', []);
+    return certificate.then(function(identity) {
+      if (!identity || !identity.cert || !identity.privateKey) throw new Error('Certificate unavailable');
+      return Promise.all([
+        uid.status === 'missing' ? write('uniqueid', id) : Promise.resolve(),
+        cert.status === 'missing' ? write('cert', identity) : Promise.resolve()
+      ]).then(function() {
+        return sendMessage('httpInit', [identity.cert, identity.privateKey, id]);
+      }).then(function() {
+        pairingCert = identity;
+        myUniqueid = id;
+        var revived = {};
+        Object.keys(restoredHosts).forEach(function(key) {
+          var stored = restoredHosts[key];
+          var host = new NvHTTP(stored.address, id, stored.userEnteredAddress, stored.macAddress);
+          Object.assign(host, stored);
+          host.httpPort = stored.httpPort || ((stored.httpsPort || 47984) + 5);
+          host.httpsPort = stored.httpsPort || (host.httpPort - 5);
+          host.externalPort = stored.externalPort || host.httpPort;
+          revived[key] = host;
         });
-      } else {
-        sendMessage('httpInit', [pairingCert.cert, pairingCert.privateKey, myUniqueid]).then(function(ret) {
-          restoreUiAfterWasmLoad();
-        }, function(failedInit) {
-          console.error('%c[index.js, loadHTTPCertsCb]', 'color: gray;', 'Operation failed; private details omitted.');
-        });
-      }
-
-      // load previously connected hosts, which have been killed into an object, and revive them back into a class
-      getData('hosts', function(previousValue) {
-        hosts = previousValue.hosts != null ? previousValue.hosts : {};
-        for (var hostUID in hosts) { // Programmatically add each new host
-          var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress, hosts[hostUID].macAddress);
-          Object.assign(revivedHost, hosts[hostUID]);
-          revivedHost.httpPort = hosts[hostUID].httpPort || ((hosts[hostUID].httpsPort || 47984) + 5);
-          revivedHost.httpsPort = hosts[hostUID].httpsPort || (revivedHost.httpPort - 5);
-          revivedHost.externalPort = hosts[hostUID].externalPort || revivedHost.httpPort;
-          revivedHost.serverUid = hosts[hostUID].serverUid;
-          revivedHost.externalIP = hosts[hostUID].externalIP;
-          revivedHost.hostname = hosts[hostUID].hostname;
-          revivedHost.ppkstr = hosts[hostUID].ppkstr;
-          hosts[hostUID] = revivedHost;
-          addHostToGrid(revivedHost);
-        }
+        hosts = revived;
+        Object.keys(hosts).forEach(function(key) { addHostToGrid(hosts[key]); });
+        restoreUiAfterWasmLoad();
         startPollingHosts();
-        console.log('%c[index.js, loadHTTPCertsCb]', 'color: green;', 'Loading previously connected hosts...');
         ConsoleLibrary.ready('hosts');
-        // Known PCs need no subnet-wide scan on every startup.
-        startupScanTimer = setTimeout(() => {
+        clearTimeout(startupScanTimer);
+        startupScanTimer = setTimeout(function() {
           if (isInGame || Object.keys(hosts).length) return;
           snackbarLog('Scanning the local network to discover new hosts...');
           startSubnetScanner();
         }, 1000);
       });
     });
-  });
+  }).catch(storageInitializationError).then(function() { loadHTTPCerts.pending = null; });
+  return loadHTTPCerts.pending;
 }
 
 function onWindowLoad() {

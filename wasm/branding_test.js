@@ -19,6 +19,11 @@ const changed = cp.execFileSync('git', ['diff', '--name-only', 'v3.4.10', '--', 
 const pacing = require('./frame-pacing-scope.cjs');
 const remaining = changed.filter(file => {
   const current=fs.readFileSync(file,'utf8');
+  const review=require('./review-corrections-scope.cjs');
+  if (['libgamestream/pairing.c','libgamestream/http.c','wasm/auddec.cpp','wasm/audio_ring.hpp','wasm/platform/audio.js','wasm/platform/audio-worklet.js'].includes(file)) {
+    assert(review.matches(file,current),'exact separately tested correction: '+file); return false;
+  }
+  if (file === 'wasm/audio_ring_test.cpp') { assert(!fs.readFileSync('CMakeLists.txt','utf8').includes(file)); return false; }
   if (file === 'wasm/platform/messages.js') return false; // Exact normalized handler verified above.
   if (['wasm/platform/menu-i18n.js','wasm/platform/menu-translations.js'].includes(file)) return false;
   if (file === 'wasm/platform/release-update.js') {

@@ -84,7 +84,7 @@ class MoonlightInstance {
  std::unique_ptr<Pacer> m_FramePacer;
  std::unique_ptr<int> m_SourceListener,m_VideoTrackListener;
  std::atomic<uint32_t> m_SessionGeneration{0};
- std::atomic<bool> m_StopComplete{true};
+ std::atomic<bool> m_StopComplete{true}, m_AudioQuiescent{true};
 ${getter[0]}
  mlsession::Phase m_SessionPhase{mlsession::Phase::Idle};
  std::shared_ptr<mlsession::CloseTicket> m_CloseTicket;

@@ -28,12 +28,14 @@ struct AudioRingControl {
   std::atomic<uint32_t> epoch;           // 12: changes when producer must reset the ring
   std::atomic<uint32_t> initialTarget;   // 13: low-latency target after a stable period
   std::atomic<uint32_t> maximumTarget;   // 14: ceiling selected by the user
-  std::atomic<uint32_t> reserved;        // 15
+  std::atomic<uint32_t> resetAt;         // 15: producer's discard boundary
+  std::atomic<uint32_t> resetAck;        // 16: consumer confirms epoch
+  std::atomic<uint32_t> consumerGate;    // 17: active=1/2, retired=4, backend handoff=8
 };
 
 static_assert(sizeof(std::atomic<uint32_t>) == sizeof(uint32_t),
               "WASM atomics must remain 32-bit for JavaScript interop");
-static_assert(sizeof(AudioRingControl) == 16 * sizeof(uint32_t),
+static_assert(sizeof(AudioRingControl) == 18 * sizeof(uint32_t),
               "AudioRingControl layout changed; update the JavaScript indexes");
 
 template <size_t CapacityFrames, size_t MaxChannels>
@@ -62,7 +64,10 @@ class AudioPcmRing {
     control_.epoch.fetch_add(1, std::memory_order_relaxed);
     control_.initialTarget.store(initialTarget, std::memory_order_relaxed);
     control_.maximumTarget.store(maximumTarget, std::memory_order_relaxed);
-    control_.reserved.store(0, std::memory_order_relaxed);
+    control_.resetAt.store(0, std::memory_order_relaxed);
+    control_.resetAck.store(control_.epoch.load(std::memory_order_relaxed), std::memory_order_relaxed);
+    control_.consumerGate.store(0, std::memory_order_release);
+    recoveryStarted_ = recoveryReported_ = false;
   }
 
   // SPSC producer. The decoder feeder is the only writer and the audio backend
@@ -74,21 +79,16 @@ class AudioPcmRing {
       return false;
     }
 
+    if (ResetPending()) return false;
+    recoveryStarted_ = recoveryReported_ = false;
     uint32_t write = control_.writeFrame.load(std::memory_order_relaxed);
     uint32_t read = control_.readFrame.load(std::memory_order_acquire);
     uint32_t used = write - read;
     if (used > CapacityFrames || used + frames > CapacityFrames) {
       control_.overruns.fetch_add(1, std::memory_order_relaxed);
-      control_.readFrame.store(write, std::memory_order_release);
-      control_.started.store(0, std::memory_order_release);
-      // Publish the epoch last. A consumer that observes it is then guaranteed
-      // to observe the matching read pointer and stopped prebuffer state too.
-      control_.epoch.fetch_add(1, std::memory_order_acq_rel);
-      // Drop this one frame. Writing it immediately could overwrite samples an
-      // audio quantum had already selected before it saw the new epoch. The
-      // next Opus frame arrives about 10 ms later, after several worklet
-      // quanta, and starts the fresh prebuffer without that producer/consumer
-      // collision.
+      // The consumer alone updates readFrame. No PCM may be reused until ACK.
+      control_.resetAt.store(write, std::memory_order_relaxed);
+      control_.epoch.fetch_add(1, std::memory_order_release);
       return false;
     }
 
@@ -111,6 +111,20 @@ class AudioPcmRing {
     return true;
   }
 
+  bool ResetPending() const {
+    return control_.epoch.load(std::memory_order_relaxed) !=
+           control_.resetAck.load(std::memory_order_acquire);
+  }
+
+  // Called only while packets arrive during a pending reset. No healthy timer.
+  bool RecoveryExpired(uint32_t nowMs) {
+    if (!ResetPending()) { recoveryStarted_ = recoveryReported_ = false; return false; }
+    if (!recoveryStarted_) { recoverySinceMs_ = nowMs; recoveryStarted_ = true; }
+    if (recoveryReported_ || nowMs - recoverySinceMs_ < 1000) return false;
+    recoveryReported_ = true;
+    return true;
+  }
+
   AudioRingControl* control() { return &control_; }
   int16_t* data() { return pcm_; }
   static constexpr uint32_t capacity_frames() {
@@ -118,6 +132,8 @@ class AudioPcmRing {
   }
 
  private:
+  uint32_t recoverySinceMs_ = 0;
+  bool recoveryStarted_ = false, recoveryReported_ = false;
   alignas(64) AudioRingControl control_{};
   alignas(64) int16_t pcm_[CapacityFrames * MaxChannels]{};
 };

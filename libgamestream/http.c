@@ -166,6 +166,7 @@ int http_request_bounded(const char* url, const char* ppkstr, PHTTP_DATA data,
     }
 
     data->size = 0;
+    data->memory[0] = 0;
   }
 
   CURLcode res = curl_easy_perform(curl);
@@ -206,6 +207,7 @@ PHTTP_DATA http_create_data() {
     return NULL;
   }
   data->size = 0;
+  data->memory[0] = 0;
 
   return data;
 }

@@ -54,13 +54,13 @@ void connectionSawFrame(uint32_t n){lastSeenFrame=n;}void connectionReceivedComp
   }
 
   const index = read('wasm/platform/index.js');
-  const branchStart = index.indexOf("  getData('framePacingExperimental', function(previousValue) {");
+  const branchStart = index.indexOf("  getPreferenceData('framePacingExperimental', function(previousValue) {");
   const branchEnd = index.indexOf('\n  });', branchStart) + '\n  });'.length;
   assert(branchStart > 0 && branchEnd > branchStart);
   for (const [saved, expected] of [[undefined, true], [null, true], [false, false], [true, true], [1, false], ['true', false]]) {
     let state;
     vm.runInNewContext(index.slice(branchStart, branchEnd), {
-      getData(key, callback) { assert.strictEqual(key, 'framePacingExperimental'); callback({framePacingExperimental: saved}); },
+      getPreferenceData(key, callback) { assert.strictEqual(key, 'framePacingExperimental'); callback({framePacingExperimental: saved}); },
       document: {querySelector(selector) {
         assert.strictEqual(selector, '#framePacingBtn');
         return {MaterialSwitch: {on() { state = true; }, off() { state = false; }}};
@@ -77,7 +77,7 @@ void connectionSawFrame(uint32_t n){lastSeenFrame=n;}void connectionReceivedComp
   assert(html.includes('<label>Frame pacing</label>'));
   assert(!html.includes('Frame pacing (experimental)'));
   assert.strictEqual((index.match(/const framePacing = /g) || []).length, 1);
-  assert.strictEqual((index.match(/framePacing, optimizeGames, rumbleFeedback, mouseEmulation,/g) || []).length, 2);
+  assert.strictEqual((index.match(/framePacing, optimizeGames, rumbleFeedback, mouseEmulation,/g) || []).length, 1);
   assert(read('wasm/platform/navigation.js').includes("'gameModeBtn',\n      'framePacingBtn'"));
   const video = read('wasm/wasmplayer.cpp');
   assert(video.includes('template<bool CollectStats, bool Paced>'));

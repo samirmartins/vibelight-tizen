@@ -31,10 +31,12 @@ const launchEdits=[
   ]
 ];
 function normalize(file,source) {
+ source = require('./review-corrections-scope.cjs').normalize(file,source);
  if(!approved[file]||crypto.createHash('sha256').update(source).digest('hex')!==approved[file])return source;
  return cp.execFileSync('git',['cat-file','blob','96584ac:'+file],{encoding:'utf8'});
 }
 function launch(source) {
+ source = require('./review-corrections-scope.cjs').launch(source);
  for(const [after,before] of launchEdits)source=source.replace(after,before);
  return source;
 }

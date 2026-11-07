@@ -12,7 +12,7 @@ const vm = require('vm');
   const pcmPtr = 128;
   const capacity = 4096;
   const channels = 2;
-  const control = new Int32Array(memory, controlPtr, 16);
+  const control = new Int32Array(memory, controlPtr, 18);
   const pcm = new Int16Array(memory, pcmPtr, capacity * channels);
   pcm.fill(8000);
   control[0] = 0;
