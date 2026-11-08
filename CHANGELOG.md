@@ -49,6 +49,11 @@ The published 4.0.2 packages have not been replaced. See the
 
 ### Fixed
 
+- Reuses one warning dialog for consecutive failures and restores the library
+  after a stream ends behind it. Dismissing a nonfatal in-game warning returns
+  focus to the video; obsolete deferred returns cannot interrupt a new launch.
+  Related advice stays in the warning without a second toast; Escape clears
+  the same dialog state as the Close action.
 - Uses one connection screen for game launch and native progress, with Cancel.
   Notifications share its status; warnings and confirmations take priority.
   Clears progress on exit and prevents old return callbacks or Guide from

@@ -116,6 +116,7 @@ function handleMessage(msg) {
   }
   // If it's a recognized event, notify the appropriate function
   if (msg.indexOf('streamTerminated: ') === 0) {
+    isInGame = false;
     if(typeof StreamStartup !== 'undefined') StreamStartup.finish();
     SessionDiagnostics.finish(msg.replace('streamTerminated: ', 'Exit code '));
     // Single owner for the end of a stream: releases the native mask and closes
@@ -195,7 +196,7 @@ function handleMessage(msg) {
     if (typeof MenuI18n !== 'undefined' && (document.getElementById('loadingSpinner').style.display !== 'none' ||
         typeof StreamStartup !== 'undefined' && StreamStartup.active())) MenuI18n.connectionDialog();
   } else if (msg === 'guideButton') {
-    if (typeof StreamOverlay !== 'undefined' && isInGame && !document.hidden &&
+    if (typeof StreamOverlay !== 'undefined' && isInGame && !isDialogOpen && !document.hidden &&
         !(typeof StreamStartup !== 'undefined' && StreamStartup.active())) StreamOverlay.toggle();
   } else if (msg === 'displayVideo') {
     // Show the video stream now

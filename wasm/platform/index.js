@@ -266,9 +266,23 @@ function stopPollingHosts() {
   for (var hostUid in hosts) hosts[hostUid]._pollCompletionCallbacks = [];
 }
 
+function appendWarningNotice(message) {
+  var dialog = document.getElementById('warningDialog');
+  if (!dialog || !dialog.open) return false;
+  var body = document.getElementById('warningDialogText');
+  var text = typeof MenuI18n !== 'undefined' ? MenuI18n.text(message) : message;
+  if (body.textContent.indexOf(text) === -1) {
+    var line = document.createElement('p');
+    line.textContent = text;
+    body.appendChild(line);
+  }
+  return true;
+}
+
 function snackbarLog(givenMessage) {
   console.log('%c[index.js, snackbarLog]', 'color: green;', givenMessage);
   if (typeof StreamStartup !== 'undefined' && StreamStartup.active()) { StreamStartup.stage(givenMessage); return; }
+  if (appendWarningNotice(givenMessage)) return;
   var data = {
     message: givenMessage,
     timeout: 2500
@@ -279,6 +293,7 @@ function snackbarLog(givenMessage) {
 function snackbarLogLong(givenMessage) {
   console.log('%c[index.js, snackbarLogLong]', 'color: green;', givenMessage);
   if (typeof StreamStartup !== 'undefined' && StreamStartup.active()) { StreamStartup.stage(givenMessage); return; }
+  if (appendWarningNotice(givenMessage)) return;
   var data = {
     message: givenMessage,
     timeout: 5000
@@ -1433,24 +1448,41 @@ function warningDialog(title, message) {
   // Change the dialog title and text element with a custom warning message
   document.getElementById('warningDialogTitle').innerHTML = title;
   document.getElementById('warningDialogText').innerHTML = message;
+  // Update the visible warning without stacking another navigation view.
+  if (warningDialog.open) return;
 
   // Show the dialog and push the view
   warningDialogOverlay.style.display = 'flex';
   warningDialog.showModal();
+  document.body.classList.add('warning-open');
   isDialogOpen = true;
   if (typeof StreamStartup !== 'undefined') StreamStartup.cover(true);
   Navigation.push(Views.WarningDialog);
 
   // Cancel the operation if the Close button is pressed
+  warningDialog.oncancel = function(event) {
+    event.preventDefault();
+    document.getElementById('closeWarning').click();
+  };
   $('#closeWarning').off('click');
   $('#closeWarning').on('click', function() {
     console.log('%c[index.js, warningDialog]', 'color: green;', 'Closing app dialog and returning.');
     warningDialogOverlay.style.display = 'none';
     warningDialog.close();
+    document.body.classList.remove('warning-open');
     isDialogOpen = false;
     Navigation.pop();
-    Navigation.switch();
-    if (typeof StreamStartup !== 'undefined') StreamStartup.cover(false);
+    var returning = pendingWarningReturn;
+    pendingWarningReturn = null;
+    if (returning && returning === api && !document.hidden && !isInGame &&
+        !(typeof StreamStartup !== 'undefined' && StreamStartup.active())) {
+      showApps(returning);
+    } else if (isInGame && !(typeof StreamStartup !== 'undefined' && StreamStartup.active())) {
+      document.getElementById('wasm_module').focus();
+    } else {
+      Navigation.switch();
+      if (typeof StreamStartup !== 'undefined') StreamStartup.cover(false);
+    }
   });
 }
 
@@ -1622,7 +1654,15 @@ function showAppsMode() {
 }
 
 // Show the Apps grid
+var pendingWarningReturn = null;
 function showApps(host) {
+  // A native failure can terminate while its warning still owns the screen.
+  // Resume the single menu return when that warning is dismissed.
+  if (isDialogOpen && document.getElementById('warningDialog').open) {
+    pendingWarningReturn = host;
+    return Promise.resolve();
+  }
+  pendingWarningReturn = null;
   return ConsoleLibrary.open(host);
 }
 

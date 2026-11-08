@@ -90,7 +90,7 @@
 #streamStartupPanel { position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#202632; color:#eef3f8; padding:24px 36px; text-align:center; overflow:auto; }
 #streamStartupMessage { max-width:85%; word-wrap:break-word; font-size:23px; line-height:30px; margin:0 0 24px; }
 /* Old menu notifications must not compete with the active connection screen. */
-body.stream-starting #snackbar { visibility:hidden; pointer-events:none; }
+body.stream-starting #snackbar, body.warning-open #snackbar { visibility:hidden; pointer-events:none; }
 #streamStartupCancel { flex-shrink:0; color:#eef3f8; background:#42516a; border:1px solid #89bfd1; border-radius:8px; padding:11px 28px; font-size:22px; }
 #streamStartupCancel:focus { outline:3px solid #68d5e9; }
 

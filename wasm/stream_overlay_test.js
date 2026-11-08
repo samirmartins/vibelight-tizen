@@ -404,7 +404,7 @@ function fixture(options = {}) {
     const c = {
       console: {log() {}, warn() {}, error() {}},
       Promise, JSON, parseInt, Object, Math, Number, String,
-      isInGame: true,
+      isInGame: true, isDialogOpen: false,
       document: {hidden: false},
       SessionDiagnostics: {finish() {}, sample() {}, note() {}, connected() {},isVisible(){return false;}},
       stopVideoPresentationObserver() {}, stopAudioScheduler() {},
