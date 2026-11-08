@@ -23,6 +23,9 @@
       return Object.assign({},entry,{score:terms.reduce(function(n,term){return n+(title.includes(term)?4:1);},0),order:index,excerpt:excerpt(entry.text,query)});
     }).filter(Boolean).sort(function(a,b){return b.score-a.score||a.order-b.order;}).slice(0,8);
   }
-  function languageHref(base,locale,id){return base+({en:'index.html','pt-br':'pt-br/index.html',es:'es/index.html'}[locale]||'index.html')+'#'+canonical(id);}
+  function languageHref(base,locale,id){
+    if(!['en','pt-br','es'].includes(locale))locale='en';
+    return base+({en:'index.html','pt-br':'pt-br/index.html',es:'es/index.html'}[locale])+'?lang='+locale+'#'+canonical(id);
+  }
   return{normalize:normalize,canonical:canonical,excerpt:excerpt,search:search,languageHref:languageHref};
 });

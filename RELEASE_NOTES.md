@@ -15,14 +15,14 @@
 - Fixes pairing, persistence, native string handling and session/audio recovery,
   preventing stale launches and unsafe cleanup.
 - An English-first visual guide with Portuguese/Spanish selection, illustrated
-  tasks and local search that opens individual answers.
+  setup and controller mapping, Normal-first package guidance and local search.
 
 **Statistics:** enable them in the game menu for each session. Hiding the overlay
 keeps recording until exit; saved records are in Settings → Diagnosis.
 
 ## Downloads
 
-- **Normal:** standard build.
+- **Normal:** standard build; recommended starting point.
 - **ForceGM:** same features, with a request to enable TV panel Game Mode.
 
 No WGT is available for this unreleased draft. The currently published packages

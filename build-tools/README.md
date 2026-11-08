@@ -344,9 +344,13 @@ Commit the generated `docs/index.html`, `docs/pt-br/index.html` and
 `docs/es/index.html` with their content/assets. GitHub Pages serves them directly;
 it does not run Node or require npm dependencies. Keep `.nojekyll`.
 
+Paragraphs, steps and callouts accept inline `[label](https://example.com)` or
+`[label](#topic-id)` links. Other text stays escaped; raw HTML is not supported.
+Link tools to their official projects and use topic links for related answers.
+
 English is the first-visit default, independent of browser language. Explicit
-language selection uses local storage and keeps the topic URL; storage denial
-still allows switching. Search matches individual answers, ignores accents,
+language selection marks the destination URL and remembers the choice locally;
+it keeps the topic even when storage is stale or read-only. Search matches individual answers, ignores accents,
 shows excerpts and stays entirely in the browser. Legacy Portuguese anchors
 remain supported. Validate the site under a repository subpath, on mobile and
 desktop, with keyboard navigation and all three languages. Documentation-only

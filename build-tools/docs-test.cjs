@@ -17,9 +17,9 @@ assert(core.search(entries,'áudio')[0].excerpt.includes('buffer'));
 assert(core.excerpt('Before. '+('word '.repeat(100))+' target answer. End.','target',100).includes('target'));
 assert.equal(core.canonical('diagnostico'),'diagnostics');
 assert.equal(core.canonical('atualizar'),'update');
-assert.equal(core.languageHref('../','es','compare'),'../es/index.html#compare');
-assert.equal(core.languageHref('./','en','audio-buffer'),'./index.html#audio-buffer');
-assert.equal(core.languageHref('./','invalid','home'),'./index.html#home');
+assert.equal(core.languageHref('../','es','compare'),'../es/index.html?lang=es#compare');
+assert.equal(core.languageHref('./','en','audio-buffer'),'./index.html?lang=en#audio-buffer');
+assert.equal(core.languageHref('./','invalid','home'),'./index.html?lang=en#home');
 const root=path.resolve(__dirname,'..');
 const codes=['en','pt-br','es'];let previous;
 for(const code of codes){

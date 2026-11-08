@@ -96,16 +96,23 @@
           "id": "choose-package",
           "title": "Normal or ForceGM?",
           "text": [
-            "The packages share the same code and app identity. The in-app ultra-low latency switch is a separate setting."
+            "Start with Normal. Both packages run the same code and update the same installation; ForceGM changes the TV panel Game Mode request, not streaming quality."
           ],
           "cards": [
             {
-              "title": "Normal",
-              "text": "Does not request panel Game Mode. A starting point if you are unsure."
+              "title": "Normal · start here",
+              "text": "Use this for your first installation and whenever playback and controls already feel good. It leaves the panel mode to the TV; you can enable Game Mode manually if your TV offers it."
             },
             {
-              "title": "ForceGM",
-              "text": "Requests panel Game Mode. Its effect depends on the TV and system version."
+              "title": "ForceGM · try if needed",
+              "text": "Try this if Normal feels delayed and the TV does not let you enable panel Game Mode for the app. It requests that mode; some TVs or firmware may ignore it. If it causes trouble or brings no benefit, return to Normal."
+            }
+          ],
+          "callout": "ForceGM does not enable the separate ultra-low video latency setting. Leave that setting off for your first test.",
+          "links": [
+            {
+              "text": "Understand ultra-low video latency",
+              "href": "#video-latency"
             }
           ]
         },
@@ -114,9 +121,9 @@
           "title": "Install on your Samsung TV",
           "text": [],
           "steps": [
-            "Download a VibeLight .wgt from Releases and Apps2Samsung from its official project.",
+            "Download a VibeLight .wgt from Releases and [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung) from its official project.",
             "In TV Apps / App Settings, enter 12345, enable Developer Mode, enter the installer device’s IP and restart the TV. Menus vary by model.",
-            "Open Apps2Samsung, choose the TV and select your .wgt. Follow its signing and installation prompts."
+            "Open [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung), choose the TV and select your .wgt. Follow its signing and installation prompts."
           ],
           "illustration": {
             "type": "install",
@@ -126,7 +133,7 @@
               "Prepare the TV",
               "Install your package"
             ],
-            "caption": "Setup diagram, not a Samsung or Apps2Samsung screenshot. Follow the controls shown by your version."
+            "caption": "Setup diagram, not a Samsung or [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung) screenshot. Follow the controls shown by your version."
           },
           "links": [
             {
@@ -135,7 +142,7 @@
             },
             {
               "text": "Apps2Samsung",
-              "href": "https://github.com/Apps2Samsung/Apps2Samsung/releases/latest"
+              "href": "https://github.com/Apps2Samsung/Apps2Samsung"
             },
             {
               "text": "Samsung: Developer Mode",
@@ -183,18 +190,30 @@
           "id": "prepare-host",
           "title": "Prepare VibeShine or Sunshine",
           "text": [
-            "Install and open the host on your PC. Follow its setup for capture, encoder and permissions. Add games under Applications; Desktop is a simple first connection."
+            "VibeShine or Sunshine runs on the gaming PC, sends picture and sound to the TV, and receives your controller commands. Choose one host; keep only one running on that PC."
           ],
           "links": [
             {
-              "text": "VibeShine",
-              "href": "https://github.com/Nonary/VibeShine"
+              "text": "VibeShine · official project and setup",
+              "href": "https://github.com/Nonary/vibeshine"
             },
             {
-              "text": "Sunshine",
-              "href": "https://app.lizardbyte.dev/Sunshine/"
+              "text": "Sunshine · official getting started guide",
+              "href": "https://docs.lizardbyte.dev/projects/sunshine/latest/md_docs_2getting__started.html"
+            },
+            {
+              "text": "Next: confirm the PIN",
+              "href": "#pair-pin"
             }
-          ]
+          ],
+          "steps": [
+            "Download the installer for your operating system from [VibeShine releases](https://github.com/Nonary/vibeshine/releases/latest) or [Sunshine releases](https://github.com/LizardByte/Sunshine/releases/latest). Install it, including the controller components requested by that version, and open it.",
+            "Open the host’s web interface from its tray icon or startup message. Create the administrator account if prompted. Sunshine normally uses https://localhost:47990 on the PC; VibeShine’s menu names and address may vary by version.",
+            "Complete the capture and input setup offered by the host. Choose the display you want to stream, check the audio output, and resolve any capture, encoder or controller warnings before pairing. Start with the host’s default encoder settings.",
+            "In Applications or the game-library page, add a game or launcher. Use Desktop for a simple first test if it is available. Save changes and keep the host running, with the PC awake.",
+            "Keep the TV and PC on the same local network and allow the host through the firewall on your private network. Leave the web interface open: its PIN/pairing page is where you will enter the code shown by VibeLight."
+          ],
+          "callout": "Ready? The host opens without setup errors, your display is available, and a game or Desktop appears in its library. Now pair the TV."
         },
         {
           "id": "pair-pin",
@@ -220,7 +239,20 @@
           "id": "wake-pc",
           "title": "Wake the PC",
           "text": [
-            "Wake PC uses Wake-on-LAN. Enable it in BIOS/UEFI and the network adapter, and verify the physical adapter’s MAC in that PC’s settings. Wi-Fi and waking after shutdown depend on the hardware. This does not add a power-off action."
+            "Wake-on-LAN sends a wake packet over your local network. Set it up once while the PC is on; a successful send means the packet left the TV, not that the PC has finished waking."
+          ],
+          "steps": [
+            "Connect the PC by Ethernet to the same local network as the TV. In its BIOS/UEFI, enable Wake-on-LAN, PME or Power on by PCI-E; the name depends on the motherboard.",
+            "In the operating system’s network-adapter settings, enable waking by Magic Packet where supported. Find the physical Ethernet adapter’s MAC address; on Windows, ipconfig /all shows it as Physical Address. Do not use a VPN or virtual adapter’s address.",
+            "In VibeLight, open the PC menu → Wake PC. Check the detected MAC or enter the physical adapter’s address, then use Save MAC. You can also use Wake PC in the library.",
+            "Put the PC to sleep and select Wake PC on the TV. Wait for the PC and host to start, then refresh the library and select Play. Sending the packet does not launch a game automatically."
+          ],
+          "callout": "Test from sleep first. Waking over Wi-Fi or after shutdown depends on the PC, adapter and power settings; the network adapter must remain powered.",
+          "links": [
+            {
+              "text": "PC missing after waking?",
+              "href": "#fix-network"
+            }
           ]
         }
       ]
@@ -293,7 +325,13 @@
             "Ultra-low video latency selects a player mode that disables TV image enhancements to reduce delay. It is independent of ForceGM and remains off by default. Some TVs/system versions may be unstable; Tizen 9 has a history of black screens or freezing.",
             "Frame pacing can improve motion regularity and add latency. Keep the setting that works for your TV."
           ],
-          "keywords": "lag latency game mode forcegm pacing h264"
+          "keywords": "lag latency game mode forcegm pacing h264",
+          "links": [
+            {
+              "text": "Choose Normal or ForceGM",
+              "href": "#choose-package"
+            }
+          ]
         },
         {
           "id": "audio-buffer",
@@ -309,6 +347,69 @@
           "title": "Make the controller yours",
           "text": [
             "Use Controls to map buttons, test inputs and adjust sticks or triggers. The direct tuning shortcut opens the existing editor. Menu sounds live in General & about; they stop before streaming."
+          ],
+          "links": [
+            {
+              "text": "Open the controller mapping guide",
+              "href": "#controller-mapping"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "controller-mapping",
+      "nav": "Controller mapping",
+      "title": "Your buttons. Your layout.",
+      "intro": "Remap game inputs, check physical buttons and tune sticks without changing menu navigation.",
+      "eyebrow": "CONTROLLER MAPPING",
+      "sections": [
+        {
+          "id": "mapping-start",
+          "title": "Open the right controller profile",
+          "text": [
+            "Connect the controller to the TV, then open Settings → Controls → Controller mapping outside a game. Choose Xbox, PlayStation or Switch to match your controller. Each family has its own saved layout."
+          ],
+          "image": {
+            "name": "mapping",
+            "caption": "Current mapping editor with an illustrative Xbox A ↔ B swap.",
+            "alt": "Controller mapping editor showing the family tabs, physical buttons, game input, test and save controls."
+          }
+        },
+        {
+          "id": "mapping-buttons",
+          "title": "Change what a button sends",
+          "steps": [
+            "Select the physical button in the controller diagram or button grid, then choose Change.",
+            "Choose the game input it should send. For example, assign physical B to A; the previous assignment is swapped, keeping each input assigned once. Triggers can swap only with triggers.",
+            "Review the swaps shown in the editor and choose Save. Cancel leaves the previously saved layout unchanged. Start or resume a stream to use the saved settings."
+          ],
+          "callout": "The layout affects game input. VibeLight menu navigation keeps the original buttons, so remapping does not change how you confirm or go back."
+        },
+        {
+          "id": "mapping-test",
+          "title": "Test buttons and recover a layout",
+          "text": [
+            "Choose Test buttons and press the controller’s physical buttons to see them light up. This checks which button the TV receives; it is not a live game test of the remap.",
+            "Choose Stop test, or hold Guide / PS / Home for three seconds to leave the test. To undo customizations, choose Restore layout and then Save; this resets the selected family’s button assignments and analog tuning."
+          ]
+        },
+        {
+          "id": "mapping-analog",
+          "title": "Tune sticks and triggers only when needed",
+          "text": [
+            "Open Analog tuning in the editor, or use the direct shortcut under Settings → Controls. Enable tuning to adjust deadzone, response curve, axis inversion, stick swap and trigger threshold for that family.",
+            "If a stick drifts while untouched, try a small deadzone; a larger value ignores more of its initial movement. Change one setting at a time, save and check the result in the next stream."
+          ],
+          "links": [
+            {
+              "text": "Return to settings",
+              "href": "#controls"
+            },
+            {
+              "text": "Open the in-game menu",
+              "href": "#game-menu"
+            }
           ]
         }
       ]

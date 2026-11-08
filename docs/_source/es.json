@@ -96,16 +96,23 @@
           "id": "choose-package",
           "title": "¿Normal o ForceGM?",
           "text": [
-            "Los paquetes comparten código e identidad de la aplicación. El interruptor de latencia ultrabaja dentro del app es una opción independiente."
+            "Empieza por Normal. Las dos variantes ejecutan el mismo código y actualizan la misma instalación; ForceGM cambia la solicitud del Modo Juego del panel, no la calidad de la transmisión."
           ],
           "cards": [
             {
-              "title": "Normal",
-              "text": "No solicita el Modo Juego del panel. Un punto de partida si tienes dudas."
+              "title": "Normal · empieza aquí",
+              "text": "Úsala en la primera instalación y siempre que la imagen y la respuesta del mando sean buenas. Deja el modo del panel a la TV; puedes activar el Modo Juego manualmente si tu TV lo permite."
             },
             {
-              "title": "ForceGM",
-              "text": "Solicita el Modo Juego del panel. Su efecto depende del televisor y del sistema."
+              "title": "ForceGM · pruébala si hace falta",
+              "text": "Pruébala si notas retraso con Normal y la TV no permite activar el Modo Juego para la app. Solicita ese modo; algunas TVs o versiones del sistema pueden ignorarlo. Si causa problemas o no ayuda, vuelve a Normal."
+            }
+          ],
+          "callout": "ForceGM no activa la opción independiente de latencia ultrabaja de vídeo. Déjala desactivada en la primera prueba.",
+          "links": [
+            {
+              "text": "Entiende la latencia ultrabaja de vídeo",
+              "href": "#video-latency"
             }
           ]
         },
@@ -114,9 +121,9 @@
           "title": "Instala en tu TV Samsung",
           "text": [],
           "steps": [
-            "Descarga un .wgt de VibeLight en Releases y Apps2Samsung desde su proyecto oficial.",
+            "Descarga un .wgt de VibeLight en Releases y [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung) desde su proyecto oficial.",
             "En Apps / Ajustes de aplicaciones del TV, introduce 12345, activa Developer Mode, indica la IP del dispositivo instalador y reinicia el TV. Los menús varían según el modelo.",
-            "Abre Apps2Samsung, elige el televisor y selecciona tu .wgt. Sigue las indicaciones de firma e instalación."
+            "Abre [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung), elige el televisor y selecciona tu .wgt. Sigue las indicaciones de firma e instalación."
           ],
           "illustration": {
             "type": "install",
@@ -126,7 +133,7 @@
               "Prepara el TV",
               "Instala tu paquete"
             ],
-            "caption": "Diagrama de instalación, no una captura de Samsung o Apps2Samsung. Sigue los controles de tu versión."
+            "caption": "Diagrama de instalación, no una captura de Samsung o [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung). Sigue los controles de tu versión."
           },
           "links": [
             {
@@ -135,7 +142,7 @@
             },
             {
               "text": "Apps2Samsung",
-              "href": "https://github.com/Apps2Samsung/Apps2Samsung/releases/latest"
+              "href": "https://github.com/Apps2Samsung/Apps2Samsung"
             },
             {
               "text": "Samsung: modo desarrollador",
@@ -183,18 +190,30 @@
           "id": "prepare-host",
           "title": "Prepara VibeShine o Sunshine",
           "text": [
-            "Instala y abre el host en el PC. Sigue la configuración de captura, encoder y permisos. Añade juegos en Applications; Desktop es una primera conexión sencilla."
+            "VibeShine o Sunshine se ejecuta en el PC de juegos, envía imagen y sonido a la TV y recibe los comandos del mando. Elige uno; mantén solo un host ejecutándose en ese PC."
           ],
           "links": [
             {
-              "text": "VibeShine",
-              "href": "https://github.com/Nonary/VibeShine"
+              "text": "VibeShine · proyecto oficial y configuración",
+              "href": "https://github.com/Nonary/vibeshine"
             },
             {
-              "text": "Sunshine",
-              "href": "https://app.lizardbyte.dev/Sunshine/"
+              "text": "Sunshine · primeros pasos oficiales",
+              "href": "https://docs.lizardbyte.dev/projects/sunshine/latest/md_docs_2getting__started.html"
+            },
+            {
+              "text": "Siguiente paso: confirma el PIN",
+              "href": "#pair-pin"
             }
-          ]
+          ],
+          "steps": [
+            "Descarga el instalador para tu sistema desde las [versiones de VibeShine](https://github.com/Nonary/vibeshine/releases/latest) o las [versiones de Sunshine](https://github.com/LizardByte/Sunshine/releases/latest). Instala también los componentes del mando que solicite esa versión y abre el programa.",
+            "Abre la interfaz web desde el icono del host junto al reloj o la dirección que aparece al iniciarlo. Crea la cuenta de administrador si se solicita. Sunshine usa normalmente https://localhost:47990 en el PC; los menús y la dirección de VibeShine pueden variar según la versión.",
+            "Completa la configuración de captura y entrada del host. Elige la pantalla que quieres transmitir, comprueba la salida de audio y resuelve los avisos de captura, codificador o mando antes de emparejar. Empieza con los ajustes predeterminados del codificador.",
+            "En Applications/Aplicaciones o en la biblioteca, añade un juego o launcher. Usa Desktop para la primera prueba si está disponible. Guarda los cambios y mantén el host abierto y el PC despierto.",
+            "Mantén la TV y el PC en la misma red local y permite el host en el cortafuegos de la red privada. Deja abierta la interfaz web: su página PIN/emparejamiento es donde introducirás el código que muestra VibeLight."
+          ],
+          "callout": "¿Todo listo? El host abre sin errores de configuración, la pantalla está disponible y un juego o Desktop aparece en su biblioteca. Ahora empareja la TV."
         },
         {
           "id": "pair-pin",
@@ -220,7 +239,20 @@
           "id": "wake-pc",
           "title": "Despierta el PC",
           "text": [
-            "Despertar PC usa Wake-on-LAN. Actívalo en BIOS/UEFI y en el adaptador de red; comprueba la MAC del adaptador físico en los ajustes del PC. Wi-Fi y despertar tras el apagado dependen del hardware. Esto no añade una acción de apagado."
+            "Wake-on-LAN envía un paquete para despertar el PC por la red local. Configúralo una vez con el PC encendido; confirmar el envío significa que el paquete salió de la TV, no que el PC haya terminado de despertar."
+          ],
+          "steps": [
+            "Conecta el PC por Ethernet a la misma red local que la TV. En la BIOS/UEFI, activa Wake-on-LAN, PME o Power on by PCI-E; el nombre depende de la placa base.",
+            "En los ajustes del adaptador de red del sistema, permite despertar mediante Magic Packet si existe esa opción. Busca la MAC del adaptador Ethernet físico; en Windows, ipconfig /all la muestra como Dirección física. No uses una VPN ni un adaptador virtual.",
+            "En VibeLight, abre el menú del PC → Encender PC. Comprueba la MAC detectada o introduce la del adaptador físico y usa Guardar MAC. La biblioteca también incluye Encender PC.",
+            "Suspende el PC y selecciona Encender PC en la TV. Espera a que el PC y el host se inicien, actualiza la biblioteca y elige Jugar. Enviar el paquete no inicia un juego automáticamente."
+          ],
+          "callout": "Prueba primero desde la suspensión. Despertar por Wi-Fi o tras apagar depende del PC, el adaptador y las opciones de energía; el adaptador de red debe seguir recibiendo alimentación.",
+          "links": [
+            {
+              "text": "¿El PC no aparece después de despertar?",
+              "href": "#fix-network"
+            }
           ]
         }
       ]
@@ -293,7 +325,13 @@
             "Latencia ultrabaja elige un modo del reproductor que desactiva mejoras de imagen del TV para reducir el retraso. Es independiente de ForceGM y empieza desactivada. Algunas TVs/versiones del sistema pueden ser inestables; hay antecedentes de pantalla negra o congelación en Tizen 9.",
             "Frame pacing puede mejorar la regularidad del movimiento y añadir latencia. Conserva el ajuste que funcione en tu TV."
           ],
-          "keywords": "lag latency game mode forcegm pacing h264"
+          "keywords": "lag latency game mode forcegm pacing h264",
+          "links": [
+            {
+              "text": "Elegir Normal o ForceGM",
+              "href": "#choose-package"
+            }
+          ]
         },
         {
           "id": "audio-buffer",
@@ -309,6 +347,69 @@
           "title": "Adapta el mando a tu gusto",
           "text": [
             "Usa Controles para mapear botones, probar entradas y ajustar sticks o gatillos. El acceso directo abre el editor existente. Los sonidos del menú están en General y acerca de; se detienen antes de transmitir."
+          ],
+          "links": [
+            {
+              "text": "Abrir la guía de asignación de controles",
+              "href": "#controller-mapping"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "controller-mapping",
+      "nav": "Asignación de controles",
+      "title": "Tus botones. Tu distribución.",
+      "intro": "Reasigna comandos del juego, comprueba botones físicos y ajusta sticks sin cambiar la navegación de los menús.",
+      "eyebrow": "ASIGNACIÓN DE CONTROLES",
+      "sections": [
+        {
+          "id": "mapping-start",
+          "title": "Abre el perfil correcto del mando",
+          "text": [
+            "Conecta el mando a la TV y, fuera del juego, abre Ajustes → Controles → Asignación del mando. Elige Xbox, PlayStation o Switch según tu mando. Cada familia tiene su propia distribución guardada."
+          ],
+          "image": {
+            "name": "mapping",
+            "caption": "Editor actual con un intercambio ilustrativo A ↔ B en el perfil Xbox.",
+            "alt": "Editor de asignación con familias de mandos, botones físicos, entrada del juego, prueba y opciones para guardar."
+          }
+        },
+        {
+          "id": "mapping-buttons",
+          "title": "Cambia el comando que envía un botón",
+          "steps": [
+            "Selecciona el botón físico en el dibujo del mando o la cuadrícula y elige Cambiar.",
+            "Elige la entrada que debe enviar al juego. Por ejemplo, asigna A al botón físico B; se intercambia la asignación anterior, manteniendo una entrada por botón. Los gatillos solo se pueden intercambiar entre sí.",
+            "Revisa los cambios que muestra el editor y elige Guardar. Cancelar conserva la distribución guardada anteriormente. Inicia o reanuda una transmisión para usar los ajustes guardados."
+          ],
+          "callout": "La distribución afecta a los comandos enviados al juego. Los menús de VibeLight mantienen los botones originales para confirmar y volver."
+        },
+        {
+          "id": "mapping-test",
+          "title": "Prueba botones y recupera una distribución",
+          "text": [
+            "Elige Probar botones y pulsa los botones físicos para verlos iluminarse. Esto comprueba qué botón recibe la TV; no prueba la reasignación dentro de un juego.",
+            "Elige Detener prueba o mantén Guide / PS / Home durante tres segundos para salir. Para deshacer personalizaciones, elige Restaurar distribución y después Guardar; se restablecen los botones y el ajuste analógico de la familia seleccionada."
+          ]
+        },
+        {
+          "id": "mapping-analog",
+          "title": "Ajusta sticks y gatillos cuando lo necesites",
+          "text": [
+            "Abre Ajuste analógico en el editor o usa el acceso directo en Ajustes → Controles. Actívalo para configurar zona muerta, curva de respuesta, inversión de ejes, intercambio de sticks y umbral de gatillos de esa familia.",
+            "Si el stick se mueve solo, prueba una zona muerta pequeña; un valor mayor ignora más del movimiento inicial. Cambia una opción cada vez, guarda y comprueba el resultado en la siguiente transmisión."
+          ],
+          "links": [
+            {
+              "text": "Volver a los ajustes",
+              "href": "#controls"
+            },
+            {
+              "text": "Abrir el menú durante el juego",
+              "href": "#game-menu"
+            }
           ]
         }
       ]

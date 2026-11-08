@@ -8,8 +8,11 @@
   var dialog=document.getElementById('search-dialog'),input=document.getElementById('search'),results=document.getElementById('results'),status=document.getElementById('search-status');
   var returnFocus=null;
   function currentId(){var value=location.hash.slice(1);try{value=decodeURIComponent(value);}catch(error){}return core.canonical(value);}
+  // A URL choice beats storage, even if writes fail or file:// isolates it by page.
+  var explicit=new URLSearchParams(location.search).get('lang')===locale;
+  if(explicit){try{localStorage.setItem(storageKey,locale);}catch(error){}}
   // A first visit is always English. Only an explicit earlier choice is restored.
-  if(locale==='en'){
+  if(locale==='en'&&!explicit){
     try{var saved=localStorage.getItem(storageKey);if(codes.includes(saved)&&saved!=='en'){location.replace(core.languageHref(base,saved,currentId()));return;}}catch(error){}
   }
   function updateLanguages(){

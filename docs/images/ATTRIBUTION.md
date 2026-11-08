@@ -84,6 +84,11 @@ not a claim that the games or every element of their artwork are copyright-free.
 
 ## Current-source guide captures (2026-11-07)
 
+The three `guide/{en,pt-br,es}-mapping.jpg` captures added on 2026-11-08
+render the unchanged controller editor with an artificial Xbox A/B swap.
+They use the application's existing controller artwork, retain its attribution,
+and follow the same GPL-3.0 terms as the other UI captures.
+
 `guide-picture.jpg`, `guide-history.jpg` and `guide-comparison.jpg` are captures
 of VibeLight's actual local HTML/CSS/JavaScript with synthetic settings, games
 and session measurements. They contain no real host addresses or user reports.

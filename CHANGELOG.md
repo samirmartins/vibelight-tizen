@@ -22,7 +22,10 @@ The published 4.0.2 packages have not been replaced. See the
   clock/cadence, frame load, TV resources, audio and worst-episode context in details.
 - Adds an English-first visual guide with Brazilian Portuguese and Spanish,
   topic-preserving language selection, local answer search with excerpts,
-  illustrated setup and eighteen localized interface captures. The static site
+  illustrated setup and twenty-one localized interface captures. Includes a
+  controller-mapping guide, host/Wake-on-LAN setup, official inline links and
+  Normal-first package guidance. Explicit language choices override stale or
+  read-only preferences, including in offline previews. The static site
   is prepared for GitHub Pages and remains unpublished.
 
 ### Changed
