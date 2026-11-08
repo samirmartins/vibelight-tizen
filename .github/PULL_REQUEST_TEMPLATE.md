@@ -8,6 +8,7 @@ List checks actually performed, their results and anything not tested.
 For TV tests, include model/Tizen, codec, resolution/FPS and relevant settings.
 Distinguish local/simulated tests from hardware evidence.
 Documentation-only changes do not require a TV test.
+For guide changes, list the languages/flows checked and the generation/link results.
 
 ## Compatibility and risks
 
@@ -19,4 +20,5 @@ when applicable. Include known limitations and dependency changes.
 - [ ] The change stays within the stated scope.
 - [ ] Relevant tests or documentation/link checks passed.
 - [ ] User-visible changes are documented.
+- [ ] Unreleased changes and draft release notes remain distinct from published versions.
 - [ ] Source, logs, screenshots and commit metadata contain no private information.

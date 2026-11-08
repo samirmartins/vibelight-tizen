@@ -6,7 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before submitting, check the [FAQ](https://github.com/samirmartins/vibelight-tizen#faq) and existing issues.
+        Before submitting, check the [documentation](https://github.com/samirmartins/vibelight-tizen#documentation),
+        [installation guide](https://github.com/samirmartins/vibelight-tizen/blob/master/INSTALLATION.md) and existing issues.
         Reports and attachments are public. Remove IP/MAC addresses, DUIDs, serial numbers,
         PC/user names, personal file paths, emails, tokens and credentials from text, logs and images.
         Do not upload private certificates or keys. Provide model names and versions, not device identifiers.
@@ -20,7 +21,7 @@ body:
     attributes:
       label: VibeLight Version
       description: Copy the app version shown in VibeLight's System Info. Include the commit if built from source.
-      placeholder: "Example: 3.4.0"
+      placeholder: "Example: 4.0.2; include the source commit for an unreleased build"
     validations:
       required: true
   - type: dropdown
@@ -84,6 +85,7 @@ body:
       label: Host Software
       description: What streaming software are you using?
       options:
+        - VibeShine
         - Sunshine
         - GeForce Experience
         - Other / Unknown
@@ -91,7 +93,7 @@ body:
     id: host-software-version
     attributes:
       label: Host Software Version
-      description: Enter the Sunshine or GeForce Experience version. Leave blank if unavailable or unrelated to the issue.
+      description: Enter the VibeShine, Sunshine or GeForce Experience version. Leave blank if unavailable or unrelated to the issue.
       placeholder: "Exact version shown by the host software"
   - type: textarea
     id: host-setup
@@ -124,10 +126,12 @@ body:
       placeholder: |
         Resolution: 1920 x 1080
         Frame rate: 60 FPS
-        Configured bitrate: 20 Mbps
-        In-app Game Mode: Off
+        Configured bitrate: 30 Mbps
+        Frame pacing: On
+        Ultra-low video latency (Game Mode in v4.0.2): Off
         HDR: Off
-        Rumble feedback: Off
+        Audio layout / adaptive buffer ceiling: Stereo / 100 ms
+        Rumble feedback: On
   - type: textarea
     id: network-setup
     attributes:
@@ -173,12 +177,12 @@ body:
   - type: textarea
     id: log-files
     attributes:
-      label: Log Files
-      description: Optional. Attach only relevant VibeLight/Sunshine logs after removing private addresses, names, paths, tokens and credentials. A cropped Session diagnosis image is also useful for streaming issues.
+      label: Optional logs or local diagnosis
+      description: Share only relevant redacted VibeLight/host logs. On unreleased source, a local record is available at Settings → Diagnosis only if Statistics was enabled in that game. Last diagnosis/History may help; partial coverage is valid. The app does not upload records; attaching an image here is a separate manual choice.
       placeholder: "Attach redacted logs or paste the relevant excerpt. Do not upload certificates or keys."
   - type: textarea
     id: screenshots
     attributes:
       label: Screenshots
-      description: Optional. Crop to the app and cover private addresses, PC/user names and device identifiers before attaching. For playback issues, include performance statistics if available.
+      description: Optional. Crop to the app and hide private data. For playback issues, a local diagnosis or A/B comparison can help if you chose to record. No record is expected from a session never activated.
       placeholder: "Attach screenshots with personal information hidden."

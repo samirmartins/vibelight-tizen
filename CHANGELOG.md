@@ -7,6 +7,58 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## Unreleased
+
+Local source changes since v4.0.2; no new version or release date is assigned.
+The published 4.0.2 packages have not been replaced. See the
+[draft release notes](RELEASE_NOTES.md) for the concise next-release summary.
+
+### Added
+
+- Keeps the last ten local session summaries, with any two selectable for A/B
+  comparison, configuration values, units, event rates and technical details.
+  Missing metrics remain unavailable; late activation has explicit partial coverage.
+- Shares nine diagnostic groups between the overlay and saved summary, retaining
+  clock/cadence, frame load, TV resources, audio and worst-episode context in details.
+- Adds an English-first visual guide with Brazilian Portuguese and Spanish,
+  topic-preserving language selection, local answer search with excerpts,
+  illustrated setup and eighteen localized interface captures. The static site
+  is prepared for GitHub Pages and remains unpublished.
+
+### Changed
+
+- Reorganizes settings into Picture, Sound, Controls, PCs and library, Diagnosis,
+  and General and about. Existing controller tuning is directly accessible;
+  menu sounds and restore defaults move to General and about.
+- Starts statistics only after explicit activation in the current game menu.
+  New sessions start inactive, including after a legacy saved ON preference.
+  Hiding the overlay continues that session's recording until exit. Settings
+  offers Last diagnosis and History instead of redundant collection switches.
+  Records stay on the TV; the app does not upload them.
+- Shows real connection stages and Cancel; Refresh library requests the game
+  list without restarting the app. Restart app remains a separate action.
+- Clarifies ultra-low latency compatibility and the adaptive audio-buffer ceiling
+  without changing their defaults or retuning playback. Normal and ForceGM keep
+  the same code and installation identity.
+
+### Fixed
+
+- Replaces the Samsung Embind converter's transient out-of-bounds string write
+  with bounded UTF-8 reads before local signing; unexpected compiler output fails
+  verification instead of receiving an unchecked patch.
+- Validates pairing responses and authentication before accepting a host;
+  rejects empty/malformed replies and preserves the existing pairing identity.
+- Synchronizes native stop completion and cancellation, retains resources until
+  safe cleanup, and prevents delayed Play/Resume replies from starting stale sessions.
+  End-game confirmation remains bound to the intended authenticated host.
+- Distinguishes missing stored data from read/write failure, preserves identity,
+  settings and previous records on errors, and reports failed persistence explicitly.
+- Coordinates audio overflow/reset and callback retirement across Worklet/fallback
+  consumers, preventing unsafe reuse while preserving healthy PCM/adaptation.
+- Shows saved diagnosis version/variant/configuration, restores history focus,
+  uses actual measurement coverage for native event rates, and records audio mode
+  independently of translated labels. Old callbacks cannot populate a new session.
+
 ## v4.0.2
 
 ### Added

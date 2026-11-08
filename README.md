@@ -25,18 +25,33 @@ Samsung TV with **Tizen 5.5+**, a compatible gamepad, and a PC running
 3. Select a game and Play. Resume reconnects to a running app; Guide/Home opens
    the in-game menu. Disconnect keeps the game on the PC; End game on PC closes it.
 
-**User documentation:** [visual guide, settings, diagnostics and troubleshooting](docs/index.html).
-English is the default. Choose **Português (Brasil)** or **Español** from the
-language menu; the guide keeps your current topic and remembers your choice.
-The static guide is prepared for GitHub Pages in `docs/`; it is not published yet.
-It documents the current source. New settings/history screens are not in the
-previously published 4.0.2 packages; check the notes of the version you install.
+## Documentation
+
+**Visual guide:** [English](docs/index.html) ·
+[Português (Brasil)](docs/pt-br/index.html) · [Español](docs/es/index.html).
+English is the first-visit default. The visible language selector remembers an
+explicit choice and keeps the current topic. Search opens individual answers
+with excerpts; setup, pairing and the game menu have illustrated steps.
+
+The guide is ready for **GitHub Pages but is not hosted yet**. These links show
+HTML source on GitHub; open `docs/index.html` from a local checkout for the
+working site. For installation instructions readable directly on GitHub, use
+the [Installation Guide](INSTALLATION.md).
+
+| Status | Where to read |
+| --- | --- |
+| Published packages: **v4.0.2** | [Downloads and release notes](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.2) |
+| Current source, **unreleased** | [Changelog](CHANGELOG.md#unreleased) · [Draft release notes](RELEASE_NOTES.md) · visual guide above |
+
+The new settings, per-game statistics activation and ten-session history belong
+to the unreleased source. They are not available in the published 4.0.2 packages.
 
 ## Interface
 
-![VibeLight menus and library](docs/images/interface.gif)
+![Current-source VibeLight library with artificial PC and game data](docs/images/guide/en-library.jpg)
 
-Simulated preview · [Image credits and licenses](docs/images/ATTRIBUTION.md).
+Unreleased interface preview · artificial data ·
+[Image credits and licenses](docs/images/ATTRIBUTION.md).
 
 ## Current source
 
@@ -56,7 +71,11 @@ Simulated preview · [Image credits and licenses](docs/images/ATTRIBUTION.md).
 
 [Validation and local build notes](build-tools/README.md) ·
 [Samsung build instructions](README.Samsung.md) ·
+[Contributing](.github/CONTRIBUTING.md) ·
 [Report an issue](https://github.com/samirmartins/vibelight-tizen/issues).
+For a playback issue, optionally enable Statistics in that game, leave the
+session, then read Settings → Diagnosis → Last diagnosis or History. Recording
+is local; sharing a redacted screenshot in an issue is a separate, manual choice.
 Keep private network details and signing credentials out of screenshots and logs.
 
 ## Credits

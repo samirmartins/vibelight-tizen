@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Documentation and setup
+    url: https://github.com/samirmartins/vibelight-tizen#documentation
+    about: Visual guides in English, Brazilian Portuguese and Spanish, with a Markdown installation reference
   - name: Discussions Board
     url: https://github.com/samirmartins/vibelight-tizen/discussions
     about: General questions, ideas, and conversations

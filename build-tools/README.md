@@ -23,8 +23,8 @@ Dependencies: Node.js 22, GCC/G++, FFmpeg with libx264, OpenSSL development head
 and Git/GNU timeout. Native fixtures use ASan/UBSan.
 The runner checks completion markers, rejects unhandled rejections, bounds each
 process and cleans temporary files, including failed runs.
-The current comparisons require tags `v3.3.8`, `v3.3.10`, `v3.4.0`, `v3.4.1`, `v3.4.2`, `v3.4.3`, `v3.4.4`, `v3.4.7`, `v3.4.8`, `v3.4.9` and `v3.4.11`;
-use a full checkout. CI uses `fetch-depth: 0` and read-only permissions, without
+Source comparisons reference historical tags and reviewed commit checkpoints;
+use a full checkout and preserve that history. CI uses `fetch-depth: 0` and read-only permissions, without
 signing secrets. These tests do not compile the Samsung target or prove TV performance.
 
 Transport recovery: `video_transport_test.js` compares real RTP/depacketizer
@@ -250,9 +250,11 @@ Both variants use the same code. ForceGM adds this panel request to `config.xml`
 <tizen:metadata key="http://samsung.com/tv/metadata/use.game.mode" value="true"/>
 ```
 
-It is independent of the in-app decoder Game Mode switch (`kUltraLow`).
-On the tested Tizen 9 TV, leave that switch **off**; ForceGM still requests panel
-Game Mode. This does not establish identical behavior on every TV.
+It is independent of the in-app **Ultra-low video latency** switch (`kUltraLow`,
+called Game Mode in v4.0.2). That switch defaults **off**, including with ForceGM,
+and can be unstable on some TVs/system versions. On the previously tested
+Tizen 9 configuration, leave it off; ForceGM still requests panel Game Mode.
+This does not establish identical behavior on every TV.
 
 ```bash
 docker build --ulimit nofile=1024:524288 --build-arg FORCE_GAME_MODE=1 \
@@ -266,10 +268,11 @@ and installation/re-signing method.
 ## Widget checks
 
 Export the expected **public** author certificate as DER and set WIDGET_VERSION
-for the files being checked (3.4.0 is an example):
+to the actual candidate's metadata. This example uses the current 4.0.2 metadata,
+not an announcement of a new release:
 
 ```bash
-WIDGET_VERSION=3.4.0
+WIDGET_VERSION=4.0.2
 python3 build-tools/verify-widgets.py \
   "VibeLight-v${WIDGET_VERSION}-samirmartins.wgt" \
   "VibeLight-v${WIDGET_VERSION}-samirmartins-ForceGM.wgt" \
@@ -317,6 +320,12 @@ audio and input outside the opt-in payload formatter.
 The static documentation is in `docs/` (GitHub Pages, no build or remote services).
 It describes current source; publishing it and new WGTs are separate actions.
 Browser/fixture results are not Samsung SDK compilation or physical TV evidence.
+
+New work is recorded in [Unreleased](../CHANGELOG.md#unreleased); the next release
+summary is [RELEASE_NOTES.md](../RELEASE_NOTES.md), kept as a draft until a version
+is assigned. These are source changes, not a replacement of the published 4.0.2
+WGTs. Keep published changelog sections intact and update the guide's common
+release metadata only when the corresponding release is actually available.
 
 ### Edit the trilingual guide
 
