@@ -71,5 +71,31 @@ function fixture() {
     assert.strictEqual(soundsRunning, true, 'sound lifecycle starts after Navigation.isRunning');
     lifecycle.c.Navigation.stop();
   }
-  console.log('navigation_menu_test: six settings menus resolve through menuItems, next/previous, lifecycle order and inert fallback PASS');
+  // D-pad traversal must follow the rendered rows, including both wrap points.
+  const html = fs.readFileSync('wasm/index.html', 'utf8');
+  const sections = html.split(/<div id="([^"]+)" class="settings-options">/);
+  const categories = {basicSettings:'BasicSettings', audioSettings:'AudioSettings',
+    inputSettings:'InputSettings', hostSettings:'HostSettings',
+    advancedSettings:'AdvancedSettings', aboutSettings:'AboutSettings'};
+  let checked = 0;
+  for (let i = 1; i < sections.length; i += 2) {
+    const name = categories[sections[i]];
+    assert(name, 'known settings category');
+    const body = sections[i + 1].split('<section id="console-panel"')[0];
+    const visual = [...body.matchAll(/<(?:button|label)\b[^>]*\bid="([^"]+)"/g)].map(match => match[1]);
+    const view = f.c.Views[name];
+    assert.deepStrictEqual(Array.from(view.view.func()), visual, name + ' follows visible row order');
+    view.view.index = 0;
+    for (let step = 1; step <= visual.length; step++) {
+      view.down();
+      assert.strictEqual(view.view.current(), visual[step % visual.length], name + ' D-pad down');
+    }
+    for (let step = 1; step <= visual.length; step++) {
+      view.up();
+      assert.strictEqual(view.view.current(), visual[(visual.length - step) % visual.length], name + ' D-pad up');
+    }
+    checked++;
+  }
+  assert.strictEqual(checked, 6, 'all settings categories checked');
+  console.log('navigation_menu_test: popup lists, lifecycle and D-pad row order/wrap in all six settings categories PASS');
 }

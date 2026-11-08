@@ -49,6 +49,7 @@ The published 4.0.2 packages have not been replaced. See the
 
 ### Fixed
 
+- Makes D-pad traversal follow the visible row order in PCs and library settings.
 - Keeps settings navigation and focus in sync when selecting, dismissing,
   reopening or leaving a popup. Language selection returns to its opener;
   English labels retain their names instead of matching ambiguous translations.

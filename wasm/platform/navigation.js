@@ -1008,8 +1008,8 @@ const Views = {
   HostSettings: {
     view: new ListView(() => [
       'ipAddressFieldModeBtn',
-      'sortAppsListBtn',
       'optimizeGamesBtn',
+      'sortAppsListBtn',
       'removeAllHostsBtn'
     ]),
     up: function() {
