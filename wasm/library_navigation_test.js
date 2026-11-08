@@ -166,6 +166,10 @@ for(const context of ['Settings','PCs','AddHostDialog','PairingDialog']) {
 // must invalidate timers without transferring a held stick to the next view.
 const stack=fixture(),navigationSource=read('wasm/platform/navigation.js');
 stack.c.LibraryNavigation.reset();
+const popup={MaterialMenu:{settingsOpen:true,hide(){this.settingsOpen=false;popupCloses++;}},parentElement:{classList:{contains(){return false;}}}};
+let popupCloses=0;
+stack.c.document.querySelectorAll=selector=>{assert.strictEqual(selector,'.mdl-menu');return [popup];};
+vm.runInContext(navigationSource.slice(navigationSource.indexOf('function closeActiveVisibleMenu()'),navigationSource.indexOf('// Close a specific popup menu')),stack.c);
 vm.runInContext(navigationSource.slice(navigationSource.indexOf('const Navigation = (function() {'))+
  '\nwindow.realNavigation = Navigation;',stack.c);
 const navigation=stack.c.realNavigation;
@@ -191,7 +195,7 @@ navigation.change(hosts);stack.advance(1800);
 assert.strictEqual(stack.moves.length,beforeSameView+1,'change cancels old view repeat');
 stack.axis(0);stack.advance(1824);stack.button(13,true);stack.advance(1840);
 assert.strictEqual(stack.moves.at(-1)[0],'PCs:down');
-navigation.stop();const stopped=stack.moves.length;stack.axis(.8);stack.advance(2500);
+navigation.stop();assert.strictEqual(popupCloses,1,'stop closes an active settings popup through the production helper');const stopped=stack.moves.length;stack.axis(.8);stack.advance(2500);
 assert.strictEqual(stack.moves.length,stopped);assert.strictEqual(stack.timers.size,1,'stop leaves no navigation work');
 navigation.start();stack.axis(0);stack.button(13,false);stack.advance(2528);stack.button(1,true);stack.advance(2700);
 assert.strictEqual(stack.moves.at(-1)[0],'PCs:back','confirm/back work after restarting menu navigation');
