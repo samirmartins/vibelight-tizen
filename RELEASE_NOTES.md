@@ -7,7 +7,8 @@
 ## What's new
 
 - Six clearer settings categories, compact latency/audio guidance and a direct
-  controller-tuning shortcut, preserving saved choices and playback defaults.
+  controller-tuning shortcut, with selectors and sliders that fit the screen.
+  Saved choices and playback defaults are preserved.
 - Per-game opt-in statistics: nine shared metric groups, ten TV-only session
   records, A/B comparison and technical details. Nothing is uploaded.
 - Connection stages and cancellation, with game-library refresh separate from

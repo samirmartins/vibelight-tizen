@@ -17,6 +17,34 @@
 .setting-option>div,.setting-option>button { grid-column:2; grid-row:1 / span 2; }
 .setting-option>.mdl-menu__container { position:fixed; }
 .setting-option>.mdl-menu { grid-column:2; }
+/* Material's old anchor offsets and 74rem sliders do not fit the action column.
+   Keep these six settings popups in a bounded viewport panel instead. */
+#settings-list .mdl-menu__container {
+ position:fixed; left:50%!important; top:50%!important; right:auto!important; bottom:auto!important;
+ transform:translate(-50%,-50%); width:600px!important; max-width:calc(100vw - 48px); height:auto!important;
+}
+#settings-list .mdl-menu {
+ position:relative; left:0; top:0!important; width:100%!important; height:auto!important;
+ max-height:calc(100vh - 64px); overflow-y:auto; box-sizing:border-box; border-radius:10px;
+ border:1px solid #657189; box-shadow:0 12px 36px rgba(0,0,0,.55);
+}
+#settings-list .mdl-menu__outline { top:0!important; width:100%!important; height:100%!important; border-radius:10px; }
+#settings-list .mdl-menu__item {
+ white-space:normal; height:auto; min-height:48px; line-height:26px; padding:12px 24px;
+ text-indent:0; box-sizing:border-box;
+}
+#settings-list .videoBitrateMenu,#settings-list .audioJitterMenu { gap:16px; padding:24px; min-height:92px; }
+#settings-list .mdl-slider__container { flex:1 1 0; min-width:0; }
+#settings-list .mdl-slider { width:100%; margin:0; min-width:0; }
+#settings-list .mdl-slider__background-flex { width:calc(100% - 12px); margin:0 6px; top:50%; transform:translateY(-50%); }
+#settings-list #bitrateLowestValue,#settings-list #bitrateHighestValue,
+#settings-list #jitterLowestValue,#settings-list #jitterHighestValue { flex:0 0 auto; margin:0; font-size:20px; line-height:26px; }
+/* Bound the older settings confirmations and help, including dialog polyfills. */
+#deleteHostDialog,#restartAppDialog,#restoreDefaultsDialog,#navGuideDialog,#warningDialog {
+ box-sizing:border-box; width:600px; max-width:calc(100vw - 48px);
+ height:fit-content; max-height:calc(100vh - 48px); overflow-y:auto;
+}
+#navGuideDialog { width:90vw; }
 .setting-option .mdl-switch { width:64px!important; padding-left:0!important; min-width:64px; }
 .settings-options .mdl-switch__label { font-size:0; margin:0; width:0; }
 .setting-option .mdl-switch__track { width:52px; height:26px; top:0; border-radius:20px; }

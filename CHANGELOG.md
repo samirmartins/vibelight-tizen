@@ -46,6 +46,9 @@ The published 4.0.2 packages have not been replaced. See the
 
 ### Fixed
 
+- Fits all six settings selectors and range controls within the screen, and
+  keeps confirmations and long help dialogs bounded and scrollable. Internal
+  slider clicks keep the popup open while adjusting the selected value.
 - Replaces the Samsung Embind converter's transient out-of-bounds string write
   with bounded UTF-8 reads before local signing; unexpected compiler output fails
   verification instead of receiving an unchecked patch.

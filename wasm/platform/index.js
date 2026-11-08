@@ -72,6 +72,8 @@ function attachListeners() {
   $('#controllerMappingBtn').on('click', function() { ControllerMappingMenu.open(); });
   $('.audioConfigMenu li').on('click', saveAudioConfiguration);
   $('#jitterSlider').on('input', saveAudioJitter);
+  // Material wraps range inputs; their clicks must stay inside the open popup.
+  $('.videoBitrateMenu, .audioJitterMenu').on('click', event => event.stopPropagation());
   $('#playHostAudioSwitch').on('click', savePlayHostAudio);
   $('.videoCodecMenu li').on('click', saveVideoCodec);
   $('#hdrModeSwitch').on('click', saveHdrMode);

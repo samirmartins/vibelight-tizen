@@ -3,7 +3,7 @@
 const crypto=require('crypto'),cp=require('child_process');
 const approved={
   "wasm/index.html": "b478cccdf250653688f220ff79b98c33d38de0d5e4196449bbfa69169abe8df8",
-  "wasm/platform/index.js": "8d9c9b29657bfcf41be0df37e654d5c1a439ba7aab5e7bb64c550962e04d4df0",
+  "wasm/platform/index.js": "55cc5d0507f410d157ee35782d9ef128e3bfd11a55c95688bdc784f222708788",
   "wasm/platform/messages.js": "249593b6c7be699c38031f812594b995c01b4d4eb5a5e6712024d827b10824f2",
   "wasm/platform/navigation.js": "9e456e3f72efb4b0f3fe43f9eee2d932668d9dfbc04a8d02af4405b387b39071",
   "wasm/platform/diagnostics.js": "bd7afe11923a5bb454837d3f51f211a91285ada1e2a37d1cb4d60f0ecf61cc40",
@@ -18,7 +18,7 @@ const added={
   "wasm/platform/diagnostic-history.js": "c41f3cdc16907791398961385dde7a0527d23cd65c1f90922e55817e686d4d3f",
   "wasm/platform/diagnostic-view.js": "c54d475c35315702b81370dda87a9d755d6b996feee067e45495d68f0363b836",
   "wasm/platform/stream-startup.js": "8bc7d63bceed5bd097e79aa81b908405704dfcd2c8ba09befe3bafbc57a504e2",
-  "wasm/static/css/settings-experience.css": "76711643d27f9f5ea4e3e936a490bb18e1953636cf0fa53af472c861be7bf65a"
+  "wasm/static/css/settings-experience.css": "f843c7dd6665050e819c4b0c36e9146fa623293acb93469d275470f74eab4b26"
 };
 function matches(file,source){return !!approved[file] && crypto.createHash('sha256').update(source).digest('hex')===approved[file];}
 function normalize(file,source){return matches(file,source) ? cp.execFileSync('git',['cat-file','blob','b46c204:'+file],{encoding:'utf8'}) : source;}
