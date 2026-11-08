@@ -49,6 +49,10 @@ The published 4.0.2 packages have not been replaced. See the
 
 ### Fixed
 
+- Uses one connection screen for game launch and native progress, with Cancel.
+  Notifications share its status; warnings and confirmations take priority.
+  Clears progress on exit and prevents old return callbacks or Guide from
+  overlapping a new connection.
 - Makes D-pad traversal follow the visible row order in PCs and library settings.
 - Keeps settings navigation and focus in sync when selecting, dismissing,
   reopening or leaving a popup. Language selection returns to its opener;

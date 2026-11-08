@@ -78,6 +78,19 @@ async function run() {
   assert.strictEqual(f.requests.length,2);f.c.AppLifecycle.streamStopped(1);await f.flush();
   assert.strictEqual(f.requests.length,2);f.suspend();
 
+  // Delayed focus restoration from the old stream cannot interrupt a new one.
+  for (const phase of ['startup', 'connected']) {
+    f=fixture();f.state='on';await f.open();
+    f.c.handleMessage('streamTerminated: 0');await f.flush();
+    let switches=0;
+    f.c.Navigation.switch=()=>switches++;
+    f.c.isInGame=phase==='connected';
+    f.c.StreamStartup={active:()=>phase==='startup'};
+    f.fire(1500);
+    assert.strictEqual(switches,0,'old return does not steal focus during '+phase);
+    f.suspend();
+  }
+
   // Cancellation prevents a completion from reviving Settings or another stream.
   for(const action of ['settings','stream','hidden']) {
     f=fixture();f.state='on';await f.open();f.requests.length=0;f.exit();await f.flush();

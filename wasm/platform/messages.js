@@ -160,6 +160,8 @@ function handleMessage(msg) {
     if (typeof AppLifecycle !== 'undefined' && AppLifecycle.deferMenu(api)) return;
     showApps(api);
     setTimeout(() => {
+      // A previous return must not steal focus from a new launch or stream.
+      if (isInGame || typeof StreamStartup !== 'undefined' && StreamStartup.active()) return;
       // Scroll to the current game row
       Navigation.switch();
       // Switch to Apps view
@@ -179,10 +181,10 @@ function handleMessage(msg) {
     $('#wasm_module').focus();
 
   } else if (msg.indexOf('ProgressMsg: ') === 0) {
-    // Show progress message under loading spinner
+    // One progress owner: the startup panel, or the legacy fallback.
     var progress = msg.replace('ProgressMsg: ', '');
-    if(typeof StreamStartup !== 'undefined') StreamStartup.stage(progress);
-    $('#loadingSpinnerMessage').text(typeof MenuI18n !== 'undefined' ? (MenuI18n.progressText[progress] || progress) : progress);
+    if(typeof StreamStartup !== 'undefined' && StreamStartup.active()) StreamStartup.stage(progress);
+    else $('#loadingSpinnerMessage').text(typeof MenuI18n !== 'undefined' ? (MenuI18n.progressText[progress] || progress) : progress);
   } else if (msg.indexOf('TransientMsg: ') === 0) {
     // Show transient message as notification
     snackbarLogLong(msg.replace('TransientMsg: ', ''));
@@ -190,9 +192,11 @@ function handleMessage(msg) {
     SessionDiagnostics.note(msg.slice(11), true);
     // Show dialog message using the warning dialog
     warningDialog('Warning', msg.replace('DialogMsg: ', ''));
-    if (typeof MenuI18n !== 'undefined' && document.getElementById('loadingSpinner').style.display !== 'none') MenuI18n.connectionDialog();
+    if (typeof MenuI18n !== 'undefined' && (document.getElementById('loadingSpinner').style.display !== 'none' ||
+        typeof StreamStartup !== 'undefined' && StreamStartup.active())) MenuI18n.connectionDialog();
   } else if (msg === 'guideButton') {
-    if (typeof StreamOverlay !== 'undefined' && isInGame && !document.hidden) StreamOverlay.toggle();
+    if (typeof StreamOverlay !== 'undefined' && isInGame && !document.hidden &&
+        !(typeof StreamStartup !== 'undefined' && StreamStartup.active())) StreamOverlay.toggle();
   } else if (msg === 'displayVideo') {
     // Show the video stream now
     $('#listener').addClass('fullscreen');

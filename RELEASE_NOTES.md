@@ -12,8 +12,8 @@
   playback defaults are preserved.
 - Per-game opt-in statistics: nine shared metric groups, ten TV-only session
   records, A/B comparison and technical details. Nothing is uploaded.
-- Connection stages and cancellation, with game-library refresh separate from
-  restarting the app.
+- One connection screen with stages and cancellation, without overlapping
+  progress or dialogs; game-library refresh stays separate from restarting the app.
 - Fixes pairing, persistence, native string handling and session/audio recovery,
   preventing stale launches and unsafe cleanup.
 - An English-first visual guide with Portuguese/Spanish selection, illustrated

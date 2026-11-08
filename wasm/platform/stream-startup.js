@@ -3,6 +3,16 @@
 var StreamStartup=(function() {
   var attempt=null,serial=0;
   function el(id){return document.getElementById(id);}
+  function clearLegacy(){
+    var spinner=el('loadingSpinner'),message=el('loadingSpinnerMessage');
+    if(spinner)spinner.style.display='none';if(message)message.textContent='';
+  }
+  function cover(covered){
+    if(!attempt)return;
+    var panel=el('streamStartupPanel'),button=el('streamStartupCancel');
+    if(panel)panel.hidden=covered;
+    if(!covered && button)button.focus();
+  }
   function stage(message){
     if(!attempt)return;
     var node=el('streamStartupMessage');
@@ -16,10 +26,14 @@ var StreamStartup=(function() {
   }
   function finish(){
     attempt=null;var panel=el('streamStartupPanel');if(panel)panel.hidden=true;
+    clearLegacy();
+    if(document.body)document.body.classList.remove('stream-starting');
     if(document.removeEventListener)document.removeEventListener('keydown',key,true);
   }
   function begin(host,cancel){
     attempt={id:++serial,host:host,cancel:cancel,native:false};
+    clearLegacy();
+    if(document.body)document.body.classList.add('stream-starting');
     var panel=el('streamStartupPanel'),button=el('streamStartupCancel');
     if(panel)panel.hidden=false;if(button){button.onclick=cancelCurrent;button.focus();}
     if(document.addEventListener)document.addEventListener('keydown',key,true);
@@ -37,6 +51,6 @@ var StreamStartup=(function() {
     if(typeof api!=='undefined' && api!==current.host)return;
     Promise.resolve(showApps(current.host)).catch(function(){snackbarLogLong('Could not restore the game library.');});
   }
-  return {begin:begin,stage:stage,finish:finish,cancel:cancelCurrent,
+  return {begin:begin,stage:stage,finish:finish,cancel:cancelCurrent,cover:cover,
     native:function(){if(attempt)attempt.native=true;},active:function(){return !!attempt;}};
 })();

@@ -268,6 +268,7 @@ function stopPollingHosts() {
 
 function snackbarLog(givenMessage) {
   console.log('%c[index.js, snackbarLog]', 'color: green;', givenMessage);
+  if (typeof StreamStartup !== 'undefined' && StreamStartup.active()) { StreamStartup.stage(givenMessage); return; }
   var data = {
     message: givenMessage,
     timeout: 2500
@@ -277,6 +278,7 @@ function snackbarLog(givenMessage) {
 
 function snackbarLogLong(givenMessage) {
   console.log('%c[index.js, snackbarLogLong]', 'color: green;', givenMessage);
+  if (typeof StreamStartup !== 'undefined' && StreamStartup.active()) { StreamStartup.stage(givenMessage); return; }
   var data = {
     message: givenMessage,
     timeout: 5000
@@ -1436,6 +1438,7 @@ function warningDialog(title, message) {
   warningDialogOverlay.style.display = 'flex';
   warningDialog.showModal();
   isDialogOpen = true;
+  if (typeof StreamStartup !== 'undefined') StreamStartup.cover(true);
   Navigation.push(Views.WarningDialog);
 
   // Cancel the operation if the Close button is pressed
@@ -1447,6 +1450,7 @@ function warningDialog(title, message) {
     isDialogOpen = false;
     Navigation.pop();
     Navigation.switch();
+    if (typeof StreamStartup !== 'undefined') StreamStartup.cover(false);
   });
 }
 
@@ -1663,7 +1667,7 @@ function showStreamMode() {
   $('#main-content').children().not('#listener, #loadingSpinner').hide();
   $('#main-content').addClass('fullscreen');
   $('#listener').addClass('fullscreen');
-  $('#loadingSpinner').css('display', 'inline-block');
+  $('#loadingSpinner').css('display', typeof StreamStartup !== 'undefined' && StreamStartup.active() ? 'none' : 'inline-block');
 
   isInGame = true;
   stopPollingHosts();
@@ -1677,6 +1681,7 @@ function showStreamMode() {
   fullscreenWasmModule();
   handleOnScreenOverlays();
   Navigation.stop();
+  if (typeof StreamStartup !== 'undefined') StreamStartup.cover(false);
 }
 
 // Maximize the size of the Wasm module by scaling and resizing appropriately
@@ -1777,11 +1782,14 @@ function startGame(host, appID, audioPrepared) {
       document.getElementById('quitAppDialogText').textContent = currentApp.title +
         ' is already running. Would you like to quit it and start ' + appToStart.title + '?';
       overlay.style.display = 'flex'; dialog.showModal(); isDialogOpen = true;
+      if(typeof StreamStartup !== 'undefined') StreamStartup.cover(true);
       Navigation.push(Views.QuitAppDialog);
       closeDialog = function(accepted) {
         closeDialog = null;
         overlay.style.display = 'none'; dialog.close(); isDialogOpen = false;
-        Navigation.pop(); resolve(accepted);
+        Navigation.pop();
+        if(typeof StreamStartup !== 'undefined') StreamStartup.cover(false);
+        resolve(accepted);
       };
       $('#cancelQuitApp').off('click').on('click', function() { launchScope.cancel(); });
       $('#continueQuitApp').off('click').on('click', function() {
@@ -1851,10 +1859,10 @@ function startGame(host, appID, audioPrepared) {
       $('#connection-warnings, #performance-stats').css('background', 'transparent').text('');
 
       // Shows a loading message to launch the application and start stream mode
-      $('#loadingSpinnerMessage').text('Starting ' + appToStart.title + '...');
+      if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Starting ' + appToStart.title + '...');
+      else $('#loadingSpinnerMessage').text('Starting ' + appToStart.title + '...');
       showStreamMode();
       SessionDiagnostics.configure({game:appToStart.title,config:{pacing:!!framePacing,hdr:!!hdrMode,gameMode:!!gameMode,bitrate:bitrate/1000,audio:audioConfig,audioLimitMs:audioJitterMs}});
-      if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Starting the game on the PC…');
 
       return launchScope.request(function() {
         var mode = streamWidth + 'x' + streamHeight + 'x' + frameRate;

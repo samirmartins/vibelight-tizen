@@ -112,6 +112,11 @@ try {
 const messagesFile = 'wasm/platform/messages.js';
 const oldMessages = cp.execFileSync('git', ['show', 'v3.4.7:' + messagesFile], {encoding: 'utf8'});
 const newMessages = fs.readFileSync(messagesFile, 'utf8');
+// The reviewed UI-only guard skips old focus restoration during a new launch.
+// stream_return_test executes it in both startup and connected states.
+const focusGuard = '      // A previous return must not steal focus from a new launch or stream.\n' +
+  "      if (isInGame || typeof StreamStartup !== 'undefined' && StreamStartup.active()) return;\n";
+assert.strictEqual(newMessages.split(focusGuard).length, 2, 'one exact reviewed return guard');
 function dispatch(code, message) {
   const trace = [];
   const record = name => (...args) => trace.push([name, ...args]);
@@ -132,8 +137,9 @@ function dispatch(code, message) {
   };
   vm.runInNewContext(code, context);
   context.handleMessage(message);
-  // Timer callbacks are not executed here; compare their source and delay.
-  return JSON.parse(JSON.stringify(trace, (key, value) => typeof value === 'function' ? value.toString() : value));
+  // Keep the original idle-return source and delay; only the exact guard above
+  // is exempt from this historical comparison. No other callback edits normalize.
+  return JSON.parse(JSON.stringify(trace, (key, value) => typeof value === 'function' ? value.toString().replace(focusGuard, '') : value));
 }
 for (const message of [
   ...[0, -100, -101, -102, -103, -104, -999].map(code => 'streamTerminated: ' + code),

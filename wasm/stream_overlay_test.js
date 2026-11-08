@@ -423,6 +423,10 @@ function fixture(options = {}) {
     vm.createContext(c);
     vm.runInContext(fs.readFileSync('wasm/platform/messages.js', 'utf8'), c);
     c.handleMessage('guideButton');
+    c.StreamStartup = {active() { return true; }, finish() {}};
+    c.handleMessage('guideButton');
+    assert.strictEqual(calls.toggled, 1, 'Guide cannot stack the game menu over connection progress');
+    delete c.StreamStartup;
     c.handleMessage('controllerLost: 2');
     c.handleMessage('controllerFound: 2');
     c.handleMessage('streamTerminated: 0');
