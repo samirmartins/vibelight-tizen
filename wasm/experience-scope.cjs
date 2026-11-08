@@ -3,9 +3,9 @@
 const crypto=require('crypto'),cp=require('child_process');
 const approved={
   "wasm/index.html": "73a795bf17527f2a2537cc875ec1c9dfd5cff9847823dfa796767891bf722e91",
-  "wasm/platform/index.js": "60dec7a0d1864449063c050b2150a143263de075646c2e1dbd11bc6a84a7f371",
+  "wasm/platform/index.js": "0a5d8dbf46b59814a448ab900005e06ca67f9fda22127426afb2b4b2ac1c1ef0",
   "wasm/platform/messages.js": "249593b6c7be699c38031f812594b995c01b4d4eb5a5e6712024d827b10824f2",
-  "wasm/platform/navigation.js": "c777216bf3b5f80e917c6f1b19a1ba4b8f7f6ff27834ce177f3efaac6e179fd5",
+  "wasm/platform/navigation.js": "85be5cd7b3d238a96b361c9bfab74187c37b8ff70939e9ebbef1fb1369bc9695",
   "wasm/platform/diagnostics.js": "bd7afe11923a5bb454837d3f51f211a91285ada1e2a37d1cb4d60f0ecf61cc40",
   "wasm/platform/stream-overlay.js": "67015b7daefc09e814f18f885c55e3316eb3c9af665cd0286494a7779b5a41a2",
   "wasm/platform/controller-mapping-menu.js": "6c964f258be9a924d41ee47e465623e1375b573b420532985b50d2adcc4789f1",

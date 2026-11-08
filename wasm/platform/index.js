@@ -59,8 +59,6 @@ function attachListeners() {
   $('#goBackBtn').on('click', function() { if (!ConsoleLibrary.back()) showHosts(); });
   $('#restoreDefaultsBtn').on('click', restoreDefaultsDialog);
   $('#quitRunningAppBtn').on('click', quitAppDialog);
-  $('.videoResolutionMenu li:not(.unsupported-resolution)').on('click', saveResolution);
-  $('.videoFramerateMenu li').on('click', saveFramerate);
   $('#bitrateSlider').on('input', saveBitrate);
   $('#ipAddressFieldModeSwitch').on('click', saveIpAddressFieldMode);
   $('#ipAddressTextInput').on('input', updateIpAddressInputValidationState);
@@ -70,12 +68,10 @@ function attachListeners() {
   $('#rumbleFeedbackSwitch').on('click', saveRumbleFeedback);
   $('#mouseEmulationSwitch').on('click', saveMouseEmulation);
   $('#controllerMappingBtn').on('click', function() { ControllerMappingMenu.open(); });
-  $('.audioConfigMenu li').on('click', saveAudioConfiguration);
   $('#jitterSlider').on('input', saveAudioJitter);
   // Material wraps range inputs; their clicks must stay inside the open popup.
   $('.videoBitrateMenu, .audioJitterMenu').on('click', event => event.stopPropagation());
   $('#playHostAudioSwitch').on('click', savePlayHostAudio);
-  $('.videoCodecMenu li').on('click', saveVideoCodec);
   $('#hdrModeSwitch').on('click', saveHdrMode);
   $('#fullRangeSwitch').on('click', saveFullRange);
   $('#gameModeSwitch').on('click', saveGameMode);
@@ -83,26 +79,73 @@ function attachListeners() {
   $('#disableWarningsSwitch').on('click', saveDisableWarnings);
   $('#diagnosticsReportBtn').on('click', SessionDiagnostics.show);
   $('#diagnosticsHistoryBtn').on('click', DiagnosticView.history);
-  $('#languageSettingsBtn').on('click', function(){document.getElementById('languageBtn').click();});
+  $('#languageSettingsBtn').on('click', function(){MenuI18n.openSettings();});
   $('#navigationGuideBtn').on('click', navigationGuideDialog);
   $('#restartAppBtn').on('click', restartAppDialog);
 
-  const registerMenu = (elementId, view) => {
-    $(`#${elementId}`).on('click', () => {
-      if (view.isActive()) {
+  const registerMenu = (elementId, view, onSelect) => {
+    const button = document.getElementById(elementId);
+    const menu = button.closest('.setting-option').querySelector('.mdl-menu');
+    if (!menu.MaterialMenu) componentHandler.upgradeElement(menu, 'MaterialMenu');
+    const instance = menu.MaterialMenu, hide = instance.hide;
+    const outside = event => {
+      if (!menu.contains(event.target) && !button.contains(event.target)) instance.hide();
+    };
+    // Material may close by option click, outside click, Escape, or the opener.
+    // Release this view once, and never pop a newer dialog or category.
+    instance.show = function() {
+      this.settingsOpen = true;
+      menu.style.clip = 'auto';
+      menu.parentElement.classList.add('is-visible');
+      document.addEventListener('click', outside);
+    };
+    instance.hide = function() {
+      this.settingsOpen = false;
+      document.removeEventListener('click', outside);
+      hide.call(this);
+      if (Navigation.isCurrent(view)) {
         Navigation.pop();
+        focusElement(elementId);
+      }
+    };
+    if (onSelect) menu.addEventListener('click', event => {
+      const item = event.target.closest('.mdl-menu__item');
+      if (!item) return;
+      // Select immediately; Material's delayed cleanup can close a later opening.
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (item.hasAttribute('disabled')) return;
+      if (String($(item).data('value')) !== String($(button).data('value'))) onSelect.call(item);
+      instance.hide();
+    }, true);
+    button.addEventListener('click', event => {
+      if (instance.settingsOpen) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        instance.hide();
       } else {
+        closeActiveVisibleMenu();
+        const parent = button.closest('#audioSettings') ? Views.AudioSettings : Views.BasicSettings;
+        if (!Navigation.isCurrent(parent)) Navigation.change(parent);
+        unmark(parent.view.current());
+        parent.view.index = parent.view.func().indexOf(elementId);
+        if (onSelect) {
+          const value = String($(button).data('value'));
+          const selected = view.view.func().findIndex(item => String($(item).data('value')) === value);
+          if (selected >= 0) view.view.index = selected;
+        }
+        focusElement(elementId);
         Navigation.push(view);
       }
-    });
+    }, true);
   }
 
-  registerMenu('selectResolution', Views.SelectResolutionMenu);
-  registerMenu('selectFramerate', Views.SelectFramerateMenu);
+  registerMenu('selectResolution', Views.SelectResolutionMenu, saveResolution);
+  registerMenu('selectFramerate', Views.SelectFramerateMenu, saveFramerate);
   registerMenu('selectBitrate', Views.SelectBitrateMenu);
   registerMenu('selectAudioJitter', Views.SelectAudioJitterMenu);
-  registerMenu('selectAudio', Views.SelectAudioMenu);
-  registerMenu('selectCodec', Views.SelectCodecMenu);
+  registerMenu('selectAudio', Views.SelectAudioMenu, saveAudioConfiguration);
+  registerMenu('selectCodec', Views.SelectCodecMenu, saveVideoCodec);
 
   $(window).resize(fullscreenWasmModule);
 
@@ -1241,6 +1284,7 @@ function showSettings() {
 
 // Reset the current settings view by clearing the selection and hiding the right pane
 function resetSettingsView() {
+  closeActiveVisibleMenu();
   // Hide all settings options from the right pane
   document.querySelectorAll('.settings-options').forEach(function(settingsOption) {
     settingsOption.style.display = 'none';

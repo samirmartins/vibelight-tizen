@@ -2,7 +2,7 @@
 var MenuI18n = (function() {
   'use strict';
   var key = 'vibelight.language.v1', locale = 'en', running = false, opened = false;
-  var observer = null, originals = new WeakMap(), selected = 0;
+  var observer = null, originals = new WeakMap(), selected = 0, returnFocus = 'languageBtn';
   var codes = ['en', 'pt-BR', 'es'];
   var names = ['English', 'Português (Brasil)', 'Español'];
   var flags = ['us', 'br', 'es'];
@@ -56,7 +56,9 @@ var MenuI18n = (function() {
     return !parent || !!parent.closest('script,style,.material-icons,[data-i18n-skip="true"],#languageControl,#performance-stats,#connection-warnings,#listener,#libraryHost,.console-card-title,#host-grid .host-container .host-text,#diagnosisReport,#quitAppDialogText b,#pairingDialogText b');
   }
   function canonical(value) {
-    var source = reverse[normalize(value)];
+    var normalized = normalize(value);
+    if (exact[normalized]) return value;
+    var source = reverse[normalized];
     return source ? value.replace(/\S[\s\S]*\S|\S/, function() { return source; }) : value;
   }
   function field(node, attr) {
@@ -102,7 +104,7 @@ var MenuI18n = (function() {
     document.getElementById('languageMenu').hidden = true;
     document.getElementById('languageBtn').setAttribute('aria-expanded', 'false');
     Navigation.pop();
-    focusElement('languageBtn');
+    focusElement(returnFocus);
   }
   function choose(value) {
     if (!running || codes.indexOf(value) === -1) return;
@@ -118,15 +120,21 @@ var MenuI18n = (function() {
     focusElement('language-' + codes[selected]);
   }
   function outside(event) {
-    if (!document.getElementById('languageControl').contains(event.target)) close();
+    var settingsButton = document.getElementById('languageSettingsBtn');
+    if (!document.getElementById('languageControl').contains(event.target) &&
+        !(settingsButton && settingsButton.contains(event.target))) close();
   }
-  function open() {
-    if (!running || isDialogOpen || isInGame) return;
+  function open(opener) {
     if (opened) { close(); return; }
+    if (!running || isDialogOpen || isInGame) return;
+    var fromSettings = opener === 'languageSettingsBtn';
+    returnFocus = fromSettings ? 'languageSettingsBtn' : 'languageBtn';
     var parent = ConsoleLibrary.visible() ? Views.AppsNav : document.getElementById('settings-list').getClientRects().length ? Views.SettingsNav : Views.HostsNav;
-    Navigation.change(parent);
-    if (parent === Views.AppsNav) ConsoleLibrary.focusNav(0, 'languageBtn');
-    else parent.view.index = Array.prototype.indexOf.call(parent.view.func(), 'languageBtn');
+    if (!fromSettings) {
+      Navigation.change(parent);
+      if (parent === Views.AppsNav) ConsoleLibrary.focusNav(0, 'languageBtn');
+      else parent.view.index = Array.prototype.indexOf.call(parent.view.func(), 'languageBtn');
+    }
     document.addEventListener('click', outside, true);
     opened = true; isDialogOpen = true; selected = codes.indexOf(locale);
     document.getElementById('languageMenu').hidden = false;
@@ -169,5 +177,5 @@ var MenuI18n = (function() {
     codes.forEach(function(code) { document.getElementById('language-' + code).onclick = function() { choose(code); }; });
     updateButton(); start();
   });
-  return { start: start, stop: stop, choose: choose, progressText: progressText, connectionDialog: connectionDialog, text: text, locale: function() { return locale; } };
+  return { start: start, stop: stop, choose: choose, openSettings: function() { open('languageSettingsBtn'); }, progressText: progressText, connectionDialog: connectionDialog, text: text, locale: function() { return locale; } };
 })();

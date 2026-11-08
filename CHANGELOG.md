@@ -49,6 +49,10 @@ The published 4.0.2 packages have not been replaced. See the
 
 ### Fixed
 
+- Keeps settings navigation and focus in sync when selecting, dismissing,
+  reopening or leaving a popup. Language selection returns to its opener;
+  English labels retain their names instead of matching ambiguous translations.
+  Selectors start on the saved option; confirming it preserves custom bitrate.
 - Fits all six settings selectors and range controls within the screen, and
   keeps confirmations and long help dialogs bounded and scrollable. Internal
   slider clicks keep the popup open while adjusting the selected value.

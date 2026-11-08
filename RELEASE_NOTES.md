@@ -8,7 +8,8 @@
 
 - Six clearer settings categories, compact latency/audio guidance and controller
   tuning inside the mapping editor, with selectors and sliders that fit the screen.
-  Saved choices and playback defaults are preserved.
+  Popup focus and language switching remain consistent; saved choices and
+  playback defaults are preserved.
 - Per-game opt-in statistics: nine shared metric groups, ten TV-only session
   records, A/B comparison and technical details. Nothing is uploaded.
 - Connection stages and cancellation, with game-library refresh separate from

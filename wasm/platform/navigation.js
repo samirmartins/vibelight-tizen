@@ -184,45 +184,32 @@ function isPopupMenuActive(id) {
   const parent = element ? element.parentNode : null;
   const container = parent && parent.querySelector ? parent.querySelector('.mdl-menu__container') : null;
   // Check if the container exists and is visible
-  return !!(container && container.classList.contains('is-visible'));
+  const menu = container && container.querySelector('.mdl-menu');
+  return !!(container && ((menu && menu.MaterialMenu && menu.MaterialMenu.settingsOpen) || container.classList.contains('is-visible')));
 }
 
 // Close any active visible menu containers
 function closeActiveVisibleMenu() {
-  const visibleMenuContainer = document.querySelectorAll('.mdl-menu__container.is-visible');
-  // If no visible menus are found, return false
-  if (!visibleMenuContainer || visibleMenuContainer.length === 0) {
-    return false;
-  }
-  // Hide each visible menu using its MaterialMenu instance
-  visibleMenuContainer.forEach((menu) => {
-    const visibleMenu = menu.querySelector('.mdl-menu');
-    // Ensure the menu and its MaterialMenu instance exist before hiding
-    if (visibleMenu && visibleMenu.MaterialMenu && typeof visibleMenu.MaterialMenu.hide === 'function') {
-      visibleMenu.MaterialMenu.hide();
+  let closed = false;
+  document.querySelectorAll('.mdl-menu').forEach(menu => {
+    if (menu.MaterialMenu && (menu.MaterialMenu.settingsOpen || menu.parentElement.classList.contains('is-visible'))) {
+      menu.MaterialMenu.hide();
+      closed = true;
     }
   });
-  // Simulate an Escape key press to close menus that rely on it
-  document.dispatchEvent(new KeyboardEvent('keydown', {
-    key: 'Escape', keyCode: 27, which: 27, bubbles: true
-  }));
-  // Trigger a click on the body to ensure menus are closed
-  if (document.body) {
-    document.body.click();
-  }
-  Navigation.pop();
-  return true;
+  return closed;
 }
 
 // Close a specific popup menu container by its ID
 function closePopupMenu(id) {
-  // If the specified menu is active, click its opener to close it
-  if (isPopupMenuActive(id)) {
-    // Close the popup menu by clicking its opener element
-    clickElement(id);
+  const opener = resolveElement(id);
+  const option = opener && opener.closest('.setting-option');
+  const menu = option && option.querySelector('.mdl-menu');
+  if (menu && menu.MaterialMenu && (menu.MaterialMenu.settingsOpen || menu.parentElement.classList.contains('is-visible'))) {
+    menu.MaterialMenu.hide();
     return true;
   }
-  return closeActiveVisibleMenu();
+  return false;
 }
 
 // Handle the state of the IP address text input field
@@ -917,12 +904,9 @@ const Views = {
     accept: function() {
       clickElement(this.view.current());
       closeActiveVisibleMenu();
-      setTimeout(() => focusElement('selectResolution'), 250);
     },
     back: function() {
       closePopupMenu('selectResolution');
-      closeActiveVisibleMenu();
-      focusElement('selectResolution');
     },
     press: function() {},
     switch: function() {},
@@ -948,12 +932,9 @@ const Views = {
     accept: function() {
       clickElement(this.view.current());
       closeActiveVisibleMenu();
-      setTimeout(() => focusElement('selectFramerate'), 250);
     },
     back: function() {
       closePopupMenu('selectFramerate');
-      closeActiveVisibleMenu();
-      focusElement('selectFramerate');
     },
     press: function() {},
     switch: function() {},
@@ -981,12 +962,9 @@ const Views = {
     accept: function() {
       clickElement(this.view.current());
       closeActiveVisibleMenu();
-      setTimeout(() => focusElement('selectBitrate'), 250);
     },
     back: function() {
       closePopupMenu('selectBitrate');
-      closeActiveVisibleMenu();
-      focusElement('selectBitrate');
     },
     press: function() {},
     switch: function() {},
@@ -1014,12 +992,9 @@ const Views = {
     accept: function() {
       clickElement(this.view.current());
       closeActiveVisibleMenu();
-      setTimeout(() => focusElement('selectAudioJitter'), 250);
     },
     back: function() {
       closePopupMenu('selectAudioJitter');
-      closeActiveVisibleMenu();
-      focusElement('selectAudioJitter');
     },
     press: function() {},
     switch: function() {},
@@ -1166,12 +1141,9 @@ const Views = {
     accept: function() {
       clickElement(this.view.current());
       closeActiveVisibleMenu();
-      setTimeout(() => focusElement('selectAudio'), 250);
     },
     back: function() {
       closePopupMenu('selectAudio');
-      closeActiveVisibleMenu();
-      focusElement('selectAudio');
     },
     press: function() {},
     switch: function() {},
@@ -1239,12 +1211,9 @@ const Views = {
     accept: function() {
       clickElement(this.view.current());
       closeActiveVisibleMenu();
-      setTimeout(() => focusElement('selectCodec'), 250);
     },
     back: function() {
       closePopupMenu('selectCodec');
-      closeActiveVisibleMenu();
-      focusElement('selectCodec');
     },
     press: function() {},
     switch: function() {},
@@ -1658,6 +1627,7 @@ const Navigation = (function() {
     }
 
     function stop() {
+      closeActiveVisibleMenu();
       if (typeof MenuI18n !== 'undefined') MenuI18n.stop();
       if (typeof InterfaceSounds !== 'undefined' && typeof InterfaceSounds.stop === 'function') InterfaceSounds.stop();
       if (typeof LibraryNavigation !== 'undefined') LibraryNavigation.reset();
@@ -1693,5 +1663,6 @@ const Navigation = (function() {
     start: State.start,
     stop: State.stop,
     isRunning: State.isRunning,
+    isCurrent: view => Stack.get() === view,
   };
 })();
