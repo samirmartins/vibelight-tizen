@@ -311,7 +311,8 @@
           "text": [
             "Picture: resolution, FPS, bitrate, codec, HDR, color range, frame pacing and ultra-low latency. Sound: channels, adaptive buffer ceiling and playback on the PC.",
             "Controls: mapping, tests, sticks, triggers, rumble and mouse. PCs & library: address input, host resolution, ordering and PC removal. Diagnosis: warnings and saved records. General & about: language, menu sounds, help, restart and restore defaults.",
-            "General & about → System information shows the app version, Normal/ForceGM variant and build identifier. Unavailable means the package has no valid build metadata."
+            "General & about → System information shows the app version, Normal/ForceGM variant and build identifier. Unavailable means the package has no valid build metadata.",
+            "General & about → Guide and help shows a QR code and readable address for opening this guide on your phone. Choose the language on the site. Controls on this TV opens the bundled navigation reference without internet."
           ],
           "image": {
             "name": "picture",

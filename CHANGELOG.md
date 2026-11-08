@@ -15,6 +15,9 @@ The published 4.0.2 packages have not been replaced. See the
 
 ### Added
 
+- Adds Guide and help in settings, with a bundled, high-contrast QR code and
+  readable guide URL, plus the offline controls reference. The permanent Pages
+  destination must be published and verified before release.
 - Deletes an individual local diagnosis after confirmation, preserving other
   records and leaving history intact on failed writes. System information shows
   a validated build identifier alongside the version and package variant.

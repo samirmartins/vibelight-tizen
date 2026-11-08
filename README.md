@@ -38,6 +38,10 @@ HTML source on GitHub; open `docs/index.html` from a local checkout for the
 working site. For installation instructions readable directly on GitHub, use
 the [Installation Guide](INSTALLATION.md).
 
+Settings → General & about → Guide and help includes a local QR code for the
+planned Pages address, plus an offline controls reference. Publish and verify
+that address before distributing the QR-enabled release.
+
 | Status | Where to read |
 | --- | --- |
 | Published packages: **v4.0.2** | [Downloads and release notes](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.2) |

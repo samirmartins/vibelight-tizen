@@ -1,4 +1,38 @@
 /* Settings and local reports only. Streaming media geometry is unchanged. */
+.guide-help-dialog { box-sizing:border-box; width:960px; max-width:calc(100vw - 64px); height:fit-content; max-height:calc(100vh - 64px); overflow:auto; padding:30px 34px; border:1px solid #5c7185; border-radius:16px; background:#283341; color:#edf3f8; }
+.guide-help-dialog .mdl-dialog__title { padding:0; margin:0 0 26px; font-size:32px; line-height:1.2; }
+.guide-help-body { display:flex; align-items:center; gap:36px; }
+#guideHelpQr { flex:0 0 auto; width:328px; height:328px; background:#fff; border-radius:4px; }
+.guide-help-copy { min-width:0; }
+.guide-help-copy p { margin:0 0 18px; font-size:25px; line-height:1.4; }
+.guide-help-copy .guide-help-detail { font-size:20px; color:#c0ceda; }
+.guide-help-copy .guide-help-languages { font-size:18px; color:#80d5df; margin-bottom:24px; }
+.guide-help-copy .guide-help-url { font-size:18px; line-height:1.5; overflow-wrap:break-word; color:#c0ceda; margin-bottom:0; }
+.guide-help-actions { display:flex; gap:14px; justify-content:flex-end; flex-wrap:wrap; margin-top:28px; }
+.guide-help-actions button { border:1px solid #667c91; border-radius:7px; min-height:48px; height:auto; padding:10px 20px; font-size:20px; line-height:1.4; white-space:normal; text-transform:none; color:#edf3f8; background:#36485a; }
+.guide-help-actions button:focus,.guide-help-actions button.hovered { outline:3px solid #7ae0ec; outline-offset:3px; background:#245567; }
+@media(max-height:800px) {
+ .guide-help-dialog { width:820px; padding:24px 28px; }
+ .guide-help-dialog .mdl-dialog__title { font-size:27px; margin-bottom:20px; }
+ #guideHelpQr { width:246px; height:246px; }
+ .guide-help-body { gap:28px; }
+ .guide-help-copy p { font-size:22px; }
+ .guide-help-copy .guide-help-detail { font-size:18px; }
+ .guide-help-copy .guide-help-languages,.guide-help-copy .guide-help-url { font-size:16px; }
+ .guide-help-actions { margin-top:22px; }
+ .guide-help-actions button { font-size:18px; }
+}
+@media(min-width:2560px) and (min-height:1400px) {
+ .guide-help-dialog { width:1440px; padding:45px 51px; }
+ .guide-help-dialog .mdl-dialog__title { font-size:48px; margin-bottom:39px; }
+ #guideHelpQr { width:492px; height:492px; }
+ .guide-help-body { gap:54px; }
+ .guide-help-copy p { font-size:37px; }
+ .guide-help-copy .guide-help-detail { font-size:30px; }
+ .guide-help-copy .guide-help-languages,.guide-help-copy .guide-help-url { font-size:27px; }
+ .guide-help-actions { margin-top:42px; gap:21px; }
+ .guide-help-actions button { font-size:30px; padding:15px 30px; }
+}
 #settings-list { gap:2.2vw; padding:2.2vh 3vw; box-sizing:border-box; }
 #settings-left-pane { flex:0 0 19%; padding:0 1.5vw 0 0; border-right:1px solid #485165; }
 #settings-right-pane { padding:0 0 3vh; min-width:0; }

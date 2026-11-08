@@ -311,7 +311,8 @@
           "text": [
             "Imagen: resolución, FPS, bitrate, codec, HDR, rango de color, frame pacing y latencia ultrabaja. Sonido: canales, límite adaptativo del búfer y reproducción en el PC.",
             "Controles: mapeo, pruebas, sticks, gatillos, vibración y ratón. PCs y biblioteca: dirección, resolución del host, orden y eliminación de PCs. Diagnóstico: avisos y registros. General y acerca de: idioma, sonidos del menú, ayuda, reinicio y restauración.",
-            "General y acerca de → Información del sistema muestra la versión de la aplicación, la variante Normal/ForceGM y el identificador de la build. No disponible significa que el paquete no contiene metadatos válidos de la build."
+            "General y acerca de → Información del sistema muestra la versión de la aplicación, la variante Normal/ForceGM y el identificador de la build. No disponible significa que el paquete no contiene metadatos válidos de la build.",
+            "General y acerca de → Guía y ayuda muestra un código QR y la dirección para abrir esta guía en tu móvil. Elige el idioma en el sitio. Controles en esta TV abre la referencia de navegación integrada sin internet."
           ],
           "image": {
             "name": "picture",

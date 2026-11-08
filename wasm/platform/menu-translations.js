@@ -1,5 +1,12 @@
 // Bundled English, Brazilian Portuguese and Spanish menu text.
 var MenuTranslations = [
+  ["Guide and help", "Guia e ajuda", "Guía y ayuda"],
+  ["Setup, troubleshooting and controls.", "Configuração, solução de problemas e controles.", "Configuración, solución de problemas y controles."],
+  ["Open guide", "Abrir guia", "Abrir guía"],
+  ["Scan to open the guide on your phone.", "Escaneie para abrir o guia no celular.", "Escanea para abrir la guía en tu móvil."],
+  ["Installation, settings and troubleshooting.", "Instalação, configurações e solução de problemas.", "Instalación, ajustes y solución de problemas."],
+  ["Controls on this TV", "Controles nesta TV", "Controles en esta TV"],
+  ["QR code for the VibeLight guide", "QR code do guia do VibeLight", "Código QR de la guía de VibeLight"],
   ["Back", "Voltar", "Volver"],
   ["Library", "Biblioteca", "Biblioteca"],
   ["Settings", "Configurações", "Configuración"],

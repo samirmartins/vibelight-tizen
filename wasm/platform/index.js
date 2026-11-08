@@ -80,7 +80,7 @@ function attachListeners() {
   $('#diagnosticsReportBtn').on('click', SessionDiagnostics.show);
   $('#diagnosticsHistoryBtn').on('click', DiagnosticView.history);
   $('#languageSettingsBtn').on('click', function(){MenuI18n.openSettings();});
-  $('#navigationGuideBtn').on('click', navigationGuideDialog);
+  $('#navigationGuideBtn').on('click', GuideHelp.open);
   $('#restartAppBtn').on('click', restartAppDialog);
 
   const registerMenu = (elementId, view, onSelect) => {
@@ -1379,7 +1379,7 @@ function handleSettingsView(category) {
 }
 
 // Show the Navigation Guide dialog
-function navigationGuideDialog() {
+function navigationGuideDialog(onClose) {
   // Find the existing overlay and dialog elements
   var navGuideDialogOverlay = document.querySelector('#navGuideDialogOverlay');
   var navGuideDialog = document.querySelector('#navGuideDialog');
@@ -1401,6 +1401,7 @@ function navigationGuideDialog() {
     isDialogOpen = false;
     Navigation.pop();
     Navigation.switch();
+    if (typeof onClose === 'function') onClose();
   });
 }
 

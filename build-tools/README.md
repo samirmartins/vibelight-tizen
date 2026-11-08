@@ -300,6 +300,15 @@ authorization; a draft or tag also requires approval.
 
 ## Local session diagnostics and settings
 
+Guide and help uses the committed `wasm/static/res/guide-qr.svg`; builds require
+no QR service or encoder. To change its permanent destination, update the readable
+address and regenerate with `python3 build-tools/generate-guide-qr.py` (authoring
+dependency: libqrencode). `--check` verifies reproducibility. The asset includes
+four-module quiet zones and Q error correction. `guide_help_test.js` covers
+menu ownership, guards and the bundled address; independently decode rendered
+screenshots when changing the asset. Publish and verify the Pages destination
+before release; generating the QR does not publish the guide.
+
 Activation is session-local and explicit in the in-game overlay. Hidden statistics
 continue recording until that session ends; a new session is inactive regardless
 of legacy preferences. One diagnostics observer feeds the nine overlay groups and

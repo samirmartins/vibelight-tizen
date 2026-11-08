@@ -311,7 +311,8 @@
           "text": [
             "Imagem: resolução, FPS, bitrate, codec, HDR, faixa de cores, frame pacing e latência ultrabaixa. Som: canais, limite adaptativo do buffer e reprodução no PC.",
             "Controles: mapeamento, testes, analógicos, gatilhos, vibração e mouse. PCs e biblioteca: endereço, resolução no host, ordenação e remoção de PCs. Diagnóstico: avisos e registros salvos. Geral e sobre: idioma, sons de menu, ajuda, reinício e restauração.",
-            "Geral e sobre → Informações do sistema mostra a versão do aplicativo, a variante Normal/ForceGM e a identificação da build. Indisponível significa que o pacote não contém metadados válidos da build."
+            "Geral e sobre → Informações do sistema mostra a versão do aplicativo, a variante Normal/ForceGM e a identificação da build. Indisponível significa que o pacote não contém metadados válidos da build.",
+            "Geral e sobre → Guia e ajuda mostra um QR code e o endereço para abrir este guia no celular. Escolha o idioma no site. Controles nesta TV abre a referência de navegação integrada, sem precisar de internet."
           ],
           "image": {
             "name": "picture",

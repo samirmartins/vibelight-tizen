@@ -310,13 +310,13 @@
               </div>
             </div>
 <div class="setting-option">
-              <label>Navigation guide</label>
+              <label>Guide and help</label>
               <span class="mdl-list__item-text-body">
-                - Useful for users who need guidance or help navigating the app.
+                Setup, troubleshooting and controls.
               </span>
               <div id="navigationGuideMenu">
-                <button type="button" id="navigationGuideBtn" class="mdl-button mdl-js-button mdl-js-ripple-effect" aria-label="Navigation Guide">
-                  Discover navigation controls for all input devices
+                <button type="button" id="navigationGuideBtn" class="mdl-button mdl-js-button mdl-js-ripple-effect" aria-label="Guide and help">
+                  Open guide
                   <img src="static/res/ic_tv_remote_48px.svg" id="navigationGuideIcon">
                 </button>
               </div>
@@ -397,6 +397,7 @@
   <script type="text/javascript" src="platform/index.js"></script>
   <script type="text/javascript" src="platform/navigation.js"></script>
   <script type="text/javascript" src="platform/menu-dialogs.js"></script>
+  <script type="text/javascript" src="platform/guide-help.js"></script>
   <script type="text/javascript" src="platform/interface-sounds.js"></script>
   <script type="text/javascript" src="platform/quick-help.js"></script>
   <script type="text/javascript" src="platform/focus-manager.js"></script>
@@ -407,6 +408,24 @@
   <script type="text/javascript" src="platform/app-lifecycle.js"></script>
   <script type="text/javascript" src="static/js/utils.js"></script>
   <script type="text/javascript" src="static/js/mdns-browser/main.js"></script>
+  <div class="dialog-overlay" id="guideHelpDialogOverlay">
+    <dialog id="guideHelpDialog" class="mdl-dialog utility-dialog guide-help-dialog" aria-labelledby="guideHelpTitle" aria-describedby="guideHelpInstruction">
+      <h3 id="guideHelpTitle" class="mdl-dialog__title">Guide and help</h3>
+      <div class="guide-help-body">
+        <img id="guideHelpQr" src="static/res/guide-qr.svg" width="328" height="328" alt="QR code for the VibeLight guide">
+        <div class="guide-help-copy">
+          <p id="guideHelpInstruction">Scan to open the guide on your phone.</p>
+          <p class="guide-help-detail">Installation, settings and troubleshooting.</p>
+          <p class="guide-help-languages" data-i18n-skip="true">English · Português · Español</p>
+          <p class="guide-help-url" data-i18n-skip="true">https://samirmartins.github.io/vibelight-tizen/</p>
+        </div>
+      </div>
+      <div class="guide-help-actions">
+        <button id="guideHelpClose" type="button" class="mdl-button mdl-js-button">Back</button>
+        <button id="guideHelpControls" type="button" class="mdl-button mdl-js-button">Controls on this TV</button>
+      </div>
+    </dialog>
+  </div>
   <div class="dialog-overlay" id="wakeDialogOverlay">
     <dialog id="wakeDialog" class="mdl-dialog utility-dialog">
       <h3 id="wakeTitle" class="mdl-dialog__title">Wake PC</h3>
