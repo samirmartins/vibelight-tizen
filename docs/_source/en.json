@@ -310,7 +310,8 @@
           "title": "Find the right category",
           "text": [
             "Picture: resolution, FPS, bitrate, codec, HDR, color range, frame pacing and ultra-low latency. Sound: channels, adaptive buffer ceiling and playback on the PC.",
-            "Controls: mapping, tests, sticks, triggers, rumble and mouse. PCs & library: address input, host resolution, ordering and PC removal. Diagnosis: warnings and saved records. General & about: language, menu sounds, help, restart and restore defaults."
+            "Controls: mapping, tests, sticks, triggers, rumble and mouse. PCs & library: address input, host resolution, ordering and PC removal. Diagnosis: warnings and saved records. General & about: language, menu sounds, help, restart and restore defaults.",
+            "General & about → System information shows the app version, Normal/ForceGM variant and build identifier. Unavailable means the package has no valid build metadata."
           ],
           "image": {
             "name": "picture",
@@ -436,7 +437,8 @@
           "id": "diagnostic-history",
           "title": "Your last ten session records",
           "text": [
-            "History & comparison keeps the latest ten saved sessions. Saving the eleventh removes the oldest. A session without activation does not replace previous records. Late activation is marked as partial coverage."
+            "History & comparison keeps the latest ten saved sessions. Saving the eleventh removes the oldest. A session without activation does not replace previous records. Late activation is marked as partial coverage.",
+            "To delete one record, open it and choose Delete diagnosis. Confirm to remove only that record, or Cancel to keep it. The other saved diagnoses remain available."
           ],
           "image": {
             "name": "history",
@@ -487,7 +489,8 @@
           "id": "fix-network",
           "title": "PC missing or PIN rejected",
           "text": [
-            "Check that the host is open, both devices share a network and the firewall allows the host. Add the PC by local IP, then enter the new PIN in that host’s web interface. A failed response does not prove the PC is powered off."
+            "Check that the host is open, both devices share a network and the firewall allows the host. Add the PC by local IP, then enter the new PIN in that host’s web interface. A failed response does not prove the PC is powered off.",
+            "If starting a stream fails, read the stage and suggested action in the error dialog. Close it to return to the library; after checking the PC or settings, choose Play again."
           ],
           "links": [
             {
@@ -531,7 +534,8 @@
           "title": "No saved record, or a storage error?",
           "text": [
             "Enable Statistics in the game menu, leave the session and look in Settings → Diagnosis. Sessions never activated do not create records.",
-            "If saving fails, previous history is preserved and the new session may not be saved. Do not uninstall to recover records."
+            "If saving fails, previous history is preserved and the new session may not be saved. Do not uninstall to recover records.",
+            "A failed write of settings or favorites now shows a warning. Check the TV storage and try again; changes that were not saved may be lost after restarting the app."
           ],
           "links": [
             {

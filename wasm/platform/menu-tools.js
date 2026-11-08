@@ -62,9 +62,11 @@ function createMenuRequestScope() {
   return scope;
 }
 
-function openUtilityDialog(id, controls, closeId) {
+function openUtilityDialog(id, controls, closeId, opener) {
   var dialog = document.getElementById(id);
   if (!dialog.showModal) dialogPolyfill.registerDialog(dialog);
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(dialog,closeId,Views.UtilityDialog,
+    {opener:opener,externalCancel:id === 'diagnosisDialog' ? function(){closeUtilityDialog(id);} : null});
   dialog.parentElement.style.display = 'flex';
   dialog.showModal();
   isDialogOpen = true;
@@ -79,7 +81,7 @@ function openUtilityDialog(id, controls, closeId) {
 
 function closeUtilityDialog(id) {
   var dialog = document.getElementById(id);
-  if (!dialog.open) return;
+  if (!dialog.open && (!isDialogOpen || !Navigation.isCurrent(Views.UtilityDialog))) return;
   dialog.close();
   dialog.parentElement.style.display = 'none';
   isDialogOpen = false;
@@ -154,7 +156,7 @@ var WakeHost = (function() {
         status('Using detected MAC. If empty/wrong, enter the physical LAN adapter MAC.');
       };
       document.getElementById('wakeClose').onclick = close;
-      openUtilityDialog('wakeDialog', ['wakeMac', 'wakeSend', 'wakeSave', 'wakeDetected', 'wakeClose'], 'wakeClose');
+      openUtilityDialog('wakeDialog', ['wakeMac', 'wakeSend', 'wakeSave', 'wakeDetected', 'wakeClose'], 'wakeClose','libraryWake');
     }
   };
 })();

@@ -10,9 +10,10 @@ function fixture() {
   const items = {};
   const wrappers = {};
   const options = {};
+  const timers = [];
   const c = {
     console: {log() {}, warn() {}, error() {}},
-    Array, Object, Math, Number, String, setTimeout() { return 1; }, clearTimeout() {},
+    Array, Object, Math, Number, String, setTimeout(fn) { timers.push(fn); return timers.length; }, clearTimeout() {},
     requestAnimationFrame() { return 1; }, cancelAnimationFrame() {},
     document: {
       getElementById(id) { return wrappers[id] || null; },
@@ -34,7 +35,7 @@ function fixture() {
     options[id] = option;
     items[id] = Array.from({length: count}, (_, index) => item(id + '-' + index));
   }
-  return {c, add, items, wrappers};
+  return {c, add, items, wrappers, timers};
 }
 
 {
@@ -97,5 +98,14 @@ function fixture() {
     checked++;
   }
   assert.strictEqual(checked, 6, 'all settings categories checked');
+  {
+    const late=fixture();let focus=0;
+    late.c.focusElement=()=>focus++;
+    late.c.Navigation.push(late.c.Views.HostSettings);
+    late.c.Navigation.push(late.c.Views.DeleteHostDialog);
+    late.c.Navigation.pop();
+    late.timers.splice(0).forEach(fn=>fn());
+    assert.strictEqual(focus,0,'closed dialog timers cannot blur the current opener before focusing hidden controls');
+  }
   console.log('navigation_menu_test: popup lists, lifecycle and D-pad row order/wrap in all six settings categories PASS');
 }

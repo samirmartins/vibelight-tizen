@@ -174,7 +174,7 @@ function moduleDidLoad() {
 // Formats the build version string based on the build type and commit information
 function getBuildVersion(version) {
   // Append pre-release identifier and short commit SHA to the version number for development builds
-  if (BUILD_TYPE === 'development' && BUILD_COMMIT) {
+  if (BUILD_TYPE === 'development' && /^[a-f0-9]{7,40}$/.test(BUILD_COMMIT)) {
     return `${version} (pre-${BUILD_COMMIT})`;
   }
   // Return only the version number without any additional metadata for production builds
@@ -604,6 +604,7 @@ function addHostDialog() {
   
   // Show the dialog and push the view
   addHostOverlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(addHostDialog, 'cancelAddHost', Views.AddHostDialog);
   addHostDialog.showModal();
   isDialogOpen = true;
   Navigation.push(Views.AddHostDialog);
@@ -766,6 +767,7 @@ function pairingDialog(nvhttpHost, onSuccess, onFailure) {
 
     // Show the dialog and push the view
     pairingOverlay.style.display = 'flex';
+    if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(pairingDialog, 'cancelPairing', Views.PairingDialog);
     pairingDialog.showModal();
     isDialogOpen = true;
     Navigation.push(Views.PairingDialog);
@@ -1061,6 +1063,7 @@ function hostMenuDialog(host) {
 
   // Show the dialog and push the view
   $(hostMenuDialogOverlay).css('display', 'flex');
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(hostMenuDialog[0], 'closeHostMenu', Views.HostMenuDialog,{opener:'host-container-'+host.serverUid});
   hostMenuDialog[0].showModal();
   isDialogOpen = true;
   Navigation.push(Views.HostMenuDialog, host.hostname);
@@ -1079,6 +1082,7 @@ function deleteHostDialog(host) {
 
   // Show the dialog and push the view
   deleteHostOverlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(deleteHostDialog, 'cancelDeleteHost', Views.DeleteHostDialog);
   deleteHostDialog.showModal();
   isDialogOpen = true;
   Navigation.push(Views.DeleteHostDialog);
@@ -1137,6 +1141,7 @@ function deleteAllHostsDialog() {
     
     // Show the dialog and push the view
     deleteHostOverlay.style.display = 'flex';
+    if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(deleteHostDialog, 'cancelDeleteHost', Views.DeleteHostDialog, {opener:'removeAllHostsBtn'});
     deleteHostDialog.showModal();
     isDialogOpen = true;
     Navigation.push(Views.DeleteHostDialog);
@@ -1257,6 +1262,7 @@ function hostDetailsDialog(host) {
 
   // Show the dialog and push the view
   $(hostDetailsDialogOverlay).css('display', 'flex');
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(hostDetailsDialog[0], 'closeHostDetails', Views.HostDetailsDialog,{opener:'host-container-'+host.serverUid});
   hostDetailsDialog[0].showModal();
   isDialogOpen = true;
   Navigation.push(Views.HostDetailsDialog);
@@ -1380,6 +1386,7 @@ function navigationGuideDialog() {
 
   // Show the dialog and push the view
   navGuideDialogOverlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(navGuideDialog, 'closeNavGuide', Views.NavigationGuideDialog, {opener:'navigationGuideBtn'});
   navGuideDialog.showModal();
   isDialogOpen = true;
   Navigation.push(Views.NavigationGuideDialog);
@@ -1406,6 +1413,7 @@ function restoreDefaultsDialog() {
 
   // Show the dialog and push the view
   restoreDefaultsDialogOverlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(restoreDefaultsDialog, 'cancelRestoreDefaults', Views.RestoreDefaultsDialog, {opener:'restoreDefaultsBtn'});
   restoreDefaultsDialog.showModal();
   isDialogOpen = true;
   Navigation.push(Views.RestoreDefaultsDialog);
@@ -1453,6 +1461,7 @@ function warningDialog(title, message) {
 
   // Show the dialog and push the view
   warningDialogOverlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(warningDialog, 'closeWarning', Views.WarningDialog);
   warningDialog.showModal();
   document.body.classList.add('warning-open');
   isDialogOpen = true;
@@ -1503,6 +1512,7 @@ function restartAppDialog() {
 
   // Show the dialog and push the view
   restartAppDialogOverlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(restartAppDialog, 'cancelRestartApp', Views.RestartMoonlightDialog, {opener:'restartAppBtn'});
   restartAppDialog.showModal();
   isDialogOpen = true;
   Navigation.push(Views.RestartMoonlightDialog);
@@ -1542,6 +1552,7 @@ function requiredRestartAppDialog() {
 
   // Show the dialog and push the view
   restartAppDialogOverlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(restartAppDialog, 'cancelRestartApp', Views.RestartMoonlightDialog, {opener:'restartAppBtn'});
   restartAppDialog.showModal();
   isDialogOpen = true;
   Navigation.push(Views.RestartMoonlightDialog);
@@ -1583,6 +1594,7 @@ function exitAppDialog() {
 
   // Show the dialog and push the view
   exitAppOverlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(exitAppDialog, 'cancelExitApp', Views.ExitMoonlightDialog);
   exitAppDialog.showModal();
   isDialogOpen = true;
   Navigation.push(Views.ExitMoonlightDialog);
@@ -1682,6 +1694,7 @@ function quitAppDialog() {
     var overlay = document.querySelector('#quitAppDialogOverlay');
     var dialog = document.querySelector('#quitAppDialog');
     document.getElementById('quitAppDialogText').textContent = 'Are you sure you want to quit ' + game.title + '? All unsaved data will be lost.';
+    if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(dialog, 'cancelQuitApp', Views.QuitAppDialog);
     overlay.style.display = 'flex'; dialog.showModal(); isDialogOpen = true;
     Navigation.push(Views.QuitAppDialog);
     function close() {
@@ -1790,6 +1803,7 @@ function startGame(host, appID, audioPrepared) {
   if(typeof StreamStartup !== 'undefined') StreamStartup.begin(host,function(){launchScope.cancel();});
   var lifecycleEpoch = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;
   var settled = false, handedOff = false, closeDialog = null;
+  var launchStep = 'pc';
   function launchCurrent() {
     return launchScope.active && startGame.pending === launchScope &&
       (typeof AppLifecycle === 'undefined' || AppLifecycle.current(lifecycleEpoch));
@@ -1821,6 +1835,7 @@ function startGame(host, appID, audioPrepared) {
       var dialog = document.querySelector('#quitAppDialog');
       document.getElementById('quitAppDialogText').textContent = currentApp.title +
         ' is already running. Would you like to quit it and start ' + appToStart.title + '?';
+      if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(dialog, 'cancelQuitApp', Views.QuitAppDialog);
       overlay.style.display = 'flex'; dialog.showModal(); isDialogOpen = true;
       if(typeof StreamStartup !== 'undefined') StreamStartup.cover(true);
       Navigation.push(Views.QuitAppDialog);
@@ -1854,12 +1869,14 @@ function startGame(host, appID, audioPrepared) {
   }).then(function() {
     if (!launchCurrent()) return;
     if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Loading game information…');
+    launchStep = 'app';
     return launchScope.request(function() { return host.getAppById(appID); }, 10000);
   }).then(function(appToStart) {
     if (!launchCurrent()) return;
     if (!appToStart || typeof appToStart.title !== 'string') throw new Error('Unknown app');
     var ready = Promise.resolve(true);
     if (host.currentGame != 0 && host.currentGame != appID) {
+      launchStep = 'quit';
       ready = launchScope.request(function() { return host.getAppById(host.currentGame); }, 10000)
         .then(function(currentApp) {
           if (!launchCurrent()) return false;
@@ -1903,6 +1920,7 @@ function startGame(host, appID, audioPrepared) {
       else $('#loadingSpinnerMessage').text('Starting ' + appToStart.title + '...');
       showStreamMode();
       SessionDiagnostics.configure({game:appToStart.title,config:{pacing:!!framePacing,hdr:!!hdrMode,gameMode:!!gameMode,bitrate:bitrate/1000,audio:audioConfig,audioLimitMs:audioJitterMs}});
+      launchStep = 'host';
 
       return launchScope.request(function() {
         var mode = streamWidth + 'x' + streamHeight + 'x' + frameRate;
@@ -1918,6 +1936,7 @@ function startGame(host, appID, audioPrepared) {
         if (String(code) !== '200') throw new Error('Host rejected the stream');
         if (!$root.find('sessionUrl0').text().trim()) throw new Error('Missing stream URL');
         if(typeof StreamStartup !== 'undefined'){StreamStartup.stage('Starting video and audio…');StreamStartup.native();}
+        launchStep = 'player';
         return sendMessage('startRequest', [
             host.address, host.httpPort, streamWidth, streamHeight, frameRate, bitrate.toString(), rikey, rikeyid.toString(),
             host.appVersion, host.gfeVersion, $root.find('sessionUrl0').text().trim(), host.serverCodecModeSupport,
@@ -1938,9 +1957,15 @@ function startGame(host, appID, audioPrepared) {
     releasePreparedAudio();
     launchScope.cancel();
     var blockedAudio = 'Audio cleanup did not complete safely. Restart VibeLight.';
-    snackbarLogLong(error === blockedAudio || (error && error.message === blockedAudio) ? blockedAudio : error && error.clientStreamStopping ?
-      'Previous stream is still closing. Retry shortly.' : 'Could not start the stream. Please try again.');
+    var message = typeof StreamStartup !== 'undefined' ? StreamStartup.failure(launchStep,error) :
+      error === blockedAudio || (error && error.message === blockedAudio) ? blockedAudio : error && error.clientStreamStopping ?
+      'Previous stream is still closing. Retry shortly.' : 'Could not start the stream. Please try again.';
+    if (typeof StreamStartup !== 'undefined' && typeof warningDialog === 'function') {
+      warningDialog('Could not start the stream',message);
+      if (typeof MenuI18n !== 'undefined') MenuI18n.connectionDialog();
+    } else snackbarLogLong(message);
     return Promise.resolve(showApps(host)).then(function() {
+      if (typeof isDialogOpen !== 'undefined' && isDialogOpen) return;
       if (startGame.pending || isInGame || (typeof api !== 'undefined' && api !== host) ||
           (typeof AppLifecycle !== 'undefined' && !AppLifecycle.current(lifecycleEpoch))) return;
       Navigation.switch(); Navigation.change(Views.Apps);
@@ -1999,6 +2024,13 @@ function createObjectStore(dataBase) {
 
 var storageOpening = null;
 var storageReadErrors = new Set();
+var failedSaves = new Set();
+function reportSaveResult(key, result) {
+  if (result.status === 'ok') { failedSaves.delete(key); return; }
+  var first = failedSaves.size === 0;
+  failedSaves.add(key);
+  if (first) snackbarLogLong('Could not save changes on this TV. Check storage and try again.');
+}
 function storageOnce(callback) {
   var done = false;
   return function(result) {
@@ -2077,7 +2109,10 @@ function getPreferenceData(key, callback) {
 }
 
 function storeData(key, data, callbackFunction) {
-  var finish = storageOnce(callbackFunction);
+  var finish = storageOnce(function(result) {
+    if (callbackFunction) callbackFunction(result);
+    else reportSaveResult(key, result);
+  });
   if (storageReadErrors.has(key)) { finish({status: 'error', code: 'read-pending'}); return; }
   openIndexDB(function(opened) {
     if (opened.status !== 'ok') { finish(opened); return; }
@@ -2630,6 +2665,7 @@ function loadSystemInfo() {
     // Insert the system information into the placeholder
     systemInfoPlaceholder.innerText =
       'App Version: ' + appInfo.name + ' v' + buildVer + ' · ' + getAppVariant() + '\n' +
+      'Build: ' + (typeof BUILD_COMMIT !== 'undefined' && /^[a-f0-9]{7,40}$/.test(BUILD_COMMIT) ? BUILD_COMMIT.slice(0,12) : 'Unavailable') + '\n' +
       'Platform Version: Tizen ' + (platformVer ? platformVer : 'Unknown') + '\n' +
       'TV Model Series: ' + (modelSeries ? modelSeries : 'Unknown') + '\n' +
       'TV Model Name: ' + (modelName ? modelName : 'Unknown') + '\n' +

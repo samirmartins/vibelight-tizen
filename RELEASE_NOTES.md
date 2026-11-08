@@ -9,11 +9,13 @@
 - Six clearer settings categories, compact latency/audio guidance and controller
   tuning inside the mapping editor, with selectors and sliders that fit the screen.
   Popup focus and language switching remain consistent; saved choices and
-  playback defaults are preserved.
+  playback defaults are preserved. Build identity and unsaved-change warnings
+  make package verification and storage failures clearer.
 - Per-game opt-in statistics: nine shared metric groups, ten TV-only session
-  records, A/B comparison and technical details. Nothing is uploaded.
+  records, A/B comparison, individual deletion and technical details. Nothing is uploaded.
 - One connection screen with stages and cancellation, without overlapping
-  progress or dialogs; game-library refresh stays separate from restarting the app.
+  progress or dialogs; errors identify the failed stage and next action.
+  Game-library refresh stays separate from restarting the app.
 - Fixes pairing, persistence, native string handling and session/audio recovery,
   preventing stale launches and unsafe cleanup.
 - An English-first visual guide with Portuguese/Spanish selection, illustrated

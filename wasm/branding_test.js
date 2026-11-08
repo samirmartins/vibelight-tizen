@@ -21,6 +21,10 @@ const remaining = changed.filter(file => {
   const experience=require('./experience-scope.cjs');
   if(experience.added[file]){assert(experience.matchesAdded(file,fs.readFileSync(file)),file+' approved new asset');return false;}
   const current=require('./experience-scope.cjs').normalize(file,fs.readFileSync(file,'utf8'));
+  if(file==='wasm/platform/menu-tools.js'){
+    assert.strictEqual(current,cp.execFileSync('git',['cat-file','blob','b46c204:'+file],{encoding:'utf8'}),
+      'exact independently tested menu-dialog lifecycle integration');return false;
+  }
   const review=require('./review-corrections-scope.cjs');
   if (['libgamestream/pairing.c','libgamestream/http.c','wasm/auddec.cpp','wasm/audio_ring.hpp','wasm/platform/audio.js','wasm/platform/audio-worklet.js'].includes(file)) {
     assert(review.matches(file,current),'exact separately tested correction: '+file); return false;

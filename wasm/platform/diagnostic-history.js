@@ -63,7 +63,22 @@ var DiagnosticHistory = (function() {
         return {ok:true,records:records};
       } catch (e) { return failure('storage'); }
     }
-    return {list:list,save:save};
+    function remove(id) {
+      if (typeof id !== 'string' || !id || id.length > 100) return failure('invalid-id');
+      var previous = list();
+      if (!previous.ok) return previous;
+      var records = previous.records.filter(function(record) { return record.id !== id; });
+      if (records.length === previous.records.length) return previous;
+      try {
+        // list() has already persisted a canonical v2 copy. Remove the matched
+        // legacy copy first; if the following write fails, v2 still keeps it.
+        if (previous.records.some(function(record){return record.id===id && record.legacy===true;}))storage.removeItem(legacyKey);
+        // Keep an empty v2 envelope so deleted legacy reports cannot return.
+        storage.setItem(key,JSON.stringify({version:2,records:records}));
+        return {ok:true,records:records};
+      } catch (e) { return failure('storage'); }
+    }
+    return {list:list,save:save,remove:remove};
   }
   // Values and units are shared by history comparison and report rendering.
   var fields = [

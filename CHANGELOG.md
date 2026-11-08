@@ -15,6 +15,9 @@ The published 4.0.2 packages have not been replaced. See the
 
 ### Added
 
+- Deletes an individual local diagnosis after confirmation, preserving other
+  records and leaving history intact on failed writes. System information shows
+  a validated build identifier alongside the version and package variant.
 - Keeps the last ten local session summaries, with any two selectable for A/B
   comparison, configuration values, units, event rates and technical details.
   Missing metrics remain unavailable; late activation has explicit partial coverage.
@@ -49,6 +52,12 @@ The published 4.0.2 packages have not been replaced. See the
 
 ### Fixed
 
+- Reports unsaved preferences and library changes without flooding notifications;
+  consecutive failures remain one episode until those writes recover.
+- Shares cancellation and focus restoration across legacy dialogs, including
+  Escape, external close and rapid reopening, without confirming destructive actions.
+- Shows the failed connection stage and actionable advice without private error
+  details, automatic retries or pre-game statistics collection.
 - Reuses one warning dialog for consecutive failures and restores the library
   after a stream ends behind it. Dismissing a nonfatal in-game warning returns
   focus to the video; obsolete deferred returns cannot interrupt a new launch.

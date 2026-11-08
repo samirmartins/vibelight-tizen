@@ -310,7 +310,8 @@
           "title": "Encuentra la categoría adecuada",
           "text": [
             "Imagen: resolución, FPS, bitrate, codec, HDR, rango de color, frame pacing y latencia ultrabaja. Sonido: canales, límite adaptativo del búfer y reproducción en el PC.",
-            "Controles: mapeo, pruebas, sticks, gatillos, vibración y ratón. PCs y biblioteca: dirección, resolución del host, orden y eliminación de PCs. Diagnóstico: avisos y registros. General y acerca de: idioma, sonidos del menú, ayuda, reinicio y restauración."
+            "Controles: mapeo, pruebas, sticks, gatillos, vibración y ratón. PCs y biblioteca: dirección, resolución del host, orden y eliminación de PCs. Diagnóstico: avisos y registros. General y acerca de: idioma, sonidos del menú, ayuda, reinicio y restauración.",
+            "General y acerca de → Información del sistema muestra la versión de la aplicación, la variante Normal/ForceGM y el identificador de la build. No disponible significa que el paquete no contiene metadatos válidos de la build."
           ],
           "image": {
             "name": "picture",
@@ -436,7 +437,8 @@
           "id": "diagnostic-history",
           "title": "Tus diez últimos registros de sesión",
           "text": [
-            "Historial y comparación conserva las diez últimas sesiones guardadas. La undécima elimina la más antigua. Una sesión sin activar no reemplaza registros anteriores. La activación tardía aparece como cobertura parcial."
+            "Historial y comparación conserva las diez últimas sesiones guardadas. La undécima elimina la más antigua. Una sesión sin activar no reemplaza registros anteriores. La activación tardía aparece como cobertura parcial.",
+            "Para eliminar un registro, ábrelo y elige Eliminar diagnóstico. Confirma para eliminar solo ese registro o usa Cancelar para conservarlo. Los demás diagnósticos siguen disponibles."
           ],
           "image": {
             "name": "history",
@@ -487,7 +489,8 @@
           "id": "fix-network",
           "title": "¿No aparece el PC o se rechaza el PIN?",
           "text": [
-            "Comprueba que el host está abierto, ambos dispositivos comparten red y el firewall permite el host. Añade el PC por IP local e introduce el nuevo PIN en su interfaz web. Una respuesta fallida no prueba que el PC esté apagado."
+            "Comprueba que el host está abierto, ambos dispositivos comparten red y el firewall permite el host. Añade el PC por IP local e introduce el nuevo PIN en su interfaz web. Una respuesta fallida no prueba que el PC esté apagado.",
+            "Si la transmisión no se inicia, consulta la etapa y la orientación del aviso de error. Ciérralo para volver a la biblioteca; después de comprobar el PC o la configuración, elige Jugar de nuevo."
           ],
           "links": [
             {
@@ -531,7 +534,8 @@
           "title": "¿No hay registro guardado o falló el almacenamiento?",
           "text": [
             "Activa Estadísticas en el menú del juego, sal de la sesión y consulta Ajustes → Diagnóstico. Las sesiones sin activar no generan registros.",
-            "Si falla el guardado, se conserva el historial anterior y la sesión actual podría no haberse guardado. No desinstales para recuperar registros."
+            "Si falla el guardado, se conserva el historial anterior y la sesión actual podría no haberse guardado. No desinstales para recuperar registros.",
+            "Si no se pueden guardar la configuración o los favoritos, ahora aparece un aviso. Comprueba el almacenamiento de la TV e inténtalo de nuevo; los cambios no guardados pueden perderse al reiniciar la aplicación."
           ],
           "links": [
             {

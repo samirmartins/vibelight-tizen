@@ -614,11 +614,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   PairingDialog: {
@@ -645,11 +645,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   UtilityDialog: {
@@ -696,11 +696,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   DeleteHostDialog: {
@@ -730,11 +730,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   HostDetailsDialog: {
@@ -761,11 +761,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   Settings: {
@@ -1329,11 +1329,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   RestoreDefaultsDialog: {
@@ -1363,11 +1363,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   Apps: {
@@ -1424,11 +1424,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   WarningDialog: {
@@ -1455,11 +1455,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   RestartMoonlightDialog: {
@@ -1489,11 +1489,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
   ExitMoonlightDialog: {
@@ -1523,11 +1523,11 @@ const Views = {
     },
     enter: function() {
       mark(this.view.current());
-      setTimeout(() => focusElement(this.view.current()), 100);
+      setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
     leave: function() {
       unmark(this.view.current());
-      setTimeout(() => blurElement(this.view.current()), 100);
+      setTimeout(() => { if (!Navigation.isCurrent(this)) blurElement(this.view.current()); }, 100);
     },
   },
 };
@@ -1664,5 +1664,6 @@ const Navigation = (function() {
     stop: State.stop,
     isRunning: State.isRunning,
     isCurrent: view => Stack.get() === view,
+    current: Stack.get,
   };
 })();

@@ -93,6 +93,7 @@
 body.stream-starting #snackbar, body.warning-open #snackbar { visibility:hidden; pointer-events:none; }
 #streamStartupCancel { flex-shrink:0; color:#eef3f8; background:#42516a; border:1px solid #89bfd1; border-radius:8px; padding:11px 28px; font-size:22px; }
 #streamStartupCancel:focus { outline:3px solid #68d5e9; }
+.diagnosis-button.diagnosis-danger { background:#673d48; border-color:#d49aa8; }
 
 .settings-options .setting-option .mdl-switch { height:31px!important; min-height:31px; margin:0; background:transparent!important; box-shadow:none; }
 .setting-option .mdl-switch__input,.setting-option .mdl-switch__track,.setting-option .mdl-switch__thumb { margin:0!important; }

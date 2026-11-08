@@ -77,6 +77,8 @@ For a playback issue, optionally enable Statistics in that game, leave the
 session, then read Settings → Diagnosis → Last diagnosis or History. Recording
 is local; sharing a redacted screenshot in an issue is a separate, manual choice.
 Keep private network details and signing credentials out of screenshots and logs.
+Include the version, variant and build from General & about → System information.
+To remove one local diagnosis, open its record and choose Delete diagnosis.
 
 ## Credits
 

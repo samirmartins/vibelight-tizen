@@ -3,7 +3,7 @@ const assert = require('assert');
 const history = require('./platform/diagnostic-history.js');
 const data = new Map(); let failRead = false, failWrite = false;
 const storage = {getItem(k) { if (failRead) throw Error('read'); return data.get(k) || null; },
- setItem(k,v) { if (failWrite) throw Error('quota'); data.set(k,v); }};
+ setItem(k,v) { if (failWrite) throw Error('quota'); data.set(k,v); },removeItem(k){data.delete(k);}};
 const store = history.create(storage);
 const record = (id, duration = 60000) => ({version:2,id:String(id),createdAt:1700000000000+id,
  durationMs:duration,recordedMs:duration,config:{fps:60,pacing:true},metrics:{fpsReceived:60,
@@ -50,4 +50,16 @@ assert.equal(history.compare(a,{...b,legacy:true,metrics:{}}).find(r=>r.key==='f
 const pick=history.selection(); assert(pick.toggle('1')); assert(pick.toggle('2'));
 assert(!pick.toggle('3')); assert.deepStrictEqual(pick.ids(),['1','2']);
 pick.toggle('1'); assert(pick.toggle('3')); assert.deepStrictEqual(pick.ids(),['2','3']);
+data.clear();for(let i=1;i<=3;i++)assert(store.save(record(i)).ok);
+assert(store.remove('2').ok);assert.deepStrictEqual(store.list().records.map(r=>r.id),['3','1']);
+const afterDelete=data.get(history.key);failWrite=true;
+assert(!store.remove('3').ok);assert.equal(data.get(history.key),afterDelete);failWrite=false;
+failRead=true;assert(!store.remove('3').ok);failRead=false;
+assert(store.remove('missing').ok,'absent ID is idempotent');
+data.set(history.legacyKey,legacy);assert(store.remove('3').ok);assert(store.remove('1').ok);
+assert.deepStrictEqual(history.create(storage).list().records,[],'empty v2 history does not resurrect a legacy report');
+data.clear();data.set(history.legacyKey,legacy);assert(store.list().ok);
+failWrite=true;assert(!store.remove('legacy-v1').ok);failWrite=false;
+assert.equal(store.list().records[0].id,'legacy-v1','failed deletion retains the canonical migrated record');
+assert(store.remove('legacy-v1').ok);assert(!data.has(history.legacyKey),'deleting a migrated report also removes its legacy copy');
 console.log('diagnostic_history_test: retention, migration, failure preservation, rates, missing data and selection PASS');

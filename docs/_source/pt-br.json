@@ -310,7 +310,8 @@
           "title": "Encontre a categoria certa",
           "text": [
             "Imagem: resolução, FPS, bitrate, codec, HDR, faixa de cores, frame pacing e latência ultrabaixa. Som: canais, limite adaptativo do buffer e reprodução no PC.",
-            "Controles: mapeamento, testes, analógicos, gatilhos, vibração e mouse. PCs e biblioteca: endereço, resolução no host, ordenação e remoção de PCs. Diagnóstico: avisos e registros salvos. Geral e sobre: idioma, sons de menu, ajuda, reinício e restauração."
+            "Controles: mapeamento, testes, analógicos, gatilhos, vibração e mouse. PCs e biblioteca: endereço, resolução no host, ordenação e remoção de PCs. Diagnóstico: avisos e registros salvos. Geral e sobre: idioma, sons de menu, ajuda, reinício e restauração.",
+            "Geral e sobre → Informações do sistema mostra a versão do aplicativo, a variante Normal/ForceGM e a identificação da build. Indisponível significa que o pacote não contém metadados válidos da build."
           ],
           "image": {
             "name": "picture",
@@ -436,7 +437,8 @@
           "id": "diagnostic-history",
           "title": "Os dez últimos registros de sessão",
           "text": [
-            "Histórico e comparação mantém as dez últimas sessões salvas. A décima primeira remove a mais antiga. Sessão sem ativação não substitui registros anteriores. A ativação tardia aparece como cobertura parcial."
+            "Histórico e comparação mantém as dez últimas sessões salvas. A décima primeira remove a mais antiga. Sessão sem ativação não substitui registros anteriores. A ativação tardia aparece como cobertura parcial.",
+            "Para excluir um registro, abra-o e escolha Excluir diagnóstico. Confirme para remover somente esse registro ou use Cancelar para mantê-lo. Os outros diagnósticos continuam disponíveis."
           ],
           "image": {
             "name": "history",
@@ -487,7 +489,8 @@
           "id": "fix-network",
           "title": "O PC sumiu ou o PIN foi recusado?",
           "text": [
-            "Confira se o host está aberto, os aparelhos estão na mesma rede e o firewall permite o host. Adicione o PC pelo IP local e digite o novo PIN na interface web dele. Falha de resposta não prova que o computador está desligado."
+            "Confira se o host está aberto, os aparelhos estão na mesma rede e o firewall permite o host. Adicione o PC pelo IP local e digite o novo PIN na interface web dele. Falha de resposta não prova que o computador está desligado.",
+            "Se a transmissão não iniciar, confira a etapa e a orientação no aviso de erro. Feche-o para voltar à biblioteca; depois de verificar o PC ou as configurações, escolha Jogar novamente."
           ],
           "links": [
             {
@@ -531,7 +534,8 @@
           "title": "Não há registro salvo ou houve erro de armazenamento?",
           "text": [
             "Ative Estatísticas no menu do jogo, saia da sessão e consulte Configurações → Diagnóstico. Sessões sem ativação não criam registros.",
-            "Se o salvamento falhar, o histórico anterior é preservado e a sessão atual pode não ter sido salva. Não desinstale para recuperar registros."
+            "Se o salvamento falhar, o histórico anterior é preservado e a sessão atual pode não ter sido salva. Não desinstale para recuperar registros.",
+            "Uma falha ao gravar configurações ou favoritos agora mostra um aviso. Verifique o armazenamento da TV e tente novamente; alterações não salvas podem se perder ao reiniciar o aplicativo."
           ],
           "links": [
             {

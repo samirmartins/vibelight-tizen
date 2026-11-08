@@ -126,7 +126,10 @@ var ConsoleLibrary = (function() {
       localStorage.setItem(key, JSON.stringify(prefs));
       // Only retire the compact override after every host's focus is saved.
       localStorage.removeItem(key + '.focus');
-    } catch (e) {}
+      if (typeof reportSaveResult === 'function') reportSaveResult('library',{status:'ok'});
+    } catch (e) {
+      if (typeof reportSaveResult === 'function') reportSaveResult('library',{status:'error'});
+    }
   }
   function valid(token) { return active && !isInGame && !document.hidden && token === epoch && host && hosts[host.serverUid] === host; }
   function status(text) { el('libraryStatus').textContent = text; }

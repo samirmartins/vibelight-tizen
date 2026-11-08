@@ -1,7 +1,7 @@
 // Menu-only rendering of local summaries. No live instrumentation or network.
 var DiagnosticView=(function() {
   'use strict';
-  var records=[],chosen=DiagnosticHistory.selection(),mode='history',current=null,page=0,returnId='',historyFocus='',fromHistory=false;
+  var records=[],chosen=DiagnosticHistory.selection(),mode='history',current=null,page=0,returnId='',historyFocus='',fromHistory=false,origin='diagnosticsReportBtn';
   function el(id){return document.getElementById(id);}
   function tr(s){return typeof MenuI18n!=='undefined' ? MenuI18n.text(s) : s;}
   function node(tag,text,className){var n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(className)n.className=className;return n;}
@@ -32,7 +32,7 @@ var DiagnosticView=(function() {
     if(el('diagnosisDialog').open){
       Views.UtilityDialog.controls=ids;Views.UtilityDialog.closeId='diagnosisClose';Views.UtilityDialog.view.index=Math.max(0,ids.indexOf(returnId));
       var focus=returnId && el(returnId) || el(ids[0]);if(focus)focus.focus();returnId='';
-    }else openUtilityDialog('diagnosisDialog',ids,'diagnosisClose');
+    }else openUtilityDialog('diagnosisDialog',ids,'diagnosisClose',origin);
   }
   function clear(title){
     el('diagnosisDialog').setAttribute('data-view',mode);
@@ -81,7 +81,27 @@ var DiagnosticView=(function() {
     el('diagnosisFinding').textContent=tr(current.finding || '');
     if(details){el('diagnosisPeak').textContent=tr(current.peak || '');el('diagnosisFoot').textContent=tr(current.foot || '');}
     else el('diagnosisActions').appendChild(button('diagnosisDetails','Technical details',function(){report(true);},!current.details.length));
+    if(!details)el('diagnosisActions').appendChild(button('diagnosisDelete','Delete diagnosis',confirmDelete));
     backButton(details ? function(){report(false);} : fromHistory ? history : null);open();
+  }
+  function confirmDelete(){
+    var deletingId=current.id;
+    mode='delete';clear('Delete diagnosis?');
+    el('diagnosisConfig').textContent=context(current);
+    el('diagnosisFinding').textContent=tr('Only this record will be removed from this TV. Other diagnoses are kept.');
+    el('diagnosisActions').appendChild(button('diagnosisClose','Cancel',function(){report(false);}));
+    var remove=button('diagnosisDeleteConfirm','Delete',function(){
+      if(mode!=='delete' || !current || current.id!==deletingId)return;
+      remove.disabled=true;
+      var index=records.findIndex(function(record){return record.id===current.id;});
+      var result=DiagnosticHistory.create().remove(deletingId);
+      if(!result.ok){remove.disabled=false;el('diagnosisFoot').textContent=tr('Could not delete diagnosis. Previous history was preserved.');return;}
+      records=result.records;chosen.clear();current=null;fromHistory=false;
+      historyFocus=records.length ? 'diagnosis-record-'+Math.min(index,records.length-1) : 'diagnosisClose';
+      history();
+    });
+    remove.className+=' diagnosis-danger';el('diagnosisActions').appendChild(remove);
+    returnId='diagnosisClose';open();
   }
   function compare(){
     var ids=chosen.ids();if(ids.length!==2)return;
@@ -113,8 +133,8 @@ var DiagnosticView=(function() {
     backButton(history);open();
   }
   return {
-    latest:function(){if(!load())return;if(!records.length){history();return;}current=records[0];fromHistory=false;report(false);},
-    history:function(){if(load())history();},
+    latest:function(){if(!load())return;origin='diagnosticsReportBtn';if(!records.length){history();return;}current=records[0];fromHistory=false;report(false);},
+    history:function(){if(load()){origin='diagnosticsHistoryBtn';history();}},
     // All state stays within this menu visit; nothing is written by comparison.
     isOpen:function(){return !!el('diagnosisDialog').open;}
   };
