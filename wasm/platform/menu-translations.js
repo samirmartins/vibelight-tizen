@@ -505,7 +505,7 @@ var MenuTranslations = [
   ["During the game", "Durante o jogo", "Durante el juego"],
   ["After the game", "Após o jogo", "Después del juego"],
   ["Ultra-low video latency", "Latência ultrabaixa de vídeo", "Latencia de vídeo ultrabaja"],
-  ["Independent of ForceGM. May be unstable on some TVs or system versions.", "Independente do ForceGM. Pode ser instável em algumas TVs/versões do sistema.", "Independiente de ForceGM. Puede ser inestable en algunos televisores o versiones del sistema."],
+  ["May reduce video delay, but can cause instability on some TVs or system versions.", "Pode reduzir o atraso do vídeo, mas causar instabilidade em algumas TVs ou versões do sistema.", "Puede reducir el retraso del vídeo, pero causar inestabilidad en algunos televisores o versiones del sistema."],
   ["Adaptive buffer limit, not a fixed delay. A lower limit may cause audio cuts.", "Limite adaptativo, não um atraso fixo. Um limite menor pode causar cortes.", "Límite adaptativo, no un retraso fijo. Un límite menor puede causar cortes."],
   ["Sticks and triggers", "Analógicos e gatilhos", "Palancas y gatillos"],
   ["Deadzone, response curves and trigger thresholds.", "Zona morta, curvas de resposta e limites dos gatilhos.", "Zona muerta, curvas de respuesta y umbrales de gatillos."],

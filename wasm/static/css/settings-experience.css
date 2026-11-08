@@ -53,6 +53,7 @@
 .setting-option button { max-width:340px; min-height:44px; height:auto!important; white-space:normal; font-size:19px!important; line-height:24px; color:#eef2f7; background:#414b60; border:1px solid #657189; border-radius:7px; padding:9px 15px!important; }
 .setting-option button img { width:23px; height:23px; vertical-align:middle; }
 .setting-option .badge { font-size:11px; margin-left:8px; }
+#selectAudio .badge { display:inline-block; line-height:16px; padding:2px 7px; margin:3px 0 3px 8px; white-space:nowrap; }
 .settings-danger { background:#362f39; border-color:#78505d; }
 .settings-danger>label { color:#f5c7ca!important; }
 .settings-privacy,.diagnosis-privacy { background:#263b46; border-left:3px solid #72c4d6; padding:14px 18px; color:#d0e5ec; font-size:18px; line-height:25px; }

@@ -6,8 +6,8 @@
 
 ## What's new
 
-- Six clearer settings categories, compact latency/audio guidance and a direct
-  controller-tuning shortcut, with selectors and sliders that fit the screen.
+- Six clearer settings categories, compact latency/audio guidance and controller
+  tuning inside the mapping editor, with selectors and sliders that fit the screen.
   Saved choices and playback defaults are preserved.
 - Per-game opt-in statistics: nine shared metric groups, ten TV-only session
   records, A/B comparison and technical details. Nothing is uploaded.

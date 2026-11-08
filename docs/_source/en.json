@@ -346,7 +346,7 @@
           "id": "controls",
           "title": "Make the controller yours",
           "text": [
-            "Use Controls to map buttons, test inputs and adjust sticks or triggers. The direct tuning shortcut opens the existing editor. Menu sounds live in General & about; they stop before streaming."
+            "Use Controls to map buttons, test inputs and adjust sticks or triggers. Open Analog tuning inside the mapping editor to adjust sticks and triggers. Menu sounds live in General & about; they stop before streaming."
           ],
           "links": [
             {
@@ -398,7 +398,7 @@
           "id": "mapping-analog",
           "title": "Tune sticks and triggers only when needed",
           "text": [
-            "Open Analog tuning in the editor, or use the direct shortcut under Settings → Controls. Enable tuning to adjust deadzone, response curve, axis inversion, stick swap and trigger threshold for that family.",
+            "Open Settings → Controls → Controller mapping, then Analog tuning. Enable tuning to adjust deadzone, response curve, axis inversion, stick swap and trigger threshold for that family.",
             "If a stick drifts while untouched, try a small deadzone; a larger value ignores more of its initial movement. Change one setting at a time, save and check the result in the next stream."
           ],
           "links": [

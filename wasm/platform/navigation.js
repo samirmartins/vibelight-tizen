@@ -1074,7 +1074,6 @@ const Views = {
   InputSettings: {
     view: new ListView(() => [
       'controllerMappingBtn',
-      'controllerTuningBtn',
       'rumbleFeedbackBtn',
       'mouseEmulationBtn'
     ]),

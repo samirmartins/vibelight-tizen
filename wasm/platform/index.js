@@ -84,7 +84,6 @@ function attachListeners() {
   $('#diagnosticsReportBtn').on('click', SessionDiagnostics.show);
   $('#diagnosticsHistoryBtn').on('click', DiagnosticView.history);
   $('#languageSettingsBtn').on('click', function(){document.getElementById('languageBtn').click();});
-  $('#controllerTuningBtn').on('click', function(){ControllerMappingMenu.open();ControllerMappingMenu.openAnalog();});
   $('#navigationGuideBtn').on('click', navigationGuideDialog);
   $('#restartAppBtn').on('click', restartAppDialog);
 
@@ -2189,9 +2188,18 @@ function saveMouseEmulation() {
   }, 100);
 }
 
+// Keep the selected label and optional badge separate for live localization.
+function renderAudioConfiguration(option, value) {
+  var source = $(option);
+  var button = $('#selectAudio').empty().append(source.find('.audio-option-label').clone());
+  var badge = source.find('.badge').clone();
+  if (badge.length) button.append(' ').append(badge);
+  button.data('value', value);
+}
+
 function saveAudioConfiguration() {
   var chosenAudioConfig = $(this).data('value');
-  $('#selectAudio').text($(this).text()).data('value', chosenAudioConfig);
+  renderAudioConfiguration(this, chosenAudioConfig);
   console.log('%c[index.js, saveAudioConfiguration]', 'color: green;', 'Saving audioConfig value: ' + chosenAudioConfig);
   storeData('audioConfig', chosenAudioConfig, null);
 
@@ -2656,7 +2664,7 @@ function loadUserDataCb() {
       $('.audioConfigMenu li').each(function() {
         if ($(this).data('value') === previousValue.audioConfig) {
           // Update the audio configuration field based on the given value
-          $('#selectAudio').text($(this).text()).data('value', previousValue.audioConfig);
+          renderAudioConfiguration(this, previousValue.audioConfig);
         }
       });
     }

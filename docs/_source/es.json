@@ -346,7 +346,7 @@
           "id": "controls",
           "title": "Adapta el mando a tu gusto",
           "text": [
-            "Usa Controles para mapear botones, probar entradas y ajustar sticks o gatillos. El acceso directo abre el editor existente. Los sonidos del menú están en General y acerca de; se detienen antes de transmitir."
+            "Usa Controles para mapear botones, probar entradas y ajustar sticks o gatillos. Abre Ajuste analógico dentro del editor de asignación para ajustar sticks y gatillos. Los sonidos del menú están en General y acerca de; se detienen antes de transmitir."
           ],
           "links": [
             {
@@ -398,7 +398,7 @@
           "id": "mapping-analog",
           "title": "Ajusta sticks y gatillos cuando lo necesites",
           "text": [
-            "Abre Ajuste analógico en el editor o usa el acceso directo en Ajustes → Controles. Actívalo para configurar zona muerta, curva de respuesta, inversión de ejes, intercambio de sticks y umbral de gatillos de esa familia.",
+            "Abre Ajustes → Controles → Asignación del mando y después Ajuste analógico. Actívalo para configurar zona muerta, curva de respuesta, inversión de ejes, intercambio de sticks y umbral de gatillos de esa familia.",
             "Si el stick se mueve solo, prueba una zona muerta pequeña; un valor mayor ignora más del movimiento inicial. Cambia una opción cada vez, guarda y comprueba el resultado en la siguiente transmisión."
           ],
           "links": [

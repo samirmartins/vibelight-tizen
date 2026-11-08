@@ -160,7 +160,7 @@
 <div class="setting-option">
               <label>Ultra-low video latency</label>
               <span class="mdl-list__item-text-body">
-                Independent of ForceGM. May be unstable on some TVs or system versions.
+                May reduce video delay, but can cause instability on some TVs or system versions.
               </span>
               <div id="gameModeMenu">
                 <label id="gameModeBtn" class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="gameModeSwitch">
@@ -170,7 +170,7 @@
               </div>
             </div></div>
 <div id="audioSettings" class="settings-options"><div class="setting-option">
-              <label>Audio configuration<span class="badge badge-experimental">Experimental</span></label>
+              <label>Audio configuration</label>
               <span class="mdl-list__item-text-body">
                 - Choose 5.1 or 7.1 surround sound for home-theater systems or use Stereo for general audio compatibility.
               </span>
@@ -178,9 +178,9 @@
                 <button type="button" id="selectAudio" class="mdl-button mdl-js-button mdl-js-ripple-effect" data-value="Stereo">Stereo</button>
               </div>
               <ul class="audioConfigMenu mdl-menu mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect" for="selectAudio">
-                <li class="mdl-menu__item" data-value="Stereo">Stereo</li>
-                <li class="mdl-menu__item" data-value="51Surround">5.1 Surround Sound</li>
-                <li class="mdl-menu__item" data-value="71Surround">7.1 Surround Sound</li>
+                <li class="mdl-menu__item" data-value="Stereo"><span class="audio-option-label">Stereo</span></li>
+                <li class="mdl-menu__item" data-value="51Surround"><span class="audio-option-label">5.1 Surround Sound</span> <span class="badge badge-experimental">Experimental</span></li>
+                <li class="mdl-menu__item" data-value="71Surround"><span class="audio-option-label">7.1 Surround Sound</span> <span class="badge badge-experimental">Experimental</span></li>
               </ul>
             </div>
 <div class="setting-option">
@@ -213,7 +213,7 @@
               <span class="mdl-list__item-text-body">Optional layout for game controls. Menu navigation stays unchanged.</span>
               <button type="button" id="controllerMappingBtn" class="console-button">Remap controller buttons</button>
             </div>
-<div class="setting-option"><label>Sticks and triggers</label><span class="mdl-list__item-text-body">Deadzone, response curves and trigger thresholds.</span><button id="controllerTuningBtn" type="button" class="mdl-button mdl-js-button">Adjust</button></div><h2 class="settings-section-title">Behavior</h2>
+<h2 class="settings-section-title">Behavior</h2>
 <div class="setting-option">
               <label>Rumble feedback</label>
               <span class="mdl-list__item-text-body">Allow controller vibration during play.</span>

@@ -31,8 +31,11 @@ The published 4.0.2 packages have not been replaced. See the
 ### Changed
 
 - Reorganizes settings into Picture, Sound, Controls, PCs and library, Diagnosis,
-  and General and about. Existing controller tuning is directly accessible;
+  and General and about. Controller tuning stays inside the mapping editor;
   menu sounds and restore defaults move to General and about.
+- Labels only 5.1/7.1 surround as experimental, including when selected; Stereo
+  has no experimental badge. Simplifies the ultra-low latency help to its effect
+  and compatibility warning, without the ForceGM comparison in the settings row.
 - Starts statistics only after explicit activation in the current game menu.
   New sessions start inactive, including after a legacy saved ON preference.
   Hiding the overlay continues that session's recording until exit. Settings

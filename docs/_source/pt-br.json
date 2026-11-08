@@ -346,7 +346,7 @@
           "id": "controls",
           "title": "Deixe o controle do seu jeito",
           "text": [
-            "Use Controles para mapear botões, testar entradas e ajustar analógicos ou gatilhos. O atalho de ajustes abre o editor existente. Sons do menu ficam em Geral e sobre; eles param antes da transmissão."
+            "Use Controles para mapear botões, testar entradas e ajustar analógicos ou gatilhos. Abra Ajuste analógico dentro do editor de mapeamento para ajustar analógicos e gatilhos. Sons do menu ficam em Geral e sobre; eles param antes da transmissão."
           ],
           "links": [
             {
@@ -398,7 +398,7 @@
           "id": "mapping-analog",
           "title": "Ajuste analógicos e gatilhos quando precisar",
           "text": [
-            "Abra Ajuste analógico no editor ou use o atalho em Configurações → Controles. Ative o ajuste para configurar zona morta, curva de resposta, inversão de eixos, troca de analógicos e limiar dos gatilhos dessa família.",
+            "Abra Configurações → Controles → Mapeamento do controle e depois Ajuste analógico. Ative o ajuste para configurar zona morta, curva de resposta, inversão de eixos, troca de analógicos e limiar dos gatilhos dessa família.",
             "Se o analógico se mover sozinho, experimente uma zona morta pequena; um valor maior ignora mais do movimento inicial. Altere uma opção por vez, salve e confira o resultado na próxima transmissão."
           ],
           "links": [
