@@ -13,7 +13,8 @@ var DiagnosticHistory = (function() {
   function valid(record) {
     if (!record || record.version !== 2 || typeof record.id !== 'string' || !record.id || record.id.length > 100 ||
         !finite(record.createdAt) || !finite(record.durationMs) || record.durationMs < 0 ||
-        !finite(record.recordedMs) || record.recordedMs < 0 || !rows(record.rows) ||
+        !finite(record.recordedMs) || record.recordedMs < 0 ||
+        (record.nativeMs !== undefined && (!finite(record.nativeMs) || record.nativeMs < 0)) || !rows(record.rows) ||
         !rows(record.details) || !record.config || typeof record.config !== 'object' ||
         Array.isArray(record.config) || Object.keys(record.config).length>30 ||
         !Object.keys(record.config).every(function(k){var v=record.config[k];return v===null || typeof v==='boolean' || finite(v) || (typeof v==='string' && v.length<=600);}) || !record.metrics || typeof record.metrics !== 'object' ||
@@ -71,18 +72,20 @@ var DiagnosticHistory = (function() {
     ['bitrate','Received bitrate','Mbps'],['presentP95','Presentation interval p95','ms'],
     ['presentMax','Worst presentation interval','ms'],['rtt','Network RTT','ms'],
     ['rttVariation','RTT variation','ms'],['lossPercent','Frame gaps','%'],
-    ['clientRejects','Client rejections','/min',true],['browserDrops','Browser drops','/min',true],
+    ['clientRejects','Client rejections','/min',true,'nativeMs'],['browserDrops','Browser drops','/min',true],
     ['hostProcessing','PC processing mean','ms'],['hostProcessingMax','PC processing max','ms'],
     ['assembly','Frame assembly mean','ms'],['append','Player submission mean','ms'],
     ['audioQueue','Audio buffer mean','ms'],['audioTarget','Audio target mean','ms'],
     ['audioUnderruns','Audio underruns','/min',true],['audioOverruns','Audio overruns','/min',true],
-    ['recoveries','Video recoveries','/min',true],['waits','Video waits','/min',true],
+    ['recoveries','Video recoveries','/min',true,'nativeMs'],['waits','Video waits','/min',true],
     ['warnings','Warnings','/min',true],['errors','Errors','/min',true]
   ];
+  function coverage(record,field){return field[4] && finite(record[field[4]]) ? record[field[4]] : record.recordedMs;}
   function value(record, field) {
     var n = record && record.metrics && record.metrics[field[0]];
     if (!finite(n) || record.legacy) return null;
-    return field[3] ? (record.recordedMs > 0 ? n * 60000 / record.recordedMs : null) : n;
+    var ms=coverage(record,field);
+    return field[3] ? (ms > 0 ? n * 60000 / ms : null) : n;
   }
   function compare(a,b) {
     if (!a || !b || a.id === b.id) throw Error('Two distinct records required');
@@ -91,7 +94,8 @@ var DiagnosticHistory = (function() {
       return {key:field[0],label:field[1],unit:field[2],a:av,b:bv,
         delta:av === null || bv === null ? null : bv-av,
         countA:field[3] && a.metrics ? a.metrics[field[0]] : null,
-        countB:field[3] && b.metrics ? b.metrics[field[0]] : null};
+        countB:field[3] && b.metrics ? b.metrics[field[0]] : null,
+        durationA:coverage(a,field),durationB:coverage(b,field)};
     });
   }
   function selection() {

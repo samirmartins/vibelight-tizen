@@ -3,6 +3,13 @@ const assert=require('assert'),fs=require('fs'),vm=require('vm');
 const prelude=fs.readFileSync('wasm/app_lifecycle_test.js','utf8').split('\n(async()=>{')[0];
 const h={require,console};vm.createContext(h);vm.runInContext(prelude+'\nglobalThis.make=fixture;globalThis.launch=realLauncher;',h);
 (async()=>{
+ for(const resume of [false,true])for(const audio of ['Stereo','51Surround','71Surround']){
+  const f=h.make();h.launch(f,'none',resume);const c=f.c,query=c.$,metadata=[];
+  c.$=selector=>{const node=query(selector);if(selector==='#selectAudio')node.data=()=>audio;return node;};c.$.parseXML=query.parseXML;
+  c.SessionDiagnostics.configure=value=>metadata.push(value);
+  c.startGame(f.host,2);await f.flush();
+  assert.equal(metadata.length,1);assert.equal(metadata[0].config.audio,audio,'diagnosis must store the actual audio mode, independent of translated labels');
+ }
  for(const resume of [false,true])for(const failure of ['xml','lookup','missing','refresh','native','status']) {
   const f=h.make(),r=h.launch(f,'none',resume),c=f.c;let returned=0,closed=0;
   c.showApps=()=>{returned++;return Promise.resolve();};c.stopAudioScheduler=()=>closed++;

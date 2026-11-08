@@ -306,12 +306,12 @@ var SessionDiagnostics = (function() {
   function detailRows(s) {
     return [
       ['Clock*','lead start→end '+trend(s,'lead')+' ms · |max| '+fmt(maximum(s,'leadAbsMax'))+' · target '+(s.lastServo ? fmt(s.lastTarget) : '--')+' · age max '+fmt(maximum(s,'clockAge'))+' ms · step '+fmt(average(s,'step'),3)],
-      ['Host cadence','mean '+fmt(average(s,'hostMean'))+' · worst window p95 '+fmt(maximum(s,'hostP95'))+' ms · late '+fmt(s.hostN ? s.hostLate*100/s.hostN : null)+'%'],
-      ['Player cadence','p95 start→end '+trend(s,'cadP95')+' ms · worst p95/max '+fmt(maximum(s,'cadP95'))+'/'+fmt(maximum(s,'cadMax'))+' ms · late '+fmt(s.cadN ? s.cadLate*100/s.cadN : null)+'%'],
+      ['Host cadence','mean '+fmt(average(s,'hostMean'))+' · worst window p95 '+fmt(maximum(s,'hostP95'))+' ms · window deviation mean '+fmt(average(s,'hostDeviation'))+' ms · late '+fmt(s.hostN ? s.hostLate*100/s.hostN : null)+'%'],
+      ['Player cadence','p95 start→end '+trend(s,'cadP95')+' ms · worst p95/max '+fmt(maximum(s,'cadP95'))+'/'+fmt(maximum(s,'cadMax'))+' ms · window deviation mean '+fmt(average(s,'cadDeviation'))+' ms · late '+fmt(s.cadN ? s.cadLate*100/s.cadN : null)+'%'],
       ['Frame load','mean/worst p95/max '+fmt(average(s,'loadMean'))+'/'+fmt(maximum(s,'loadP95'))+'/'+fmt(maximum(s,'loadMax'))+' KiB · packets '+fmt(average(s,'packetsMean'))+'/'+fmt(maximum(s,'packetsP95'))+'/'+fmt(maximum(s,'packetsMax'))],
       ['TV work','assembly worst p95/max '+fmt(maximum(s,'asmP95'),2)+'/'+fmt(maximum(s,'asmMax'),2)+' ms · submit '+fmt(maximum(s,'appP95'),2)+'/'+fmt(maximum(s,'appMax'),2)+' ms · zero-copy '+fmt(average(s,'zeroCopy'))+'%'],
       ['TV / JS','TV CPU mean/max '+fmt(average(s,'cpu'),0)+'/'+fmt(maximum(s,'cpu'),0)+'% · free '+fmt(s.freeFirst,0)+'→'+fmt(s.freeLast,0)+' MB · JS delay max '+fmt(s.loopMax)+' ms'],
-      ['Observations','audio '+s.audioBackend+' · coalesced '+s.coalesced+' · counter resets '+s.counterResets+' · callback max '+fmt(s.presentationN ? s.callbackMax : null)+' ms'],
+      ['Observations','audio '+s.audioBackend+' · coalesced '+s.coalesced+' · counter resets '+s.counterResets+' · callback max '+fmt(s.presentationN ? s.callbackMax : null)+' ms · native coverage '+seconds(s.nativeMs)],
       ['Trend','Browser FPS start→end '+trend(s,'outFps')+' · bitrate '+trend(s,'bitrate')+' Mbps']
     ];
   }

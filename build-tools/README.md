@@ -306,6 +306,9 @@ failed/corrupt storage preservation, missing metrics, normalized event rates and
 A/B selection. `diagnostic_session_test.js`, `diagnostics_test.js` and
 `performance_overlay_test.js` exercise production activation, bounded long
 sessions, generations, partial coverage, coalesced callbacks and observer reuse.
+`diagnostic_view_test.js` checks saved configuration visibility, A/B values,
+return focus and offline consultation. Native-event rates use native measurement
+coverage; audio/browser/event rates use their recording interval.
 `stream_startup_test.js` and `library_refresh_test.js` cover cancellation ownership
 and list updates without restarting the app. `experience_scope_test.js` verifies
 the exact approved delta with negative controls and freezes native playback,

@@ -1808,7 +1808,7 @@ function startGame(host, appID, audioPrepared) {
       // Shows a loading message to launch the application and start stream mode
       $('#loadingSpinnerMessage').text('Starting ' + appToStart.title + '...');
       showStreamMode();
-      SessionDiagnostics.configure({game:appToStart.title,config:{pacing:!!framePacing,hdr:!!hdrMode,gameMode:!!gameMode,bitrate:bitrate/1000,audioLimitMs:audioJitterMs}});
+      SessionDiagnostics.configure({game:appToStart.title,config:{pacing:!!framePacing,hdr:!!hdrMode,gameMode:!!gameMode,bitrate:bitrate/1000,audio:audioConfig,audioLimitMs:audioJitterMs}});
       if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Starting the game on the PC…');
 
       return launchScope.request(function() {

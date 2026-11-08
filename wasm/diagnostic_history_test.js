@@ -34,6 +34,14 @@ const a=record(1,120000), b=record(2,60000); a.metrics.audioUnderruns=2;
 const rows=history.compare(a,b);
 const rate=rows.find(r=>r.key==='audioUnderruns');
 assert.equal(rate.a,1); assert.equal(rate.b,1); assert.equal(rate.delta,0,'normalize events by recorded duration');
+const nativeA={...a,nativeMs:30000,metrics:{clientRejects:2,recoveries:2}};
+const nativeB={...b,nativeMs:15000,metrics:{clientRejects:1,recoveries:1}};
+for(const key of ['clientRejects','recoveries']){
+ const nativeRate=history.compare(nativeA,nativeB).find(r=>r.key===key);
+ assert.equal(nativeRate.a,4,'native events use their measured coverage');assert.equal(nativeRate.delta,0);
+ assert.equal(nativeRate.durationA,30000);assert.equal(nativeRate.durationB,15000);
+}
+assert.equal(history.compare({...nativeA,nativeMs:0},nativeB).find(r=>r.key==='clientRejects').a,null);
 const fps=rows.find(r=>r.key==='fpsReceived'); assert.equal(fps.delta,0);
 delete b.metrics.fpsReceived; assert.equal(history.compare(a,b).find(r=>r.key==='fpsReceived').delta,null);
 b.recordedMs=0; assert.equal(history.compare(a,b).find(r=>r.key==='audioUnderruns').b,null);

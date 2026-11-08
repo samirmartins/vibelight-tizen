@@ -1,7 +1,7 @@
 // Menu-only rendering of local summaries. No live instrumentation or network.
 var DiagnosticView=(function() {
   'use strict';
-  var records=[],chosen=DiagnosticHistory.selection(),mode='history',current=null,page=0,returnId='',fromHistory=false;
+  var records=[],chosen=DiagnosticHistory.selection(),mode='history',current=null,page=0,returnId='',historyFocus='',fromHistory=false;
   function el(id){return document.getElementById(id);}
   function tr(s){return typeof MenuI18n!=='undefined' ? MenuI18n.text(s) : s;}
   function node(tag,text,className){var n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(className)n.className=className;return n;}
@@ -11,6 +11,21 @@ var DiagnosticView=(function() {
   function context(r){return [date(r),r.game || '',r.config.stream || r.legacyConfig || '',
     tr('Recorded')+': '+duration(r.recordedMs)+' / '+duration(r.durationMs),
     r.recordedMs<r.durationMs ? tr('Partial coverage') : tr('Full coverage')].filter(Boolean).join(' · ');}
+  var settingLabels={version:'Version',build:'Build',variant:'Variant',bitrate:'Configured bitrate',
+    pacing:'Frame pacing',hdr:'HDR',gameMode:'Ultra-low video latency',audio:'Audio',audioLimitMs:'Audio jitter buffer'};
+  var settingKeys=Object.keys(settingLabels);
+  function settings(r,keys,includeMissing){
+    return (keys || settingKeys).filter(function(k){return includeMissing || r.config[k]!==undefined && r.config[k]!==null;}).map(function(k){
+      var v=r.config[k];
+      if(v===undefined || v===null)v=tr('No data');
+      else if(typeof v==='boolean')v=tr(v ? 'On' : 'Off');
+      else if(k==='bitrate')v+=' Mbps';
+      else if(k==='audioLimitMs')v+=' ms';
+      else if(k==='build')v=String(v).slice(0,12);
+      else if(k==='audio')v=tr({Stereo:'Stereo', '51Surround':'5.1 Surround Sound', '71Surround':'7.1 Surround Sound'}[v] || v);
+      return tr(settingLabels[k])+': '+v;
+    }).join(' · ');
+  }
   function button(id,label,fn,disabled){var b=node('button',tr(label),'diagnosis-button');b.type='button';b.id=id;b.disabled=!!disabled;b.onclick=fn;return b;}
   function open(){
     var ids=Array.prototype.map.call(el('diagnosisDialog').querySelectorAll('button:not(:disabled)'),function(b){return b.id;});
@@ -33,10 +48,10 @@ var DiagnosticView=(function() {
     if(isInGame || isDialogOpen)return false;
     var result=DiagnosticHistory.create().list();
     if(!result.ok){snackbarLogLong('Could not read diagnosis history. Saved records were preserved.');return false;}
-    records=result.records;chosen.clear();return true;
+    records=result.records;chosen.clear();historyFocus='';return true;
   }
   function history(){
-    mode='history';clear('Diagnosis history');
+    mode='history';clear('Diagnosis history');returnId=historyFocus;
     el('diagnosisConfig').textContent=tr('Choose any two records to compare. OK selects or deselects.');
     if(!records.length)el('diagnosisFinding').textContent=tr('No saved diagnosis. Enable statistics in the game menu first.');
     var ids=chosen.ids();
@@ -44,7 +59,7 @@ var DiagnosticView=(function() {
       var index=ids.indexOf(r.id),label=(index<0 ? '□' : index===0 ? 'A' : 'B')+' · '+context(r);
       var b=button('diagnosis-record-'+i,label,function(){
         if(!chosen.toggle(r.id)){snackbarLogLong('Deselect a record before choosing another.');return;}
-        returnId=b.id;history();
+        historyFocus=b.id;history();
       });
       b.textContent='';
       [index<0 ? '□' : index===0 ? 'A' : 'B',date(r),r.game || tr('Previous report'),r.config.stream || r.legacyConfig || tr('No data'),duration(r.recordedMs)].forEach(function(value){b.appendChild(node('span',value));});
@@ -61,10 +76,10 @@ var DiagnosticView=(function() {
   }
   function report(details){
     mode=details ? 'details' : 'report';clear(details ? 'Technical details' : 'Last diagnosis');
-    el('diagnosisConfig').textContent=context(current);el('diagnosisDevice').textContent=current.device || '';
+    el('diagnosisConfig').textContent=context(current);el('diagnosisDevice').textContent=[current.device,settings(current)].filter(Boolean).join(' · ');
     addRows(details ? current.details : current.rows);
     el('diagnosisFinding').textContent=tr(current.finding || '');
-    if(details){el('diagnosisPeak').textContent=current.peak || '';el('diagnosisFoot').textContent=tr(current.foot || '');}
+    if(details){el('diagnosisPeak').textContent=tr(current.peak || '');el('diagnosisFoot').textContent=tr(current.foot || '');}
     else el('diagnosisActions').appendChild(button('diagnosisDetails','Technical details',function(){report(true);},!current.details.length));
     backButton(details ? function(){report(false);} : fromHistory ? history : null);open();
   }
@@ -72,9 +87,13 @@ var DiagnosticView=(function() {
     var ids=chosen.ids();if(ids.length!==2)return;
     mode='compare';clear('Compare diagnoses');
     var a=records.find(function(r){return r.id===ids[0];}),b=records.find(function(r){return r.id===ids[1];});
-    el('diagnosisConfig').textContent='A · '+context(a);el('diagnosisDevice').textContent='B · '+context(b);
-    var configKeys=['stream','variant','version','build','pacing','gameMode','hdr','bitrate','audio','audioLimitMs'];
+    var configKeys=['stream','variant','version','build','pacing','gameMode','hdr','bitrate','audio','audioLimitMs','tv','tizen'];
     var differences=configKeys.filter(function(k){return a.config[k]!==b.config[k];});
+    var shown=settingKeys.filter(function(k){return differences.includes(k) || ['version','variant','build'].includes(k) && (a.config[k]!=null || b.config[k]!=null);});
+    [a,b].forEach(function(r,i){
+      var identity=r.config.tv!==a.config.tv || r.config.tv!==b.config.tv || r.config.tizen!==a.config.tizen || r.config.tizen!==b.config.tizen ? r.device : '';
+      el(i===0 ? 'diagnosisConfig' : 'diagnosisDevice').textContent=(i===0 ? 'A' : 'B')+' · '+[context(r),settings(r,shown,true),identity].filter(Boolean).join(' · ');
+    });
     el('diagnosisFinding').textContent=tr('Differences B − A. Consider configuration, scene and recorded duration.')+
       (differences.length ? ' '+tr('Different settings')+': '+differences.map(function(k){return tr(k);}).join(', ') : '');
     var header=node('tr');['Metric','Session A','Session B','Difference B − A'].forEach(function(v){header.appendChild(node('th',tr(v)));});el('diagnosisRows').appendChild(header);
@@ -84,7 +103,7 @@ var DiagnosticView=(function() {
         if(i===2 && v>0)label='+'+label;
         var cell=node('td',label);
         if(i<2 && r.unit==='/min' && typeof (i===0 ? r.countA : r.countB)==='number')
-          cell.appendChild(node('small',(i===0 ? r.countA : r.countB)+' / '+duration(i===0 ? a.recordedMs : b.recordedMs)));
+          cell.appendChild(node('small',(i===0 ? r.countA : r.countB)+' / '+duration(i===0 ? r.durationA : r.durationB)));
         row.appendChild(cell);
       });el('diagnosisRows').appendChild(row);
     });

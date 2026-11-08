@@ -11,7 +11,7 @@ f.advance(10000);assert(f.d.activate());assert.equal(f.frames.size,1);assert.equ
 const gen=f.generations.at(-1); assert(gen>0);assert(f.d.isRecording());
 assert(!f.d.activate(),'repeated activation does not duplicate observers');
 f.frame(100,1);f.frame(116.667,2);f.frame(183.334,3);f.frame(250.001,7);
-f.d.sample(f.sample(gen));f.advance(2000);f.d.sample(f.sample(gen,{ms:1000,rx:30,sub:30,rtt:9}));
+f.d.sample(f.sample(gen,{hostDeviation:2.2,cadDeviation:3.3}));f.advance(2000);f.d.sample(f.sample(gen,{ms:1000,rx:30,sub:30,rtt:9}));
 const stale=[...f.frames.values()][0];f.video.drops+=2;f.c._mlAudioStats.underruns+=1;f.tick();
 f.d.finish('Exit code 0');f.d.finish('duplicate');
 assert.equal(f.timers.size+f.frames.size+f.listeners.size,0);
@@ -25,6 +25,9 @@ assert.equal(r.metrics.audioUnderruns,1);assert.equal(r.metrics.browserDrops,2);
 assert(r.metrics.presentMax>66,'retain long presentation intervals');
 assert.equal(r.metrics.coalesced,1,'callback coalescence is not a dropped frame');
 assert.equal(r.config.pacing,true);assert.equal(r.game,'Artificial game');
+assert.match(r.details.find(row=>row[0]==='Host cadence')[1],/window deviation mean 2.2 ms/);
+assert.match(r.details.find(row=>row[0]==='Player cadence')[1],/window deviation mean 3.3 ms/);
+assert.match(r.details.find(row=>row[0]==='Observations')[1],/native coverage 3s/);
 const n=f.events.length;stale(500,{presentedFrames:10});f.d.sample(f.sample(gen));
 assert.equal(f.events.length,n);assert.equal(f.frames.size,0);
 f.d.start();f.d.connected();assert(!f.d.isRecording());f.d.finish();
