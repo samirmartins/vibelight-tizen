@@ -2,6 +2,7 @@
 // Exact menu-only interface settings delta. Historical contracts see the
 // approved pre-settings source; unknown neighboring edits remain visible.
 function normalize(file, source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   if (file === 'wasm/index.html') {
     return source
       .replace('  <script type="text/javascript" src="platform/interface-sounds.js"></script>\n', '')

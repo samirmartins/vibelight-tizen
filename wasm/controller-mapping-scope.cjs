@@ -3,6 +3,7 @@
 // Normalize only the explicitly approved removal of the two legacy flip options.
 // Historical baselines remain fixed; unexpected neighboring changes stay visible.
 function legacy(file, source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
  source = require('./controller-identity-scope.cjs').normalize(file, source);
  source = source.replaceAll(', bool flipABfaceButtons, bool flipXYfaceButtons', '')
   .replaceAll(', flipABfaceButtons, flipXYfaceButtons', '');
@@ -43,6 +44,7 @@ function launch(source) {
   .replace("  if (typeof ControllerMapping !== 'undefined') ControllerMapping.prepareSession();\n", '');
 }
 function normalize(file, source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
  source = require('./interface-settings-scope.cjs').normalize(file, source);
  source = require('./manual-library-scope.cjs').normalize(file, source);
  source = require('./gamepad-publication-scope.cjs').normalize(file, source);

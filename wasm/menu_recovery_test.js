@@ -20,8 +20,8 @@ const flush=async()=>{for(let i=0;i<350;i++)await Promise.resolve();};
   await cached.open();assert.strictEqual(cached.calls.length,before,'warm return must retain compressed bytes within the same budget');
   for(let id=1;id<=16;id++)assert.strictEqual(cached.card(id).querySelector('img').src,url(id),'cover bytes unchanged');
   const retained=cached.calls.length;cached.revision();cached.node('libraryRefresh').click();await flush();
-  assert.strictEqual(cached.calls.length,retained,'Reload does not renew covers in the old document');
-  assert.strictEqual(cached.io.reloads,1);
+  assert.strictEqual(cached.calls.length,retained,'refresh reuses retained covers');
+  assert.strictEqual(cached.io.reloads,0);
   cached.suspend();
 
   const large=fixture(6,id=>'data:image/png;base64,'+Buffer.alloc(1024*1024,id).toString('base64'));

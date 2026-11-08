@@ -18,12 +18,15 @@ const frozen = ['moonlight-common-c', 'libgamestream', 'h264bitstream',
 const changed = cp.execFileSync('git', ['diff', '--name-only', 'v3.4.10', '--', ...frozen], {encoding: 'utf8'}).trim().split('\n').filter(Boolean);
 const pacing = require('./frame-pacing-scope.cjs');
 const remaining = changed.filter(file => {
-  const current=fs.readFileSync(file,'utf8');
+  const experience=require('./experience-scope.cjs');
+  if(experience.added[file]){assert(experience.matchesAdded(file,fs.readFileSync(file)),file+' approved new asset');return false;}
+  const current=require('./experience-scope.cjs').normalize(file,fs.readFileSync(file,'utf8'));
   const review=require('./review-corrections-scope.cjs');
   if (['libgamestream/pairing.c','libgamestream/http.c','wasm/auddec.cpp','wasm/audio_ring.hpp','wasm/platform/audio.js','wasm/platform/audio-worklet.js'].includes(file)) {
     assert(review.matches(file,current),'exact separately tested correction: '+file); return false;
   }
   if (file === 'wasm/audio_ring_test.cpp') { assert(!fs.readFileSync('CMakeLists.txt','utf8').includes(file)); return false; }
+  if(file==='wasm/platform/diagnostics.js'){assert.strictEqual(current,cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}),'diagnostic baseline after exact approved delta');return false;}
   if (file === 'wasm/platform/messages.js') return false; // Exact normalized handler verified above.
   if (['wasm/platform/menu-i18n.js','wasm/platform/menu-translations.js'].includes(file)) return false;
   if (file === 'wasm/platform/release-update.js') {

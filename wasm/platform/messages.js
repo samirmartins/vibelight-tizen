@@ -88,19 +88,7 @@ var handlePromiseMessage = function(callbackId, type, msg) {
 }
 
 function formatPerformanceOverlay(nativeText) {
-  var display = typeof getDisplayTelemetryCompact === 'function'
-    ? getDisplayTelemetryCompact() : { fps: '--', text: 'D --' };
-  var text = (nativeText || '')
-    .replace('@PFPS@', display.fps)
-    .replace('@DISP@', display.text)
-    .replace(/\n+$/, '');
-  var lines = text ? text.split('\n') : ['Stats: wait'];
-  if (lines.length > 8) {
-    lines = lines.slice(0, 8);
-  }
-  lines.push(typeof getAudioTelemetryLine === 'function'
-    ? getAudioTelemetryLine() : 'Aud: --');
-  return lines.join('\n');
+  return SessionDiagnostics.overlayText();
 }
 
 /**
@@ -116,6 +104,7 @@ function handleMessage(msg) {
   }
   if (msg.indexOf('DiagMsg: ') === 0) {
     SessionDiagnostics.sample(msg.slice(9));
+    if(isInGame && SessionDiagnostics.isVisible())$('#performance-stats').text(SessionDiagnostics.overlayText());
     return;
   }
   // The performance overlay updates once per second and can remain enabled for
@@ -127,6 +116,7 @@ function handleMessage(msg) {
   }
   // If it's a recognized event, notify the appropriate function
   if (msg.indexOf('streamTerminated: ') === 0) {
+    if(typeof StreamStartup !== 'undefined') StreamStartup.finish();
     SessionDiagnostics.finish(msg.replace('streamTerminated: ', 'Exit code '));
     // Single owner for the end of a stream: releases the native mask and closes
     // the system overlay before the one return below.
@@ -181,17 +171,17 @@ function handleMessage(msg) {
     if (typeof AppLifecycle !== 'undefined' && (!isInGame || document.hidden)) return;
     if (typeof StreamSession !== 'undefined') StreamSession.reset();
     SessionDiagnostics.connected();
+    if(typeof StreamStartup !== 'undefined') StreamStartup.finish();
     // Prepare the screen for video stream
     $('#loadingSpinner').css('display', 'none');
     $('body').css('backgroundColor', 'transparent');
     $('#wasm_module').css('display', '');
     $('#wasm_module').focus();
-    if ($('#performanceStatsSwitch').prop('checked')) {
-      startVideoPresentationObserver(document.getElementById('wasm_module'));
-    }
+
   } else if (msg.indexOf('ProgressMsg: ') === 0) {
     // Show progress message under loading spinner
     var progress = msg.replace('ProgressMsg: ', '');
+    if(typeof StreamStartup !== 'undefined') StreamStartup.stage(progress);
     $('#loadingSpinnerMessage').text(typeof MenuI18n !== 'undefined' ? (MenuI18n.progressText[progress] || progress) : progress);
   } else if (msg.indexOf('TransientMsg: ') === 0) {
     // Show transient message as notification
@@ -217,27 +207,15 @@ function handleMessage(msg) {
     $('#connection-warnings').text(msg.replace('WarningMsg: ', ''));
   } else if (msg === 'OverlayState: 1') {
     if (!isInGame) return;
-    $('#performanceStatsBtn')[0].MaterialSwitch.on();
-    savePerformanceStats();
+    SessionDiagnostics.setVisible(true);
     $('#performance-stats').css('display', 'inline-block');
-    startVideoPresentationObserver(document.getElementById('wasm_module'));
   } else if (msg === 'OverlayState: 0' || msg.indexOf('NoStatMsg: ') === 0) {
-    stopVideoPresentationObserver();
-    // Toggle the performance stats switch and save the state
-    if ($('#performanceStatsSwitch').prop('checked')) {
-      $('#performanceStatsBtn')[0].MaterialSwitch.off();
-      savePerformanceStats();
-      $('#performance-stats').css('display', 'none');
-    }
-    // Hide the performance statistics overlay
-    $('#performance-stats').css('background', 'transparent');
-    $('#performance-stats').text('');
+    SessionDiagnostics.setVisible(false);
+    $('#performance-stats').css('display', 'none').css('background', 'transparent').text('');
   } else if (msg.indexOf('StatMsg: ') === 0) {
-    if (!isInGame || !$('#performanceStatsSwitch').prop('checked')) return;
-    // Show the performance statistics overlay
+    if (!isInGame || !SessionDiagnostics.isVisible()) return;
     $('#performance-stats').css('background', 'rgba(0, 0, 0, 0.5)');
-    $('#performance-stats').text(formatPerformanceOverlay(
-      msg.replace('StatMsg: ', '')));
+    $('#performance-stats').text(formatPerformanceOverlay(msg.replace('StatMsg: ', '')));
   } else if (msg.indexOf('mouseEmulationOn') === 0) {
     // Show mouse emulation enable status as a notification
     snackbarLogLong('Mouse emulation is activated');

@@ -51,6 +51,7 @@ var AppLifecycle = (function() {
       }
       ++epoch;
       if (typeof startGame === 'function' && startGame.pending) startGame.pending.cancel();
+      if (typeof StreamStartup !== 'undefined') StreamStartup.finish();
       if (typeof StreamSession !== 'undefined') StreamSession.reset();
       if (typeof api !== 'undefined' && api && api._quitOperation) api._quitOperation.cancel();
       if (isInGame && api) returnHost = api;

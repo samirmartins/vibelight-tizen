@@ -2,6 +2,7 @@
 // Normalize only the changed-word store loop. Detection, atomics, sequence,
 // last-state copy and notification must still match the historical publisher.
 function normalize(file, source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   source = require('./controller-identity-scope.cjs').normalize(file, source);
   source = require('./rumble-work-scope.cjs').normalize(file, source);
   source = require('./controller-menu-scope.cjs').normalize(file, source);

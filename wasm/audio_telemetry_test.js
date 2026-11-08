@@ -118,18 +118,19 @@ for(const rate of [44100,48000,96000])for(const channels of [1,2,6,8]) {
 }
 // Real consumer lifecycle hooks, including both consumers and unsupported rVFC.
 {
-  const s=scheduler(currentAudio),c=s.c,nodes={diagnosticsSwitch:{checked:false},wasm_module:{}};
+  const s=scheduler(currentAudio),c=s.c,nodes={diagnosticsSwitch:{checked:false},wasm_module:{addEventListener(){},removeEventListener(){}}};
   c.document={getElementById:id=>nodes[id]||(nodes[id]={checked:false})};
   c.isInGame=true;c.appInfo={version:'fixture'};c.modelName='Fixture';c.platformVer='9.0';
   c.localStorage={setItem(){},getItem(){return null;}};c.snackbarLogLong=()=>{};c.clearTimeout=()=>{};
-  c.Module.setDiagnostics=()=>{};
+  c.Module.setDiagnostics=()=>{};c.setTimeout=()=>1;
   c.XMLHttpRequest=function(){this.open=()=>{};this.send=()=>{};this.abort=()=>{};};
   const messages=[];c._audWorkletNode={port:{postMessage:data=>messages.push(data)}};
   vm.runInContext(fs.readFileSync('wasm/platform/display.js','utf8'),c);
+  vm.runInContext(fs.readFileSync('wasm/platform/diagnostic-history.js','utf8'),c);
   vm.runInContext(fs.readFileSync('wasm/platform/diagnostics.js','utf8'),c);
   c.SessionDiagnostics.start();assert.strictEqual(c._audTelemetryMask,0);
   c.startVideoPresentationObserver({});assert.strictEqual(c._audTelemetryMask,1);
-  nodes.diagnosticsSwitch.checked=true;c.SessionDiagnostics.start();assert.strictEqual(c._audTelemetryMask,3);
+  c.SessionDiagnostics.activate();assert.strictEqual(c._audTelemetryMask,3);
   c.stopVideoPresentationObserver();assert.strictEqual(c._audTelemetryMask,2);
   c.SessionDiagnostics.finish('Fixture');assert.strictEqual(c._audTelemetryMask,0);
   assert.deepStrictEqual(messages.map(m=>[m.type,m.generation,m.enabled]),[['telemetry',7,true],['telemetry',7,false]]);

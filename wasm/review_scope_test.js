@@ -2,7 +2,7 @@
 const assert=require('assert'),fs=require('fs'),cp=require('child_process');
 const scope=require('./review-corrections-scope.cjs');
 for(const file of scope.files){
- const current=fs.readFileSync(file,'utf8');
+ const current=require('./experience-scope.cjs').normalize(file,fs.readFileSync(file,'utf8'));
  assert(scope.matches(file,current),file);
  const base=cp.execFileSync('git',['cat-file','blob','6fe39d2:'+file],{encoding:'utf8'});
  assert.equal(scope.normalize(file,current),base);

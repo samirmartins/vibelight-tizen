@@ -81,3 +81,11 @@ the application's HTML/CSS/JavaScript in `wasm/`. Original game source projects:
 
 Licensing pages checked on 2026-10-02. These are openly licensed images,
 not a claim that the games or every element of their artwork are copyright-free.
+
+## Current-source guide captures (2026-11-07)
+
+`guide-picture.jpg`, `guide-history.jpg` and `guide-comparison.jpg` are captures
+of VibeLight's actual local HTML/CSS/JavaScript with synthetic settings, games
+and session measurements. They contain no real host addresses or user reports.
+Editable source: `wasm/`; retained under the project's license. These images
+illustrate the current source, not a claim of physical TV validation.

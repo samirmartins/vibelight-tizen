@@ -20,6 +20,7 @@ const sections={
   ]
 };
 function normalize(file,source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   source=require('./stream-return-scope.cjs').normalize(file,source);
   source=require('./manual-library-scope.cjs').normalize(file,source);
   if(!sections[file])return source;

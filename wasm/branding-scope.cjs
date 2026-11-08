@@ -3,6 +3,8 @@
 // Unknown executable changes remain visible; branding_test freezes the result
 // against the latest published runtime, independently of the older contracts.
 function asset(file, data) {
+  const experience=require('./experience-scope.cjs');
+  if(experience.files.includes(file))data=Buffer.from(experience.normalize(file,data.toString('utf8')));
   const review = require('./review-corrections-scope.cjs');
   if (review.matches(file,data.toString('utf8'))) return Buffer.from(review.normalize(file,data.toString('utf8')));
   const access = require('./controller-access-scope.cjs');
@@ -12,6 +14,7 @@ function asset(file, data) {
   return require('child_process').execFileSync('git', ['show', 'v3.4.10:' + file]);
 }
 function normalize(file, source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   source = require('./pairing-text-scope.cjs').normalize(file, source);
   source = require('./menu-i18n-scope.cjs').normalize(file, source);
   source = require('./release-update-scope.cjs').normalize(file, source);

@@ -86,6 +86,7 @@ void Feed(uint32_t frame) {
  s.pipelineClockSamples++;s.pipelineClockLeadSumMs+=11.0;s.pipelineClockLeadSumSqMs+=121.0;s.pipelineClockLeadMaxMs=12;
  mltelemetry::Add(s.hostIntervalsUs,delta);mltelemetry::Add(s.appendIntervalsUs,delta+frame%7*100);
  mltelemetry::Add(s.assemblyUs,100+frame%300);mltelemetry::Add(s.appendUs,200+frame%1000);
+ mltelemetry::Add(s.frameBytes,80000+frame%50000);
  mltelemetry::Add(s.framePackets,60+frame%30);mltelemetry::Add(s.pipelineLeadUs,11000);
  mltelemetry::Observe(s_HitchTracker,frame%37==0,static_cast<uint64_t>(nowMs)*1000);
 }
@@ -103,11 +104,32 @@ function implementation(name,source) {
     'template<bool CollectStats> void Submit(DecodeUnit* unit){MoonlightInstance::Submit<CollectStats>(unit);}\n}\n';
 }
 const tests=`
+std::string LegacyDiagnostic(std::string message) {
+ const auto extension=message.find(",\\\"loadMean\\\":");
+ if(extension!=std::string::npos) {
+  for(const auto field:{"loadMean","loadP95","loadMax","packetsMean","packetsP95","packetsMax","zeroCopy","hostDeviation","cadDeviation"})
+   assert(message.find(std::string("\\\"")+field+"\\\":")!=std::string::npos);
+  auto number=[&](const char* field){const auto at=message.find(std::string("\\\"")+field+"\\\":");assert(at!=std::string::npos);return std::stod(message.substr(message.find(':',at)+1));};
+  assert(number("packetsMean")>=0&&number("packetsMean")<=number("packetsMax"));
+  assert(number("packetsP95")<=number("packetsMax"));
+  assert(number("loadMean")>=0&&number("loadMean")<=number("loadMax"));
+  assert(number("loadP95")<=number("loadMax"));
+  assert(number("zeroCopy")>=-1&&number("zeroCopy")<=100);
+  assert(number("hostDeviation")>=0&&number("cadDeviation")>=0);
+  message=message.substr(0,extension)+"}";
+ }
+ return message;
+}
 void Compare() {
  assert(std::memcmp(&old::m_ActiveWndVideoStats,&candidate::m_ActiveWndVideoStats,sizeof(VIDEO_STATS))==0);
  assert(std::memcmp(&old::m_LastWndVideoStats,&candidate::m_LastWndVideoStats,sizeof(VIDEO_STATS))==0);
  assert(old::total_bytes==candidate::total_bytes);
- assert(old::messages==candidate::messages);
+ assert(old::messages.size()==candidate::messages.size());
+ // Each immutable append is checked once; rescanning history is quadratic.
+ static size_t checked=0;
+ if(old::messages.empty())checked=0;
+ assert(checked<=old::messages.size());
+ for(;checked<old::messages.size();++checked)assert(old::messages[checked]==LegacyDiagnostic(candidate::messages[checked]));
  assert(old::s_collectingStats==candidate::s_collectingStats);
  assert(old::m_LastFrameNumber==candidate::m_LastFrameNumber);
  assert(old::s_StatString==candidate::s_StatString);
@@ -159,7 +181,7 @@ int main() {
  Step(4,5002,true,1);assert(candidate::messages.size()==3);
  assert(candidate::messages[1].find("StatMsg: ")==0&&candidate::messages[2].find("DiagMsg: ")==0);
  std::cout<<"overlay_aggregation_test: "<<cases<<" codec/rate/consumer cases, "<<frames
-  <<" frames and independent toggles; identical messages/history; hidden overlay skips two aggregations and two RTT/clock queries per window; VIDEO_STATS="<<sizeof(VIDEO_STATS)<<" bytes\\n";
+  <<" frames and independent toggles; identical legacy messages/history plus bounded load/packet/zero-copy/deviation fields; hidden overlay skips two aggregations and two RTT/clock queries per window; VIDEO_STATS="<<sizeof(VIDEO_STATS)<<" bytes\\n";
 }
 `;
 const tmp=fs.mkdtempSync(path.join(require('os').tmpdir(),'moonlight-overlay-test-'));

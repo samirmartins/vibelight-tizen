@@ -20,7 +20,7 @@ function fixture(options={}) {
  c.Controller={stopWatching(){log.push('controller stop');},startWatching(){log.push('controller start');}};
  Object.assign(c.Navigation,{stop(){log.push('nav stop');},start(){log.push('nav start');},switch(){log.push('nav switch');},pop(){log.push('nav pop');}});
  c.WakeHost.cancel=()=>log.push('wake cancel');
- c.SessionDiagnostics={finish(){log.push('diagnosis finish');}};
+ c.SessionDiagnostics={configure(){},finish(){log.push('diagnosis finish');}};
  c.showApps=host=>{log.push('menu');return c.ConsoleLibrary.open(host);};
  c.Module={stopStream(){log.push('native stop');c.AppLifecycle.deferMenu(c.api);}};
  f.node('quitAppDialog').close=function(){this.open=false;};

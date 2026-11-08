@@ -89,7 +89,9 @@ Overlay aggregation: `overlay_aggregation_test.js` compiles the production
 collection prefix and both formatters with deterministic adapters and ASan/UBSan.
 It compares messages/history with v3.4.3 across codecs, rates and independent
 consumer transitions. Diagnostic-only collection skips display aggregation;
-window cadence, diagnostic payloads and overlay reactivation remain unchanged.
+window cadence and overlay reactivation remain unchanged. The current opt-in
+payload appends frame load, packet count, zero-copy and cadence deviation fields;
+legacy fields/history and native playback remain covered by equality checks.
 
 Library selection: `library_selection_test.js` compares the complete selected-card
 state with the prior implementation and counts writes/mutations. It covers
@@ -291,3 +293,24 @@ authorization; a draft or tag also requires approval.
   installer also bundles one. Removing it has not been tested.
 - `__BUILD_TYPE__` / `__BUILD_COMMIT__` are substituted by CI. A local path that
   does not inject them may leave literal text in System Info; check the actual artifact.
+
+## Local session diagnostics and settings
+
+Activation is session-local and explicit in the in-game overlay. Hidden statistics
+continue recording until that session ends; a new session is inactive regardless
+of legacy preferences. One diagnostics observer feeds the nine overlay groups and
+a local summary. No statistics are uploaded.
+
+`diagnostic_history_test.js` covers the ten-record limit, idempotent migration,
+failed/corrupt storage preservation, missing metrics, normalized event rates and
+A/B selection. `diagnostic_session_test.js`, `diagnostics_test.js` and
+`performance_overlay_test.js` exercise production activation, bounded long
+sessions, generations, partial coverage, coalesced callbacks and observer reuse.
+`stream_startup_test.js` and `library_refresh_test.js` cover cancellation ownership
+and list updates without restarting the app. `experience_scope_test.js` verifies
+the exact approved delta with negative controls and freezes native playback,
+audio and input outside the opt-in payload formatter.
+
+The static documentation is in `docs/` (GitHub Pages, no build or remote services).
+It describes current source; publishing it and new WGTs are separate actions.
+Browser/fixture results are not Samsung SDK compilation or physical TV evidence.

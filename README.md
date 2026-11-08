@@ -12,107 +12,50 @@ Stream PC games through [VibeShine](https://github.com/Nonary/VibeShine) (recomm
 
 ---
 
+## Start here
+
+Samsung TV with **Tizen 5.5+**, a compatible gamepad, and a PC running
+[VibeShine](https://github.com/Nonary/VibeShine) or
+[Sunshine](https://app.lizardbyte.dev/Sunshine/).
+
+1. [Download a WGT](https://github.com/samirmartins/vibelight-tizen/releases/latest).
+   **Normal** does not request panel Game Mode; **ForceGM** does.
+2. [Install and pair the PC](INSTALLATION.md). Preserve the signing profile when
+   updating; uninstalling can remove pairing and preferences.
+3. Select a game and Play. Resume reconnects to a running app; Guide/Home opens
+   the in-game menu. Disconnect keeps the game on the PC; End game on PC closes it.
+
+**User documentation:** [visual guide, settings, diagnostics and troubleshooting](docs/index.html).
+The static guide is prepared for GitHub Pages in `docs/`; it is not published yet.
+It documents the current source. New settings/history screens are not in the
+previously published 4.0.2 packages; check the notes of the version you install.
+
 ## Interface
 
-![VibeLight interface: Wake PC, library in English, Brazilian Portuguese and Spanish, settings, interface sounds, Add Host, Xbox/PlayStation/Switch controller mapping, analog tuning and in-game menu](docs/images/interface.gif)
+![VibeLight menus and library](docs/images/interface.gif)
 
-Simulated UI preview · [Image credits and licenses](docs/images/ATTRIBUTION.md).
+Simulated preview · [Image credits and licenses](docs/images/ATTRIBUTION.md).
 
----
+## Current source
 
-## Installation and quick start
+- Six settings categories: Picture, Sound, Controls, PCs and library, Diagnosis,
+  General and about. English, Brazilian Portuguese and Spanish menus.
+- Refresh library updates the game list; Restart app is a separate maintenance action.
+- Statistics start only after explicit in-game activation. Hiding the overlay
+  keeps recording until that session ends. Every new session starts inactive.
+- Only the **last 10 session summaries**, stored **on the TV**, with A/B comparison
+  and technical details. **No statistics are uploaded.** Partial coverage is identified.
+- Defaults: H.264, 1080p, 60 FPS, 30 Mbps; frame pacing ON, rumble ON, mouse mode OFF.
+  The adaptive audio buffer has a default 100 ms ceiling, not fixed 100 ms latency.
+- Ultra-low video latency is separate from ForceGM and may be unstable on some
+  TVs/system versions. It remains OFF by default, including with ForceGM.
 
-You need a Samsung TV running **Tizen 5.5 or newer** and a PC running **VibeShine** or **Sunshine**.
-Keep the TV, PC and installation device on the same local network.
+## Development and feedback
 
-Choose the build that suits your TV:
-
-- **Normal:** does not request TV panel Game Mode.
-- **ForceGM:** requests TV panel Game Mode; behavior depends on the TV and firmware.
-
-The in-app *Game Mode* switch is separate; see the FAQ below.
-
-1. **Download VibeLight.** Get a `.wgt` from the
-   [latest release](https://github.com/samirmartins/vibelight-tizen/releases/latest).
-2. **Install on the TV.** Enable the TV's Developer Mode and install the downloaded
-   widget with Apps2Samsung, following the
-   [Installation Guide](INSTALLATION.md#apps2samsung-recommended).
-3. **Set up VibeShine or Sunshine on the PC.** Install and configure your preferred host,
-   open its web interface, and add your games under **Applications**.
-   You can use **Desktop** for the first connection. Keep the host running.
-4. **Add and pair the PC.** Open VibeLight on the TV and select your PC from **PCs**.
-   If it is not listed, choose **Add Host** and enter the PC's local IP address.
-   Enter the PIN shown on the TV in the host's **PIN** page on the PC to complete pairing.
-5. **Start playing.** Connect a gamepad to the TV, select a game or **Desktop**
-   in the library, and choose **Play**. Use **Resume** to reconnect to an
-   application that is already running.
-
----
-
-## What VibeLight offers
-
-- **Video:** hardware decoding, H.264/HEVC/AV1 (depending on TV hardware), configurable frame pacing, TV-aware timing and stream recovery.
-- **Audio:** AudioWorklet where supported, with adaptive buffering and a compatibility fallback.
-- **Controls:** rumble, optional menu navigation sounds, saved button remapping and visual button testing.
-- **Library:** controller-first navigation, favorites, recent games, cached covers,
-  Play, Resume and Wake PC.
-- **Languages:** English, Brazilian Portuguese and Spanish. Select from the header; your choice is saved across sessions.
-- **Diagnostics:** optional performance overlay and a local session report.
-
----
-
-## Defaults and behavior
-
-- **Video defaults:** H.264, 1920×1080 at 60 FPS, 30 Mbps.
-- **Frame pacing:** on by default; configurable in Video Settings, effective on the next stream. May add latency; saved choices are preserved.
-- **Rumble:** on by default.
-- **Audio buffer:** adaptive, with a default 100 ms ceiling—not fixed latency.
-- **Interface sounds:** on by default; disable in Audio Settings. They stop before streaming starts.
-- **Smart Hub:** disconnects the client; the game stays available for Resume.
-- **Session diagnosis:** off at startup; stores only the latest report locally.
-
----
-
-## FAQ
-
-### How do ForceGM and the in-app Game Mode differ?
-
-ForceGM requests Game Mode for the TV panel. The in-app switch selects the
-decoder's Ultra Low Latency mode, which can freeze video on some models.
-**When using ForceGM, leave VibeLight's in-app Game Mode switch OFF.**
-
-### How do I wake the PC?
-
-Enable Wake-on-LAN on the PC and network adapter, then pair while the PC is online.
-Select **Wake PC**; enter its LAN MAC address if prompted. When the host is ready,
-press **Play**. If the status is outdated, use **Reload VibeLight**. Play remains
-available regardless of the displayed status. The MAC stays in TV storage and
-LAN wake packets.
-
-### What if the PC does not appear or pairing fails?
-
-Follow the manual **Add Host** and PIN steps in [Installation and quick start](#installation-and-quick-start).
-If the pairing dialog says the PC is busy, stop its running streaming application
-before retrying. For other errors, check the host's **Troubleshooting** logs.
-
-### Can I update without losing settings?
-
-Install over the existing app using the same author certificate or signing profile,
-without uninstalling it. A clean reinstall removes settings and pairing.
-See [Updates](INSTALLATION.md#updates) for details and installer precautions.
-
----
-
-## Documentation and feedback
-
-- [Changelog](CHANGELOG.md)
-- [Installation Guide](INSTALLATION.md)
-- [Issues](https://github.com/samirmartins/vibelight-tizen/issues)
-- [Contributing](.github/CONTRIBUTING.md)
-- [Build and signing guide](build-tools/README.md)
-- [License: GPL-3.0](LICENSE)
-
----
+[Validation and local build notes](build-tools/README.md) ·
+[Samsung build instructions](README.Samsung.md) ·
+[Report an issue](https://github.com/samirmartins/vibelight-tizen/issues).
+Keep private network details and signing credentials out of screenshots and logs.
 
 ## Credits
 

@@ -49,23 +49,25 @@ function setup(){
   }
   f=setup();await f.open();f.host.macAddress='';f.node('libraryWake').click();
   assert.strictEqual(f.dialogs,1);assert.strictEqual(f.wakes,0);assert.strictEqual(f.launches.length,0);
-  // Reload is one document navigation, cancels work and never clears storage.
+  // Explicit refresh coalesces pending work and preserves identity/preferences.
   for(const stage of ['serverinfo','covers','wake']){
     f=setup();let work;
     if(stage==='serverinfo'){f.infoGate=deferred();work=f.c.ConsoleLibrary.open(f.host);await f.flush();}
     else {await f.open();if(stage==='covers'){f.host.delay=[];f.c.ConsoleLibrary.invalidateCovers(f.host);work=f.c.ConsoleLibrary.open(f.host);await f.flush();}
       else {f.wakeGate=deferred();f.node('libraryWake').click();}}
-    f.storage.set('pairing-fixture','synthetic credentials');const saved=[...f.storage];
-    const status=f.node('libraryStatus').textContent,requests=f.calls.length,connects=f.connects;
+    f.storage.set('pairing-fixture','synthetic credentials');f.storage.set('preference-fixture','saved');
+    const connects=f.connects;
     for(let i=0;i<10;i++)f.node('libraryRefresh').click();
-    assert.strictEqual(f.io.reloads,1);assert.strictEqual(f.timers.size,0);assert.deepStrictEqual([...f.storage],saved);
-    if(f.infoGate)f.infoGate.resolve('late');
-    if(f.host.delay)f.host.delay.splice(0).forEach(resolve=>resolve('data:image/png;base64,late'));
+    assert.strictEqual(f.io.reloads,0);
+    assert.strictEqual(f.connects,connects+(stage==='wake'?1:0),'duplicate refresh is coalesced');
+    if(f.infoGate)f.infoGate.resolve('fixture.invalid');
     if(f.wakeGate)f.wakeGate.resolve('late');
+    for(let i=0;i<8;i++){if(f.host.delay)f.host.delay.splice(0).forEach(resolve=>resolve('data:image/png;base64,late'));await f.flush();}
     if(work)await work;await f.flush();
-    assert.strictEqual(f.node('libraryStatus').textContent,status);
-    assert.strictEqual(f.calls.length,requests);assert.strictEqual(f.connects,connects);assert.strictEqual(f.launches.length,0);
+    assert.strictEqual(f.launches.length,0);assert.strictEqual(f.timers.size,0);
+    assert.strictEqual(f.storage.get('pairing-fixture'),'synthetic credentials');assert.strictEqual(f.storage.get('preference-fixture'),'saved');
     assert.strictEqual(f.host.ppkstr,'synthetic pin');assert.strictEqual(f.host.paired,true);
+    f.suspend();
   }
   for(const condition of ['hidden','stream']){
     f=setup();await f.open();if(condition==='hidden')f.c.document.hidden=true;else f.c.isInGame=true;
@@ -91,5 +93,5 @@ function setup(){
     assert.strictEqual(normalize(file,source),baseline,'exact approved menu scope: '+file);
     assert.notStrictEqual(normalize(file,source+'\n// Unknown edit\n'),baseline,'unknown edit remains visible');
   }
-  console.log('wake_play_test: independent packet-only Wake, immediate manual Play, one-shot check, document reload, preserved preferences, cancellation, stale replies and frozen media/transport OK');
+  console.log('wake_play_test: independent packet-only Wake, immediate manual Play, one-shot check, coalesced library refresh, preserved preferences, cancellation, stale replies and frozen media/transport OK');
 })().catch(error=>{console.error(error);process.exitCode=1;});

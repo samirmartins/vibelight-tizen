@@ -31,6 +31,7 @@ const launchEdits=[
   ]
 ];
 function normalize(file,source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
  source = require('./review-corrections-scope.cjs').normalize(file,source);
  if(!approved[file]||crypto.createHash('sha256').update(source).digest('hex')!==approved[file])return source;
  return cp.execFileSync('git',['cat-file','blob','96584ac:'+file],{encoding:'utf8'});

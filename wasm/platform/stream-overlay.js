@@ -108,12 +108,11 @@ var StreamOverlay = (function() {
   }
 
   function statsOn() {
-    var toggle = document.getElementById('performanceStatsSwitch');
-    return !!(toggle && toggle.checked);
+    return typeof SessionDiagnostics !== 'undefined' && SessionDiagnostics.isVisible();
   }
 
   function statsLabel() {
-    return translate(statsOn() ? 'Statistics: On' : 'Statistics: Off');
+    return translate(statsOn() ? 'Statistics: On' : typeof SessionDiagnostics !== 'undefined' && SessionDiagnostics.isRecording() ? 'Statistics: hidden · recording' : 'Statistics: Off');
   }
 
   function adjustVolume(delta) {
@@ -166,7 +165,7 @@ var StreamOverlay = (function() {
       {id: 'volume', icon: 'volume_up', label: volumeLabel, meta: 'Left/Right adjusts',
        adjust: function(delta) { adjustVolume(delta); },
        run: toggleMute},
-      {id: 'stats', icon: 'bar_chart', label: statsLabel, meta: 'Show or hide',
+      {id: 'stats', icon: 'bar_chart', label: statsLabel, meta: 'Only on this TV · History in Settings → Diagnosis',
        run: toggleStats},
       {id: 'disconnect', icon: 'link_off', label: function() { return translate('Disconnect'); },
        meta: busy ? 'Closing on the PC may continue.' : 'Keeps the game on the PC',

@@ -6,6 +6,7 @@ const hashes = {
   'wasm/platform/console-library.js': '35c104ecb9099b93bc565eae8366e82cd8707ae93cbcd00a60319423ab3d2869'
 };
 function normalize(file, source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   if (!hashes[file] || require('crypto').createHash('sha256').update(source).digest('hex') !== hashes[file]) return source;
   return require('child_process').execFileSync('git', ['show', 'v3.4.14:' + file], {encoding: 'utf8'});
 }

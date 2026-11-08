@@ -65,6 +65,7 @@ const edits = [
   ["wasm/platform/messages.js", "    warningDialog('Warning', msg.replace('DialogMsg: ', ''));\n    if (typeof MenuI18n !== 'undefined' && document.getElementById('loadingSpinner').style.display !== 'none') MenuI18n.connectionDialog();\n", "    warningDialog('Warning', msg.replace('DialogMsg: ', ''));\n"]
 ];
 function normalize(file,source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   source = require('./interface-settings-scope.cjs').normalize(file, source);
   source = require('./stream-overlay-scope.cjs').normalize(file, source);
   for (const [target,after,before] of edits) if (target===file) source=source.replace(after,before);

@@ -89,12 +89,12 @@ if (require.main === module) (async()=>{
   f.suspend(); assert.strictEqual(f.node('game-grid').children.length,0,'no image elements retained in streaming grid');
   assert.strictEqual(f.timers.size,0,'no cache timer or background cover work during gameplay');
   await f.open(); assert.strictEqual(f.calls.length,before,'return from stream reuses cached URLs');
-  // Reload replaces Refresh: no requests are queued in the old document.
+  // Explicit library refresh reuses decoded covers without restarting the app.
   const old = f.card(1).querySelector('img').src; f.revision();
   f.node('libraryRefresh').click(); await f.flush();
-  assert.strictEqual(f.io.reloads,1);
+  assert.strictEqual(f.io.reloads,0);
   assert.strictEqual(f.calls.length,before);
-  assert.strictEqual(f.card(1).querySelector('img').src,old,'old document never renews covers');
+  assert.strictEqual(f.card(1).querySelector('img').src,old,'metadata refresh does not renew covers');
   before=f.calls.length;
   f.c.ConsoleLibrary.favorite(); f.node('libraryFavorites').click(); await f.flush();
   f.node('libraryAll').click(); await f.flush();

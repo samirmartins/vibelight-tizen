@@ -1,0 +1,82 @@
+/* Settings and local reports only. Streaming media geometry is unchanged. */
+#settings-list { gap:2.2vw; padding:2.2vh 3vw; box-sizing:border-box; }
+#settings-left-pane { flex:0 0 19%; padding:0 1.5vw 0 0; border-right:1px solid #485165; }
+#settings-right-pane { padding:0 0 3vh; min-width:0; }
+.settings-categories { padding:0; }
+.settings-category { display:flex; align-items:center; gap:14px; min-height:65px; padding:12px 16px; margin:6px 0; border:1px solid transparent; border-radius:9px; box-sizing:border-box; }
+.settings-category label { font-size:24px; line-height:1.2; margin:0; cursor:pointer; }
+.settings-category .settings-category-icons { font-size:27px; margin:0; }
+.settings-category.selected { background:#006f86; border-color:#26b6ce; }
+.settings-category:focus,.settings-category.hovered { outline:2px solid #68d5e9; }
+.settings-options { margin:0; overflow:visible; }
+.settings-section-title { color:#a8c8d1; font-size:17px; line-height:23px; letter-spacing:1px; margin:18px 0 9px; }
+.setting-option { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:22px; row-gap:5px; align-items:center; padding:13px 21px; margin:8px 0; min-height:86px; box-sizing:border-box; background:#303746; border:1px solid #4b5569; border-radius:9px; }
+.setting-option:focus-within { outline:2px solid #68d5e9; background:#354555; }
+.settings-options .setting-option>label { grid-column:1; font-size:24px; line-height:28px; margin:0; color:#eceef2; letter-spacing:0; }
+.settings-options .setting-option>.mdl-list__item-text-body { grid-column:1; font-size:17px; line-height:23px; margin:0; color:#b8c4d4; letter-spacing:0; }
+.setting-option>div,.setting-option>button { grid-column:2; grid-row:1 / span 2; }
+.setting-option>.mdl-menu__container { position:fixed; }
+.setting-option>.mdl-menu { grid-column:2; }
+.setting-option .mdl-switch { width:64px!important; padding-left:0!important; min-width:64px; }
+.settings-options .mdl-switch__label { font-size:0; margin:0; width:0; }
+.setting-option .mdl-switch__track { width:52px; height:26px; top:0; border-radius:20px; }
+.setting-option .mdl-switch__thumb { top:3px; left:3px; width:20px; height:20px; }
+.setting-option .mdl-switch.is-checked .mdl-switch__thumb { left:29px; }
+.setting-option button { max-width:340px; min-height:44px; height:auto!important; white-space:normal; font-size:19px!important; line-height:24px; color:#eef2f7; background:#414b60; border:1px solid #657189; border-radius:7px; padding:9px 15px!important; }
+.setting-option button img { width:23px; height:23px; vertical-align:middle; }
+.setting-option .badge { font-size:11px; margin-left:8px; }
+.settings-danger { background:#362f39; border-color:#78505d; }
+.settings-danger>label { color:#f5c7ca!important; }
+.settings-privacy,.diagnosis-privacy { background:#263b46; border-left:3px solid #72c4d6; padding:14px 18px; color:#d0e5ec; font-size:18px; line-height:25px; }
+#diagnosticsReportBtn { margin:0; }
+#aboutSettings #restoreDefaultsBtn { width:auto; min-width:140px; margin:0; }
+.diagnosis-dialog { width:86vw; max-width:1540px; max-height:93vh; padding:23px 28px; }
+.diagnosis-dialog .diagnosis-privacy { margin:6px 0 13px; font-size:17px; }
+.diagnosis-table th { width:22%; white-space:normal; }
+.diagnosis-table td { font-variant-numeric:tabular-nums; }
+.diagnosis-table small { display:block; font-size:14px; color:#b9c7d7; }
+.diagnosis-button { background:#414b60; color:#f1f4f8; border:1px solid #69798e; border-radius:7px; padding:10px 18px; min-height:42px; font-size:19px; line-height:25px; margin:5px; }
+.diagnosis-button:focus,.diagnosis-button.hovered { outline:3px solid #68d5e9; }
+.diagnosis-button:disabled { opacity:.45; }
+.diagnosis-record { display:block; width:100%; margin:5px 0; text-align:left; font-size:18px; line-height:24px; min-height:43px; }
+.diagnosis-record.selected-a { background:#2d5261; border-color:#68d5e9; }
+.diagnosis-record.selected-b { background:#514463; border-color:#c0a5e5; }
+@media(max-height:800px) {
+ .settings-category { min-height:45px; padding:8px 11px; }
+ .settings-category label { font-size:18px; }
+ .setting-option { min-height:67px; padding:8px 14px; margin:6px 0; }
+ .settings-options .setting-option>label { font-size:19px; line-height:22px; }
+ .settings-options .setting-option>.mdl-list__item-text-body { font-size:14px; line-height:18px; }
+ .setting-option button { font-size:15px!important; line-height:20px; max-width:230px; padding:5px 10px!important; }
+ .diagnosis-dialog { padding:14px 18px; }
+ .diagnosis-dialog .mdl-dialog__title { font-size:24px; line-height:28px; padding:0 0 6px; }
+ .diagnosis-dialog p,.diagnosis-dialog .diagnosis-privacy { font-size:14px; line-height:18px; padding:5px 9px; margin:3px 0 5px; }
+ .diagnosis-table { font-size:14px; line-height:18px; }
+ .diagnosis-table th,.diagnosis-table td { padding:3px 5px; }
+ .diagnosis-button { font-size:14px; line-height:20px; padding:5px 10px; min-height:32px; }
+ .diagnosis-record { font-size:13px; min-height:29px; line-height:18px; margin:3px 0; padding:4px 7px; }
+}
+
+#streamStartupPanel[hidden] { display:none; }
+#streamStartupPanel { position:fixed; z-index:100; left:50%; top:42%; transform:translate(-50%,-50%); background:#202632; color:#eef3f8; border:1px solid #65758c; border-radius:12px; padding:24px 36px; min-width:360px; text-align:center; }
+#streamStartupMessage { font-size:23px; line-height:30px; }
+#streamStartupCancel { color:#eef3f8; background:#42516a; border:1px solid #89bfd1; border-radius:8px; padding:11px 28px; font-size:22px; }
+#streamStartupCancel:focus { outline:3px solid #68d5e9; }
+
+.settings-options .setting-option .mdl-switch { height:31px!important; min-height:31px; margin:0; background:transparent!important; box-shadow:none; }
+.setting-option .mdl-switch__input,.setting-option .mdl-switch__track,.setting-option .mdl-switch__thumb { margin:0!important; }
+.setting-option .mdl-switch__ripple-container { left:10px; top:-8px; }
+.setting-option button { text-indent:0!important; padding-right:32px!important; background-position:right 7px center!important; }
+.settings-category label { bottom:0; }
+.settings-categories { margin:0; }
+
+.diagnosis-record { display:grid; grid-template-columns:28px 140px minmax(100px,1fr) minmax(150px,1fr) 85px; align-items:center; gap:12px; }
+.diagnosis-record span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.diagnosis-record span:last-child { text-align:right; }
+#diagnosisDialog[data-view=compare] #diagnosisConfig,#diagnosisDialog[data-view=compare] #diagnosisDevice { display:inline-block; vertical-align:top; box-sizing:border-box; width:49%; padding:15px; margin:4px 0 14px; background:#2d4350; border:1px solid #589eaf; border-radius:8px; font-size:17px; line-height:24px; }
+#diagnosisDialog[data-view=compare] #diagnosisDevice { margin-left:1%; background:#3b364e; border-color:#9280bb; }
+#diagnosisDialog[data-view=compare] th:nth-child(2){color:#8be5f1;}
+#diagnosisDialog[data-view=compare] th:nth-child(3){color:#d5bef7;}
+@media(max-height:800px){.diagnosis-record{grid-template-columns:22px 90px minmax(85px,1fr) minmax(110px,1fr) 65px;gap:7px;}#diagnosisDialog[data-view=compare] #diagnosisConfig,#diagnosisDialog[data-view=compare] #diagnosisDevice{font-size:13px;line-height:17px;padding:9px;}}
+
+.setting-option button { background-size:24px 24px!important; padding-right:38px!important; }

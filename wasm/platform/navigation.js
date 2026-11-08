@@ -822,8 +822,7 @@ const Views = {
   SettingsNav: {
     view: new ListView(() => [
       'goBackBtn',
-      'languageBtn',
-      'restoreDefaultsBtn'
+      'languageBtn'
     ]),
     up: function() {},
     down: function() {
@@ -866,7 +865,8 @@ const Views = {
     view: new ListView(() => [
       'selectResolution',
       'selectFramerate',
-      'selectBitrate'
+      'selectBitrate',
+      'selectCodec', 'hdrModeBtn', 'fullRangeBtn', 'framePacingBtn', 'gameModeBtn'
     ]),
     up: function() {
       this.view.prevOption();
@@ -1074,6 +1074,7 @@ const Views = {
   InputSettings: {
     view: new ListView(() => [
       'controllerMappingBtn',
+      'controllerTuningBtn',
       'rumbleFeedbackBtn',
       'mouseEmulationBtn'
     ]),
@@ -1115,8 +1116,7 @@ const Views = {
     view: new ListView(() => [
       'selectAudio',
       'selectAudioJitter',
-      'playHostAudioBtn',
-      'interfaceSoundsBtn'
+      'playHostAudioBtn'
     ]),
     up: function() {
       this.view.prevOption();
@@ -1259,9 +1259,8 @@ const Views = {
   AdvancedSettings: {
     view: new ListView(() => [
       'disableWarningsBtn',
-      'performanceStatsBtn',
-      'diagnosticsBtn',
-      'diagnosticsReportBtn'
+      'diagnosticsReportBtn',
+      'diagnosticsHistoryBtn'
     ]),
     up: function() {
       this.view.prevOption();
@@ -1299,9 +1298,10 @@ const Views = {
   },
   AboutSettings: {
     view: new ListView(() => [
+      'languageSettingsBtn', 'interfaceSoundsBtn',
       'systemInfoBtn',
       'navigationGuideBtn',
-      'restartAppBtn'
+      'restartAppBtn', 'restoreDefaultsBtn'
     ]),
     up: function() {
       this.view.prevOption();
@@ -1583,6 +1583,11 @@ const Navigation = (function() {
 
   function runOp(name) {
     return () => {
+      if (typeof StreamStartup !== 'undefined' && StreamStartup.active() && !isDialogOpen) {
+        if (name === 'accept' || name === 'back') StreamStartup.cancel();
+        else if (['up','down','left','right'].includes(name)) focusElement('streamStartupCancel');
+        return;
+      }
       if (!State.isRunning()) {
         return;
       }

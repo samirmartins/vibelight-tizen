@@ -6,7 +6,7 @@ const c = {
   console: { log() {} }, isInGame: true, document: { getElementById() { return {}; } },
   Module: { wakeOnLan(id) { nativeId = id; } },
   startVideoPresentationObserver() { start++; }, stopVideoPresentationObserver() { stop++; },
-  savePerformanceStats() {}, SessionDiagnostics: { sample() {} },
+  savePerformanceStats() {}, SessionDiagnostics: { sample() {},isVisible(){return enabled;},setVisible(value){if(value&&!start)start++;enabled=value;},overlayText(){return 'Summary';} },
   getAudioTelemetryLine() { return 'Aud: --'; },
   $(selector) {
     return { 0: switchElement, prop() { return enabled; }, css() { return this; },
@@ -24,7 +24,7 @@ assert.strictEqual(paints, 1);
 c.handleMessage('OverlayState: 0');
 const before = paints;
 c.handleMessage('StatMsg: delayed sample');
-assert.strictEqual(enabled, false); assert.strictEqual(start, 1); assert.strictEqual(stop, 1);
+assert.strictEqual(enabled, false); assert.strictEqual(start, 1); assert.strictEqual(stop, 0);
 assert.strictEqual(paints, before);
 c.isInGame = false; c.handleMessage('OverlayState: 1');
 assert.strictEqual(enabled, false);

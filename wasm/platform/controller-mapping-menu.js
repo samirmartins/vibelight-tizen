@@ -533,5 +533,5 @@ var ControllerMappingMenu = (function() {
     Navigation.change(view);
     focus('cm-key-' + selected);
   }
-  return {open:open, isTesting:function() { return testing; }};
+  return {open:open, openAnalog:openAnalog, isTesting:function() { return testing; }};
 })();

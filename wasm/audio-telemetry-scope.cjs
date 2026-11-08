@@ -11,6 +11,7 @@ function removeBlock(source, begin, end) {
   return source.slice(0, first) + source.slice(last + end.length);
 }
 function normalize(file, source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   source = require('./video-transport-scope.cjs').normalize(file, source);
   if (file === 'wasm/platform/audio.js') {
     source = removeBlock(source, '\n// Optional audio collection is switched', '// End optional audio collection switch.\n');
@@ -54,6 +55,8 @@ function assertFrozen(reference, paths) {
     const changed = cp.execFileSync('git', ['diff', '--name-only', reference, '--', ...rest], {encoding:'utf8'}).trim().split('\n').filter(Boolean);
     const menuOnly = ['wasm/platform/interface-sounds.js'];
     for (const file of changed) {
+      const experience=require('./experience-scope.cjs');
+      if(experience.added[file]){assert(experience.matchesAdded(file,fs.readFileSync(file)),file+' exact approved local diagnostic/settings asset');continue;}
       if (menuOnly.includes(file)) continue;
       const review = require('./review-corrections-scope.cjs');
       if (['wasm/auddec.cpp','wasm/audio_ring.hpp'].includes(file)) {

@@ -1584,6 +1584,9 @@ void MoonlightInstance::PublishDiagnostics(VIDEO_STATS& stats, uint32_t windowMs
   const auto assembly = mltelemetry::Summarize(stats.assemblyUs, 1000.0);
   const auto append = mltelemetry::Summarize(stats.appendUs, 1000.0);
   const auto cadence = mltelemetry::Summarize(stats.appendIntervalsUs, 1000.0);
+  const auto loadBytes = mltelemetry::Summarize(stats.frameBytes, 1024.0);
+  const auto loadPackets = mltelemetry::Summarize(stats.framePackets);
+  const double zeroCopy = stats.decodedFrames ? stats.zeroCopyFrames * 100.0 / stats.decodedFrames : -1.0;
   uint32_t rtt = 0, variance = 0;
   const bool rttValid = LiGetEstimatedRttInfo(&rtt, &variance);
   const auto clock = g_Instance->m_PipelinePosition.Read();
@@ -1606,7 +1609,7 @@ void MoonlightInstance::PublishDiagnostics(VIDEO_STATS& stats, uint32_t windowMs
     "\"cadN\":%u,\"cadLate\":%u,\"cadP95\":%.3f,\"cadMax\":%.3f,"
     "\"leadN\":%u,\"lead\":%.3f,\"leadAbsMax\":%.3f,"
     "\"filtered\":%.3f,\"target\":%.3f,\"servo\":%u,\"settle\":%u,"
-    "\"clockAge\":%.3f,\"step\":%.5f}",
+    "\"clockAge\":%.3f,\"step\":%.5f,\"loadMean\":%.3f,\"loadP95\":%.3f,\"loadMax\":%.3f,\"packetsMean\":%.3f,\"packetsP95\":%.3f,\"packetsMax\":%.3f,\"zeroCopy\":%.3f,\"hostDeviation\":%.3f,\"cadDeviation\":%.3f}",
     generation, windowMs, s_Width, s_Height, s_VideoFormat, s_Framerate,
     static_cast<double>(total_bytes), stats.receivedFrames, stats.renderedFrames,
     stats.totalFrames, stats.networkDroppedFrames, stats.pacerDroppedFrames,
@@ -1619,7 +1622,9 @@ void MoonlightInstance::PublishDiagnostics(VIDEO_STATS& stats, uint32_t windowMs
     stats.pipelineClockSamples, lead, static_cast<double>(stats.pipelineClockLeadMaxMs),
     s_leadFilteredMs, s_leadTargetMs, s_leadTargetSet ? 1u : 0u,
     static_cast<unsigned>(s_leadSamples), age,
-    std::chrono::duration<double, std::milli>(s_ptsStep).count());
+    std::chrono::duration<double, std::milli>(s_ptsStep).count(),
+    loadBytes.mean, loadBytes.p95, loadBytes.maximum,
+    loadPackets.mean, loadPackets.p95, loadPackets.maximum, zeroCopy, host.deviation, cadence.deviation);
   if (length > 0 && length < sizeof(message)) PostToJsAsync(message);
 }
 

@@ -12,6 +12,7 @@ const assets = {
   'wasm/static/css/console-controls.css': 'd2eb2817113d1c2bda345eb9d72d3ff01d17708e46d9bc10b9325989f64cca1b'
 };
 function normalize(file, source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   source = require('./pairing-text-scope.cjs').normalize(file, source);
   const hash = crypto.createHash('sha256').update(source).digest('hex');
   if (assets[file]) return hash === assets[file] ? '' : source;

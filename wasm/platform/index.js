@@ -79,9 +79,10 @@ function attachListeners() {
   $('#gameModeSwitch').on('click', saveGameMode);
   $('#framePacingSwitch').on('click', saveFramePacing);
   $('#disableWarningsSwitch').on('click', saveDisableWarnings);
-  $('#performanceStatsSwitch').on('click', savePerformanceStats);
-  $('#diagnosticsSwitch').on('change', SessionDiagnostics.changed);
   $('#diagnosticsReportBtn').on('click', SessionDiagnostics.show);
+  $('#diagnosticsHistoryBtn').on('click', DiagnosticView.history);
+  $('#languageSettingsBtn').on('click', function(){document.getElementById('languageBtn').click();});
+  $('#controllerTuningBtn').on('click', function(){ControllerMappingMenu.open();ControllerMappingMenu.openAnalog();});
   $('#navigationGuideBtn').on('click', navigationGuideDialog);
   $('#restartAppBtn').on('click', restartAppDialog);
 
@@ -1298,9 +1299,6 @@ function handleSettingsView(category) {
     case 'audioSettings': // Navigate to the AudioSettings view
       navigateSettingsView(Views.AudioSettings);
       break;
-    case 'videoSettings': // Navigate to the VideoSettings view
-      navigateSettingsView(Views.VideoSettings);
-      break;
     case 'advancedSettings': // Navigate to the AdvancedSettings view
       navigateSettingsView(Views.AdvancedSettings);
       break;
@@ -1658,13 +1656,12 @@ function fullscreenWasmModule() {
 function handleOnScreenOverlays() {
   // Find the existing toggle switch elements
   const disableWarningsSwitch = document.getElementById('disableWarningsSwitch');
-  const performanceStatsSwitch = document.getElementById('performanceStatsSwitch');
 
   // Check if the disable warnings switch is checked, then hide or show the connection warning messages
   disableWarningsSwitch.checked ? $('#connection-warnings').css('display', 'none') : $('#connection-warnings').css('display', 'inline-block');
 
   // Check if the performance stats switch is checked, then show or hide the performance statistics information
-  performanceStatsSwitch.checked ? $('#performance-stats').css('display', 'inline-block') : $('#performance-stats').css('display', 'none');
+  $('#performance-stats').css('display', 'none');
 }
 
 // Start the given appID. If another app is running, offer to quit it. Otherwise, if the given app is already running, just resume it.
@@ -1700,6 +1697,7 @@ function startGame(host, appID, audioPrepared) {
   if (!host || !host.paired) return Promise.resolve();
   var launchScope = createMenuRequestScope();
   startGame.pending = launchScope;
+  if(typeof StreamStartup !== 'undefined') StreamStartup.begin(host,function(){launchScope.cancel();});
   var lifecycleEpoch = typeof AppLifecycle !== 'undefined' ? AppLifecycle.epoch() : 0;
   var settled = false, handedOff = false, closeDialog = null;
   function launchCurrent() {
@@ -1709,6 +1707,7 @@ function startGame(host, appID, audioPrepared) {
   function releasePreparedAudio() {
     if (settled) return;
     settled = true;
+    if(typeof StreamStartup !== 'undefined') StreamStartup.finish();
     if (closeDialog) closeDialog(false);
     isInGame = false;
     $('#loadingSpinnerMessage').text('');
@@ -1761,6 +1760,7 @@ function startGame(host, appID, audioPrepared) {
     return launchScope.request(function() { return host.refreshServerInfo(launchScope); }, 10000);
   }).then(function() {
     if (!launchCurrent()) return;
+    if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Loading game information…');
     return launchScope.request(function() { return host.getAppById(appID); }, 10000);
   }).then(function(appToStart) {
     if (!launchCurrent()) return;
@@ -1798,7 +1798,7 @@ function startGame(host, appID, audioPrepared) {
       const fullRange = $('#fullRangeSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const gameMode = $('#gameModeSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const disableWarnings = $('#disableWarningsSwitch').parent().hasClass('is-checked') ? 1 : 0;
-      const performanceStats = $('#performanceStatsSwitch').parent().hasClass('is-checked') ? 1 : 0;
+      const performanceStats = 0; // Statistics require explicit activation in this game.
 
       console.log('%c[index.js, startGame]', 'color: gray;', 'Operation recorded; private details omitted.');
 
@@ -1808,6 +1808,8 @@ function startGame(host, appID, audioPrepared) {
       // Shows a loading message to launch the application and start stream mode
       $('#loadingSpinnerMessage').text('Starting ' + appToStart.title + '...');
       showStreamMode();
+      SessionDiagnostics.configure({game:appToStart.title,config:{pacing:!!framePacing,hdr:!!hdrMode,gameMode:!!gameMode,bitrate:bitrate/1000,audioLimitMs:audioJitterMs}});
+      if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Starting the game on the PC…');
 
       return launchScope.request(function() {
         var mode = streamWidth + 'x' + streamHeight + 'x' + frameRate;
@@ -1822,6 +1824,7 @@ function startGame(host, appID, audioPrepared) {
         var code = $root.attr('status_code');
         if (String(code) !== '200') throw new Error('Host rejected the stream');
         if (!$root.find('sessionUrl0').text().trim()) throw new Error('Missing stream URL');
+        if(typeof StreamStartup !== 'undefined'){StreamStartup.stage('Starting video and audio…');StreamStartup.native();}
         return sendMessage('startRequest', [
             host.address, host.httpPort, streamWidth, streamHeight, frameRate, bitrate.toString(), rikey, rikeyid.toString(),
             host.appVersion, host.gfeVersion, $root.find('sessionUrl0').text().trim(), host.serverCodecModeSupport,
@@ -2362,14 +2365,6 @@ function saveDisableWarnings() {
   }, 100);
 }
 
-function savePerformanceStats() {
-  setTimeout(() => {
-    const chosenPerformanceStats = $('#performanceStatsSwitch').parent().hasClass('is-checked');
-    console.log('%c[index.js, savePerformanceStats]', 'color: green;', 'Saving performance stats state: ' + chosenPerformanceStats);
-    storeData('performanceStats', chosenPerformanceStats, null);
-  }, 100);
-}
-
 // Reset all settings to their default state and save the value data
 function restoreDefaultsSettingsValues() {
   // 1080p is the sensible starting point on a modern TV panel. 720p left the
@@ -2466,8 +2461,7 @@ function restoreDefaultsSettingsValues() {
   storeData('disableWarnings', defaultDisableWarnings, null);
 
   const defaultPerformanceStats = false;
-  document.querySelector('#performanceStatsBtn').MaterialSwitch.off();
-  storeData('performanceStats', defaultPerformanceStats, null);
+
 }
 
 function initSamsungKeys() {
@@ -2766,16 +2760,8 @@ function loadUserDataCb() {
     }
   });
 
-  console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored performanceStats preferences.');
-  getPreferenceData('performanceStats', function(previousValue) {
-    if (previousValue.performanceStats == null) {
-      document.querySelector('#performanceStatsBtn').MaterialSwitch.off(); // Set the default state
-    } else if (previousValue.performanceStats == false) {
-      document.querySelector('#performanceStatsBtn').MaterialSwitch.off();
-    } else {
-      document.querySelector('#performanceStatsBtn').MaterialSwitch.on();
-    }
-  });
+  // Legacy statistics preferences never authorize collection in a new game.
+
 }
 
 function storageInitializationError() {

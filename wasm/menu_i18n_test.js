@@ -27,7 +27,7 @@ for (const [stored,language,expected] of [[null,'pt-BR','pt-BR'],[null,'es-ES','
   const sandbox={MenuTranslations:rows,navigator:{language},localStorage:{getItem(){return stored;}},document:{addEventListener(){}}};
   vm.runInNewContext(moduleSource,sandbox);
   assert.strictEqual(sandbox.MenuI18n.locale(),expected);
-  assert.deepStrictEqual(Object.keys(sandbox.MenuI18n.progressText).sort(),nativeStages);
+  assert.deepStrictEqual(Object.keys(sandbox.MenuI18n.progressText).filter(s=>nativeStages.includes(s)).sort(),nativeStages);
   const progress=sandbox.MenuI18n.progressText['Starting RTSP handshake...'];
   assert.strictEqual(progress,expected==='pt-BR'?'Iniciando negociação RTSP...':expected==='es'?'Iniciando negociación RTSP...':'Starting RTSP handshake...');
 }

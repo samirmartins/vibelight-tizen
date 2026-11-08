@@ -4,7 +4,7 @@ var ConsoleLibrary = (function() {
   var prefs = { preferred: '', hosts: {} };
   var host = null, apps = [], selected = 0, filter = 'all';
   var active = false, scope = null, coverScope = null, epoch = 0, busy = false, checking = false;
-  var settingsReturn = false, wakeScope = null, reloading = false;
+  var settingsReturn = false, wakeScope = null;
   var runtimeReady = false, hostsReady = false, started = false, bound = false;
   var navIndex = 0, currentRecord = null;
   var launchPending = false, launchTimer = 0;
@@ -343,7 +343,7 @@ var ConsoleLibrary = (function() {
       if (!reached && !closing) host.online = false;
       // No response cannot distinguish a powered-off PC from a slow Sunshine,
       // firewall or network failure. Do not claim to have measured its power.
-      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then reload VibeLight.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Try Reload VibeLight.');
+      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then refresh the library.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Refresh the library.');
       return cached;
     }).then(function() {
       if (!valid(token)) return;
@@ -411,20 +411,12 @@ var ConsoleLibrary = (function() {
       if (valid(token)) updateSelection();
     });
   }
-  function reload() {
-    if (!active || isInGame || document.hidden || reloading) return;
-    reloading = true;
-    cancel(); stopPollingHosts(); stopSubnetScanner();
-    // Reload the document and its WASM runtime, not another NvHTTP object.
-    // Persistent pairing/settings are untouched; never reload during a stream.
-    window.location.reload();
-  }
   function bind() {
     if (bound) return; bound = true;
     el('libraryPlay').onclick = function() { play(selected); };
     el('libraryWake').onclick = wake;
     el('libraryFavorite').onclick = favorite;
-    el('libraryRefresh').onclick = reload;
+    el('libraryRefresh').onclick = function(){return refresh(false);};
     el('libraryPCsBtn').onclick = showHosts;
     el('libraryHomeBtn').onclick = function() { var pc = preferred(); if (pc) showApps(pc); };
     ['All','Favorites','Recent'].forEach(function(name) {

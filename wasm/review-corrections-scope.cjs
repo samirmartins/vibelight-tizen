@@ -18,6 +18,7 @@ const approved={
 const hash=source=>crypto.createHash('sha256').update(source).digest('hex');
 function matches(file,source){return !!approved[file] && hash(source)===approved[file];}
 function normalize(file,source){
+  source=require('./experience-scope.cjs').normalize(file,source);
  if(!matches(file,source))return source;
  return cp.execFileSync('git',['cat-file','blob','6fe39d2:'+file],{encoding:'utf8'});
 }

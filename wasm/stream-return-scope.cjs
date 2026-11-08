@@ -11,6 +11,7 @@ const approved={
   'wasm/platform/index.js':'177658d699ab37d467a578ff9411f8555114854145b849303c2430fe4ae5dce3'
 };
 function normalize(file,source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   source = require('./pairing-text-scope.cjs').normalize(file, source);
   const input=source;
   source=require('./menu-i18n-scope.cjs').normalize(file,source);

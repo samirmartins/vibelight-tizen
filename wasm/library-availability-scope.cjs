@@ -17,6 +17,7 @@ const sections={
   ]
 };
 function normalize(file,source) {
+  source=require('./experience-scope.cjs').normalize(file,source);
   source=require('./wake-play-scope.cjs').normalize(file,source);
   if(file==='wasm/platform/menu-tools.js')return source.replace('    scope.useAppListProbe = true;\n','');
   if(!sections[file])return source;

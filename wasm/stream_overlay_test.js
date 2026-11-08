@@ -84,6 +84,7 @@ function fixture(options = {}) {
       stopStream() { calls.stop++; },
       toggleStats() { calls.toggleStats++; }
     },
+    SessionDiagnostics:{isVisible(){return !!c.statsVisible;},isRecording(){return !!c.statsVisible;}},
     api: {
       quitApp() { calls.quit++; return options.quit || deferred.promise; }
     },
@@ -175,11 +176,11 @@ function fixture(options = {}) {
     assert.strictEqual(f.c.FocusManager.index(), 3, 'right moves when the item has no adjust step');
     f.c.FocusManager.select(2);
 
-    // Statistics uses the existing native toggle and the saved switch state.
+    // Statistics uses the native toggle and session-local visibility.
     f.press({0: true});
     f.release();
     assert.strictEqual(f.calls.toggleStats, 1);
-    f.document.getElementById('performanceStatsSwitch').checked = true;
+    f.c.statsVisible = true;
     f.c.StreamOverlay.refresh();
     assert.strictEqual(f.text('streamOverlay-stats-label'), 'Estatísticas: ativadas');
 
@@ -405,7 +406,7 @@ function fixture(options = {}) {
       Promise, JSON, parseInt, Object, Math, Number, String,
       isInGame: true,
       document: {hidden: false},
-      SessionDiagnostics: {finish() {}, sample() {}, note() {}, connected() {}},
+      SessionDiagnostics: {finish() {}, sample() {}, note() {}, connected() {},isVisible(){return false;}},
       stopVideoPresentationObserver() {}, stopAudioScheduler() {},
       snackbarLogLong() {}, warningDialog() {},
       $() { return {css() { return this; }, removeClass() { return this; }, addClass() { return this; }, prop() { return false; }}; },
