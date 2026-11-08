@@ -26,6 +26,8 @@ Samsung TV with **Tizen 5.5+**, a compatible gamepad, and a PC running
    the in-game menu. Disconnect keeps the game on the PC; End game on PC closes it.
 
 **User documentation:** [visual guide, settings, diagnostics and troubleshooting](docs/index.html).
+English is the default. Choose **Português (Brasil)** or **Español** from the
+language menu; the guide keeps your current topic and remembers your choice.
 The static guide is prepared for GitHub Pages in `docs/`; it is not published yet.
 It documents the current source. New settings/history screens are not in the
 previously published 4.0.2 packages; check the notes of the version you install.

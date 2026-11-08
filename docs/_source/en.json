@@ -1,0 +1,510 @@
+{
+  "locale": "en",
+  "title": "VibeLight — PC games. A bigger stage.",
+  "description": "Bring your PC games to your Samsung TV. Visual setup, settings and local diagnostics guides in English, Portuguese and Spanish.",
+  "ui": {
+    "language": "Language",
+    "home": "Home",
+    "guide": "Field guide",
+    "docs": "Guides",
+    "navigation": "Main navigation",
+    "chapters": "Guide chapters",
+    "skip": "Skip to content",
+    "searchLabel": "Find an answer",
+    "searchShort": "Search",
+    "searchPlaceholder": "Try audio buffer, pairing or frame pacing…",
+    "searchPrompt": "Search settings, setup and troubleshooting.",
+    "noResults": "No matching answer. Try a different word.",
+    "resultCount": "Results: {count}",
+    "searchPrivacy": "Search runs in your browser. No query is sent.",
+    "close": "Close",
+    "previous": "Previous",
+    "next": "Next",
+    "preview": "Next update",
+    "previewDetail": "This guide previews the current source. Published v{{published}} has different settings and no ten-session history.",
+    "published": "Available release",
+    "updated": "Reviewed",
+    "browse": "Browse the guides",
+    "onThisPage": "On this page",
+    "sidebarNote": "Short steps. Clear choices. Back to your game.",
+    "linkSection": "Link to this section",
+    "about": "About & credits",
+    "support": "Get help",
+    "license": "License",
+    "footer": "An independent Moonlight Tizen fork. Made for your PC and your Samsung TV.",
+    "sourceGuide": "Current-source guide",
+    "synthetic": "Illustrative screens · artificial data",
+    "enlarge": "View full size ↗"
+  },
+  "home": {
+    "eyebrow": "PC GAMING. LIVING-ROOM COMFORT.",
+    "title": [
+      "Your games.",
+      "A bigger stage."
+    ],
+    "lead": "Bring your PC library to your Samsung TV. Pick a game, grab your controller and settle in.",
+    "start": "Start playing",
+    "download": "Get VibeLight",
+    "controller": "Made for a controller",
+    "heroAlt": "VibeLight game library on a Samsung-style TV, with open-source games and artificial PC data.",
+    "setupEyebrow": "FROM DESK TO COUCH",
+    "setupTitle": "Three steps to your next session.",
+    "setupLead": "A PC, a compatible TV and a controller. We’ll guide you through the rest.",
+    "steps": [
+      {
+        "id": "install",
+        "title": "Set up the TV",
+        "text": "Pick your package and install VibeLight."
+      },
+      {
+        "id": "pair",
+        "title": "Connect your PC",
+        "text": "Prepare the host and confirm the PIN."
+      },
+      {
+        "id": "play",
+        "title": "Make yourself comfortable",
+        "text": "Browse, play and resume with your controller."
+      }
+    ],
+    "featureEyebrow": "UNDERSTAND YOUR STREAM",
+    "featureTitle": "A smoother setup starts with better answers.",
+    "featureText": "Turn on statistics when you need them. Review your last ten sessions, compare any two, and see what changed.",
+    "featureLink": "Explore local diagnostics",
+    "privacy": "Only on your TV. Nothing is sent.",
+    "comparisonAlt": "Two artificial session records compared side by side in VibeLight.",
+    "guidesEyebrow": "LESS GUESSWORK. MORE PLAY.",
+    "guidesTitle": "Your next step, right here."
+  },
+  "articles": [
+    {
+      "id": "install",
+      "nav": "Install & update",
+      "title": "Your first game starts here.",
+      "intro": "Choose a package, prepare the TV and keep your settings when updating.",
+      "eyebrow": "INSTALL & UPDATE",
+      "sections": [
+        {
+          "id": "requirements",
+          "title": "A quick equipment check",
+          "text": [
+            "You need a Samsung TV with Tizen 5.5 or later, a compatible controller and a PC running VibeShine or Sunshine. Use the same local network for initial setup."
+          ],
+          "callout": "Start with 1080p · 60 FPS · H.264 · 30 Mbps. Adjust to your TV and connection."
+        },
+        {
+          "id": "choose-package",
+          "title": "Normal or ForceGM?",
+          "text": [
+            "The packages share the same code and app identity. The in-app ultra-low latency switch is a separate setting."
+          ],
+          "cards": [
+            {
+              "title": "Normal",
+              "text": "Does not request panel Game Mode. A starting point if you are unsure."
+            },
+            {
+              "title": "ForceGM",
+              "text": "Requests panel Game Mode. Its effect depends on the TV and system version."
+            }
+          ]
+        },
+        {
+          "id": "install-tv",
+          "title": "Install on your Samsung TV",
+          "text": [],
+          "steps": [
+            "Download a VibeLight .wgt from Releases and Apps2Samsung from its official project.",
+            "In TV Apps / App Settings, enter 12345, enable Developer Mode, enter the installer device’s IP and restart the TV. Menus vary by model.",
+            "Open Apps2Samsung, choose the TV and select your .wgt. Follow its signing and installation prompts."
+          ],
+          "illustration": {
+            "type": "install",
+            "labels": [
+              "Developer Mode",
+              "Select .wgt → Install",
+              "Prepare the TV",
+              "Install your package"
+            ],
+            "caption": "Setup diagram, not a Samsung or Apps2Samsung screenshot. Follow the controls shown by your version."
+          },
+          "links": [
+            {
+              "text": "VibeLight downloads",
+              "href": "https://github.com/samirmartins/vibelight-tizen/releases/latest"
+            },
+            {
+              "text": "Apps2Samsung",
+              "href": "https://github.com/Apps2Samsung/Apps2Samsung/releases/latest"
+            },
+            {
+              "text": "Samsung: Developer Mode",
+              "href": "https://developer.samsung.com/smarttv/develop/getting-started/using-sdk/tv-device.html"
+            }
+          ]
+        },
+        {
+          "id": "update",
+          "title": "Update without starting over",
+          "text": [
+            "Reuse your signing profile and author certificate. Avoid uninstalling the app or regenerating your certificate. Review any installer prompt that proposes removing the existing app."
+          ],
+          "callout": "Uninstalling can erase pairing, preferences and local records. Normal and ForceGM update the same installation when the signature is compatible.",
+          "links": [
+            {
+              "text": "Samsung: signing and updates",
+              "href": "https://developer.samsung.com/smarttv/develop/getting-started/setting-up-sdk/creating-certificates.html"
+            }
+          ]
+        },
+        {
+          "id": "tizen-studio",
+          "title": "Prefer Tizen Studio?",
+          "text": [
+            "Install TV Extensions and Samsung Certificate Extension. Connect the TV in Device Manager and allow app installation. Import the WGT, use a Samsung profile covering the TV’s DUID, then repackage/sign and run it. Reuse the existing author certificate for updates."
+          ],
+          "links": [
+            {
+              "text": "Samsung: connect a TV",
+              "href": "https://developer.samsung.com/smarttv/develop/getting-started/using-sdk/tv-device.html"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pair",
+      "nav": "PC & pairing",
+      "title": "Let the TV find your PC.",
+      "intro": "Set up the host once. Pairing links your TV to the right computer.",
+      "eyebrow": "PC & PAIRING",
+      "sections": [
+        {
+          "id": "prepare-host",
+          "title": "Prepare VibeShine or Sunshine",
+          "text": [
+            "Install and open the host on your PC. Follow its setup for capture, encoder and permissions. Add games under Applications; Desktop is a simple first connection."
+          ],
+          "links": [
+            {
+              "text": "VibeShine",
+              "href": "https://github.com/Nonary/VibeShine"
+            },
+            {
+              "text": "Sunshine",
+              "href": "https://app.lizardbyte.dev/Sunshine/"
+            }
+          ]
+        },
+        {
+          "id": "pair-pin",
+          "title": "Confirm the PIN",
+          "text": [],
+          "steps": [
+            "Open VibeLight and select the PC. If it is missing, use Add PC and enter the computer’s local IP.",
+            "Enter the PIN shown on the TV into the PIN page of the host’s web interface.",
+            "Wait for pairing to finish, then open your game library."
+          ],
+          "image": {
+            "name": "pair",
+            "caption": "Pairing screen with a demonstration PIN. Never share your real PIN or network details.",
+            "alt": "Pairing screen with a demonstration PIN. Never share your real PIN or network details."
+          },
+          "annotations": [
+            "Read the PIN on the TV.",
+            "Enter it on the PC, in the host’s PIN page — not in the installer."
+          ],
+          "keywords": "pair pairing connection pin"
+        },
+        {
+          "id": "wake-pc",
+          "title": "Wake the PC",
+          "text": [
+            "Wake PC uses Wake-on-LAN. Enable it in BIOS/UEFI and the network adapter, and verify the physical adapter’s MAC in that PC’s settings. Wi-Fi and waking after shutdown depend on the hardware. This does not add a power-off action."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "play",
+      "nav": "Play & game menu",
+      "title": "Everything within reach.",
+      "intro": "Start a game, return to it and choose exactly how to leave.",
+      "eyebrow": "PLAY & GAME MENU",
+      "sections": [
+        {
+          "id": "start-session",
+          "title": "Play or resume",
+          "text": [
+            "Connect the controller to the TV, choose a game and select Play. Resume reconnects to the running app. The connection view shows its current stage; Cancel stops the attempt."
+          ]
+        },
+        {
+          "id": "game-menu",
+          "title": "Open the in-game menu",
+          "text": [
+            "Press Guide/Home on the gamepad. From this menu you can return to the game, adjust volume, show statistics, disconnect or close the game on the PC."
+          ],
+          "image": {
+            "name": "menu",
+            "caption": "The real menu rendered locally over an open-source game illustration.",
+            "alt": "The real menu rendered locally over an open-source game illustration."
+          },
+          "annotations": [
+            "Resume closes this menu and returns to the game.",
+            "Statistics starts a local record for this session.",
+            "Disconnect keeps the game on the PC; End game on PC requests closure and asks for confirmation."
+          ],
+          "callout": "Closing the game may lose unsaved progress. Leaving through Smart Hub disconnects locally; reopen VibeLight and Resume to reconnect."
+        },
+        {
+          "id": "refresh-library",
+          "title": "New game missing?",
+          "text": [
+            "Refresh library asks the PC for the game list again. It does not restart VibeLight. To reopen the whole app, use General & about → Restart app."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "nav": "Settings",
+      "title": "Tune what matters.",
+      "intro": "Six categories, with the effect of each adjustment close at hand.",
+      "eyebrow": "SETTINGS",
+      "sections": [
+        {
+          "id": "picture-sound",
+          "title": "Find the right category",
+          "text": [
+            "Picture: resolution, FPS, bitrate, codec, HDR, color range, frame pacing and ultra-low latency. Sound: channels, adaptive buffer ceiling and playback on the PC.",
+            "Controls: mapping, tests, sticks, triggers, rumble and mouse. PCs & library: address input, host resolution, ordering and PC removal. Diagnosis: warnings and saved records. General & about: language, menu sounds, help, restart and restore defaults."
+          ],
+          "image": {
+            "name": "picture",
+            "caption": "Picture settings in the current source. Values are illustrative.",
+            "alt": "Picture settings in the current source. Values are illustrative."
+          }
+        },
+        {
+          "id": "video-latency",
+          "title": "Ultra-low latency and ForceGM",
+          "text": [
+            "Ultra-low video latency selects a player mode that disables TV image enhancements to reduce delay. It is independent of ForceGM and remains off by default. Some TVs/system versions may be unstable; Tizen 9 has a history of black screens or freezing.",
+            "Frame pacing can improve motion regularity and add latency. Keep the setting that works for your TV."
+          ],
+          "keywords": "lag latency game mode forcegm pacing h264"
+        },
+        {
+          "id": "audio-buffer",
+          "title": "Why not choose the smallest audio buffer?",
+          "text": [
+            "The setting is an adaptive ceiling, not a fixed delay. Audio normally starts around 20 ms and increases its margin after underruns. A smaller ceiling can cause gaps or crackling without improving a session that is already stable."
+          ],
+          "callout": "Change one setting at a time. Compare similar scenes and recording durations.",
+          "keywords": "audio sound buffer jitter crackling"
+        },
+        {
+          "id": "controls",
+          "title": "Make the controller yours",
+          "text": [
+            "Use Controls to map buttons, test inputs and adjust sticks or triggers. The direct tuning shortcut opens the existing editor. Menu sounds live in General & about; they stop before streaming."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "diagnostics",
+      "nav": "Local diagnostics",
+      "title": "Good questions. Useful numbers.",
+      "intro": "Record deliberately, review locally and compare sessions with context.",
+      "eyebrow": "LOCAL DIAGNOSTICS",
+      "sections": [
+        {
+          "id": "record-session",
+          "title": "Start only when you choose",
+          "text": [],
+          "steps": [
+            "During a game, open the gamepad menu and enable Statistics. Recording starts then.",
+            "Hide the numbers whenever you like. The same session keeps recording until you leave.",
+            "After leaving, open Settings → Diagnosis → Last diagnosis."
+          ],
+          "callout": "Statistics stay on this TV. Nothing is sent. A new session starts inactive; without activation in that game, nothing is recorded."
+        },
+        {
+          "id": "diagnostic-history",
+          "title": "Your last ten session records",
+          "text": [
+            "History & comparison keeps the latest ten saved sessions. Saving the eleventh removes the oldest. A session without activation does not replace previous records. Late activation is marked as partial coverage."
+          ],
+          "image": {
+            "name": "history",
+            "caption": "Ten artificial session records. A and B mark the selected pair.",
+            "alt": "Ten artificial session records. A and B mark the selected pair."
+          },
+          "annotations": [
+            "Select any two distinct records with OK; select again to deselect.",
+            "A third record never replaces a selection silently. Deselect one first."
+          ]
+        },
+        {
+          "id": "compare",
+          "title": "Compare A and B",
+          "text": [
+            "Choose Compare 2 records. The columns show each session and the difference B − A, with units and the values of settings that differ. Back preserves your selection and returns to the previous row."
+          ],
+          "image": {
+            "name": "comparison",
+            "caption": "Side-by-side comparison. Numbers are illustrative, not TV test results.",
+            "alt": "Side-by-side comparison. Numbers are illustrative, not TV test results."
+          },
+          "annotations": [
+            "Check configuration, scene and recording duration before comparing.",
+            "Event rates use the time actually measured; counts and denominators remain visible.",
+            "There is no automatic winner. Missing data is unavailable, never a healthy zero."
+          ]
+        },
+        {
+          "id": "metrics",
+          "title": "Nine groups, with room for detail",
+          "text": [
+            "Transmission, FPS, smoothness, network, frames, PC processing, TV work, audio and events. Live FPS/native values use the latest window; percentiles, peaks and counters cover the recorded interval. Saved means cover the recording.",
+            "Technical details preserves clock, cadence, window deviation, frame load, TV CPU/memory, JavaScript delays and worst-episode context. Native measurement coverage is explicit. p95 means 95% of measurements were at or below that value.",
+            "RTT is network round-trip time. Clock and submission to the player do not measure button-to-image latency. Browser presentation is not a physical panel measurement. A mean of window percentiles is not a session percentile."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "troubleshooting",
+      "nav": "Troubleshooting",
+      "title": "Find your way back to the game.",
+      "intro": "Start with the symptom. Try one change and check the result.",
+      "eyebrow": "TROUBLESHOOTING",
+      "sections": [
+        {
+          "id": "fix-network",
+          "title": "PC missing or PIN rejected",
+          "text": [
+            "Check that the host is open, both devices share a network and the firewall allows the host. Add the PC by local IP, then enter the new PIN in that host’s web interface. A failed response does not prove the PC is powered off."
+          ],
+          "links": [
+            {
+              "text": "Review pairing",
+              "href": "#pair-pin"
+            }
+          ],
+          "keywords": "offline network connect pairing pin"
+        },
+        {
+          "id": "fix-video",
+          "title": "Black screen, freezing or uneven motion",
+          "text": [
+            "Check the TV’s supported resolution and codec. Keep ultra-low latency off, especially on Tizen 9. If VibeLight reports failed cleanup and asks for a restart, restart before reconnecting.",
+            "For stutters despite high average FPS, enable Statistics and inspect interval p95/max, frame gaps and RTT variation. Compare equivalent scenes."
+          ],
+          "links": [
+            {
+              "text": "Review video settings",
+              "href": "#video-latency"
+            }
+          ],
+          "keywords": "stutter hitch fps black screen frozen"
+        },
+        {
+          "id": "fix-audio",
+          "title": "Audio gaps or crackling",
+          "text": [
+            "Check the output device and adaptive buffer ceiling. A low ceiling leaves less room for variation. In the diagnosis, inspect underruns/overruns and actual/target buffer."
+          ],
+          "links": [
+            {
+              "text": "Understand the audio buffer",
+              "href": "#audio-buffer"
+            }
+          ],
+          "keywords": "audio sound crackle buffer"
+        },
+        {
+          "id": "fix-diagnosis",
+          "title": "No saved record, or a storage error?",
+          "text": [
+            "Enable Statistics in the game menu, leave the session and look in Settings → Diagnosis. Sessions never activated do not create records.",
+            "If saving fails, previous history is preserved and the new session may not be saved. Do not uninstall to recover records."
+          ],
+          "links": [
+            {
+              "text": "Review local recording",
+              "href": "#record-session"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "about",
+      "nav": "About & references",
+      "title": "Independent. Open source.",
+      "intro": "VibeLight is a Moonlight Tizen fork for streaming PC games to Samsung TVs.",
+      "eyebrow": "ABOUT & REFERENCES",
+      "sections": [
+        {
+          "id": "project",
+          "title": "Project and support",
+          "text": [
+            "Use the project’s issues for reproducible problems. Include app version, TV/Tizen and steps. Hide private network data and credentials in screenshots."
+          ],
+          "links": [
+            {
+              "text": "Source code",
+              "href": "https://github.com/samirmartins/vibelight-tizen"
+            },
+            {
+              "text": "Report an issue",
+              "href": "https://github.com/samirmartins/vibelight-tizen/issues"
+            },
+            {
+              "text": "Moonlight Tizen upstream",
+              "href": "https://github.com/brightcraft/moonlight-tizen"
+            }
+          ]
+        },
+        {
+          "id": "versions",
+          "title": "Which version does this guide describe?",
+          "text": [
+            "Reviewed {{reviewed}}. This guide describes current source, including the upcoming settings and session history. The available release is {{published}}; these screens and the ten-session history are not in its packages.",
+            "Check your installed release notes before expecting a feature. The source revision is shown in the footer; no next release number is promised."
+          ],
+          "links": [
+            {
+              "text": "Published releases",
+              "href": "https://github.com/samirmartins/vibelight-tizen/releases"
+            }
+          ]
+        },
+        {
+          "id": "credits",
+          "title": "Images, licenses and technical references",
+          "text": [
+            "App screens use artificial PCs, games and measurements. Installation artwork is a diagram. They do not claim physical TV validation or endorsement by Samsung or game developers. Open-game artwork retains its original credits and licenses."
+          ],
+          "links": [
+            {
+              "text": "Image credits",
+              "href": "https://github.com/samirmartins/vibelight-tizen/blob/master/docs/images/ATTRIBUTION.md"
+            },
+            {
+              "text": "Project license",
+              "href": "https://github.com/samirmartins/vibelight-tizen/blob/master/LICENSE"
+            },
+            {
+              "text": "Samsung: WASM Player",
+              "href": "https://developer.samsung.com/smarttv/develop/extension-libraries/webassembly/tizen-wasm-player/overview.html"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

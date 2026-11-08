@@ -89,3 +89,20 @@ of VibeLight's actual local HTML/CSS/JavaScript with synthetic settings, games
 and session measurements. They contain no real host addresses or user reports.
 Editable source: `wasm/`; retained under the project's license. These images
 illustrate the current source, not a claim of physical TV validation.
+
+## Trilingual guide captures (2026-11-08)
+
+`guide/{en,pt-br,es}-{library,pair,menu,picture,history,comparison}.jpg` contains
+18 newly rendered captures of the current application HTML/CSS/JavaScript.
+PCs, pairing PINs, settings and session measurements are artificial. The guide
+uses full screens for context and browser-captured regions for readable menus;
+these are illustrative local renders, not photographs or physical TV results.
+The library and in-game backdrop reuse only the open-game artwork credited above.
+The unchanged originals and their licenses remain in `open-games/`.
+
+The installation diagram is original HTML/CSS in `build-tools/build-docs.cjs`
+and `docs/assets/guide.css`, with translations in `docs/_source/`. It depicts a
+workflow; it is not a screenshot of Samsung or Apps2Samsung software. The inline
+line icons in that generator are original SVG paths. These diagrams and the
+VibeLight UI captures retain the project's GPL-3.0 license, with incorporated
+game artwork retaining the attribution/compatibility terms above.

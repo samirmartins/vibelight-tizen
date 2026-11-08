@@ -317,3 +317,28 @@ audio and input outside the opt-in payload formatter.
 The static documentation is in `docs/` (GitHub Pages, no build or remote services).
 It describes current source; publishing it and new WGTs are separate actions.
 Browser/fixture results are not Samsung SDK compilation or physical TV evidence.
+
+### Edit the trilingual guide
+
+Content lives in `docs/_source/en.json`, `pt-br.json` and `es.json`. Update the
+same topic IDs in all three files; keep the published release and review date in
+`build-tools/build-docs.cjs` accurate. The guide distinguishes published packages
+from upcoming source features. Use Node.js 18+ for local authoring:
+
+```sh
+node build-tools/build-docs.cjs
+node build-tools/build-docs.cjs --check
+node build-tools/docs-test.cjs
+```
+
+Commit the generated `docs/index.html`, `docs/pt-br/index.html` and
+`docs/es/index.html` with their content/assets. GitHub Pages serves them directly;
+it does not run Node or require npm dependencies. Keep `.nojekyll`.
+
+English is the first-visit default, independent of browser language. Explicit
+language selection uses local storage and keeps the topic URL; storage denial
+still allows switching. Search matches individual answers, ignores accents,
+shows excerpts and stays entirely in the browser. Legacy Portuguese anchors
+remain supported. Validate the site under a repository subpath, on mobile and
+desktop, with keyboard navigation and all three languages. Documentation-only
+changes do not need a WGT build or the native gameplay suite.
