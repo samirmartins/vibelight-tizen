@@ -1,42 +1,31 @@
-# Moonlight Tizen vX.Y.Z
-
-> Unreleased draft for **VibeLight Tizen**, compared with v4.0.2.
-> Version, release date and WGTs are not assigned. Samsung build/TV validation
-> and publication are still pending; the visual guide is prepared locally.
+# Moonlight Tizen v4.0.3
 
 ## What's new
 
-- Six clearer settings categories, compact latency/audio guidance and controller
-  tuning inside the mapping editor, with selectors and sliders that fit the screen.
-  Popup focus and language switching remain consistent; saved choices and
-  playback defaults are preserved. Build identity and unsaved-change warnings
-  make package verification and storage failures clearer.
-- Per-game opt-in statistics: nine shared metric groups, ten TV-only session
-  records, A/B comparison, individual deletion and technical details. Nothing is uploaded.
-- One connection screen with stages and cancellation, without overlapping
-  progress or dialogs; errors identify the failed stage and next action.
-  Game-library refresh stays separate from restarting the app.
+- Six clearer settings categories, compact selectors and sliders, controller
+  tuning, consistent focus and warnings when preferences cannot be saved.
+- Per-game opt-in statistics, ten TV-only session records, A/B comparison,
+  individual deletion and technical details. Nothing is uploaded.
+- One connection screen with stages and Cancel, clearer errors and reliable
+  returns to the library. Refresh library and Restart app are separate actions.
 - Fixes pairing, persistence, native string handling and session/audio recovery,
-  preventing stale launches and unsafe cleanup.
-- An English-first visual guide with Portuguese/Spanish selection, illustrated
-  setup and controller mapping, Normal-first package guidance and local search.
-  Guide and help provides a QR code for your phone and offline controls on the TV.
+  preventing stale launches and unsafe cleanup. Existing playback defaults stay the same.
+- A visual guide in English, Brazilian Portuguese and Spanish, with illustrated
+  setup, controller mapping and local search. Open its QR code or offline
+  controls from Settings → General & about → Guide and help.
 
-**Statistics:** enable them in the game menu for each session. Hiding the overlay
-keeps recording until exit; saved records are in Settings → Diagnosis.
+**Statistics:** activate them in the game menu for each session. Hiding the
+overlay keeps recording until exit; records are in Settings → Diagnosis.
 
 ## Downloads
 
 - **Normal:** standard build; recommended starting point.
 - **ForceGM:** same features, with a request to enable TV panel Game Mode.
 
-No WGT is available for this unreleased draft. The currently published packages
-remain [v4.0.2](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.2).
-
 ## Installation
 
-Follow the [Installation Guide](https://github.com/samirmartins/vibelight-tizen/blob/master/INSTALLATION.md).
-Reuse your signing profile/author certificate when updating; uninstalling can
-erase pairing, settings and local records. The visual guide is available as local
-[English](docs/index.html#install), [Português (Brasil)](docs/pt-br/index.html#install)
-and [Español](docs/es/index.html#install) HTML sources until Pages is activated.
+Download one of the `.wgt` files below and follow the
+[visual installation guide](https://samirmartins.github.io/vibelight-tizen/#install)
+or the [Installation Guide](https://github.com/samirmartins/vibelight-tizen/blob/master/INSTALLATION.md).
+Preserve your signing profile when updating; uninstalling can erase pairing,
+preferences and local records.

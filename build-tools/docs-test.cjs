@@ -32,7 +32,7 @@ for(const code of codes){
  const html=fs.readFileSync(file,'utf8');
  assert(html.includes('lang="'+(code==='pt-br'?'pt-BR':code)+'"'));
  assert(!/undefined|TODO|Lorem ipsum|\{\{/.test(html));
- assert(html.includes('4.0.2') && /datetime="\d{4}-\d{2}-\d{2}"/.test(html),'published version and review date are explicit');
+ assert(html.includes('4.0.3') && /datetime="\d{4}-\d{2}-\d{2}"/.test(html),'published version and review date are explicit');
  for(const id of ids)assert(html.includes('id="'+id+'"'),code+' '+id);
  assert(html.includes('hreflang="en"') && html.includes('hreflang="pt-BR"') && html.includes('hreflang="es"'));
 }

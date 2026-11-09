@@ -335,18 +335,16 @@ The static documentation is in `docs/` (GitHub Pages, no build or remote service
 It describes current source; publishing it and new WGTs are separate actions.
 Browser/fixture results are not Samsung SDK compilation or physical TV evidence.
 
-New work is recorded in [Unreleased](../CHANGELOG.md#unreleased); the next release
-summary is [RELEASE_NOTES.md](../RELEASE_NOTES.md), kept as a draft until a version
-is assigned. These are source changes, not a replacement of the published 4.0.2
-WGTs. Keep published changelog sections intact and update the guide's common
-release metadata only when the corresponding release is actually available.
+[CHANGELOG.md](../CHANGELOG.md#v403) and [RELEASE_NOTES.md](../RELEASE_NOTES.md)
+describe v4.0.3. The online [visual guide](https://samirmartins.github.io/vibelight-tizen/)
+covers this release. Keep published changelog sections intact; record future
+changes separately and update the guide metadata when releasing them.
 
 ### Edit the trilingual guide
 
 Content lives in `docs/_source/en.json`, `pt-br.json` and `es.json`. Update the
 same topic IDs in all three files; keep the published release and review date in
-`build-tools/build-docs.cjs` accurate. The guide distinguishes published packages
-from upcoming source features. Use Node.js 18+ for local authoring:
+`build-tools/build-docs.cjs` accurate. The guide identifies the release it covers. Use Node.js 18+ for local authoring:
 
 ```sh
 node build-tools/build-docs.cjs

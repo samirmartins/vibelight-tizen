@@ -20,8 +20,8 @@
     "close": "Fechar",
     "previous": "Anterior",
     "next": "Próximo",
-    "preview": "Próxima atualização",
-    "previewDetail": "Este guia apresenta o código atual. A versão publicada {{published}} tem outras configurações e não inclui o histórico de dez sessões.",
+    "preview": "Guia da v{{published}}",
+    "previewDetail": "Este guia cobre a v{{published}}, incluindo configurações, estatísticas por jogo e histórico de dez sessões.",
     "published": "Versão disponível",
     "updated": "Revisado em",
     "browse": "Navegar pelos guias",
@@ -32,7 +32,7 @@
     "support": "Obter ajuda",
     "license": "Licença",
     "footer": "Fork independente do Moonlight Tizen. Para o seu PC e a sua TV Samsung.",
-    "sourceGuide": "Guia do código atual",
+    "sourceGuide": "Guia da versão",
     "synthetic": "Telas ilustrativas · dados artificiais",
     "enlarge": "Ver em tamanho original ↗"
   },
@@ -579,8 +579,8 @@
           "id": "versions",
           "title": "Qual versão este guia descreve?",
           "text": [
-            "Revisado em {{reviewed}}. O guia descreve o código atual, incluindo as próximas configurações e o histórico de sessões. A versão disponível é {{published}}; essas telas e o histórico de dez sessões não estão em seus pacotes.",
-            "Consulte as notas da versão instalada antes de esperar um recurso. A revisão do código aparece no rodapé; não há número prometido para a próxima release."
+            "Revisado em {{reviewed}}. Este guia cobre a versão publicada {{published}}, incluindo as configurações e o histórico local de sessões.",
+            "Confira a versão instalada em Geral e sobre → Informações do sistema. Consulte as notas da versão para ver as mudanças entre versões."
           ],
           "links": [
             {

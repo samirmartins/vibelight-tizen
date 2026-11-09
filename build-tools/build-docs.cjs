@@ -2,7 +2,7 @@
 // Deterministic, dependency-free authoring. Pages serves the generated HTML.
 const fs=require('fs'),path=require('path');
 const root=path.resolve(__dirname,'../docs');
-const metadata={published:'4.0.2',source:'ef97048',reviewed:'2026-11-08'};
+const metadata={published:'4.0.3',source:'88db60d',reviewed:'2026-11-09'};
 const locales={en:{name:'English',html:'en',path:'index.html'},'pt-br':{name:'Português (Brasil)',html:'pt-BR',path:'pt-br/index.html'},es:{name:'Español',html:'es',path:'es/index.html'}};
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Source strings allow only inline links; all other text remains escaped.

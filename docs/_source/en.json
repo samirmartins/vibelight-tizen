@@ -20,8 +20,8 @@
     "close": "Close",
     "previous": "Previous",
     "next": "Next",
-    "preview": "Next update",
-    "previewDetail": "This guide previews the current source. Published v{{published}} has different settings and no ten-session history.",
+    "preview": "v{{published}} guide",
+    "previewDetail": "This guide covers v{{published}}, including the settings, per-game statistics and ten-session history.",
     "published": "Available release",
     "updated": "Reviewed",
     "browse": "Browse the guides",
@@ -32,7 +32,7 @@
     "support": "Get help",
     "license": "License",
     "footer": "An independent Moonlight Tizen fork. Made for your PC and your Samsung TV.",
-    "sourceGuide": "Current-source guide",
+    "sourceGuide": "Release guide",
     "synthetic": "Illustrative screens · artificial data",
     "enlarge": "View full size ↗"
   },
@@ -579,8 +579,8 @@
           "id": "versions",
           "title": "Which version does this guide describe?",
           "text": [
-            "Reviewed {{reviewed}}. This guide describes current source, including the upcoming settings and session history. The available release is {{published}}; these screens and the ten-session history are not in its packages.",
-            "Check your installed release notes before expecting a feature. The source revision is shown in the footer; no next release number is promised."
+            "Reviewed {{reviewed}}. This guide covers the published v{{published}} release, including its settings and local session history.",
+            "Check your installed version in General & about → System information. See the release notes for changes between versions."
           ],
           "links": [
             {

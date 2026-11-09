@@ -9,15 +9,18 @@ that reason: the two lines are separate and should never be read as one.
 
 ## Unreleased
 
-Local source changes since v4.0.2; no new version or release date is assigned.
-The published 4.0.2 packages have not been replaced. See the
-[draft release notes](RELEASE_NOTES.md) for the concise next-release summary.
+No changes yet.
+
+## v4.0.3
+
+Released 2026-11-09. Changes since v4.0.2. See the
+[release notes](RELEASE_NOTES.md) for the concise summary.
 
 ### Added
 
 - Adds Guide and help in settings, with a bundled, high-contrast QR code and
   readable guide URL, plus the offline controls reference. The permanent Pages
-  destination must be published and verified before release.
+  destination is available through GitHub Pages.
 - Deletes an individual local diagnosis after confirmation, preserving other
   records and leaving history intact on failed writes. System information shows
   a validated build identifier alongside the version and package variant.
@@ -32,7 +35,7 @@ The published 4.0.2 packages have not been replaced. See the
   controller-mapping guide, host/Wake-on-LAN setup, official inline links and
   Normal-first package guidance. Explicit language choices override stale or
   read-only preferences, including in offline previews. The static site
-  is prepared for GitHub Pages and remains unpublished.
+  is available through GitHub Pages.
 
 ### Changed
 

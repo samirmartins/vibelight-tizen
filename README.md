@@ -27,37 +27,24 @@ Samsung TV with **Tizen 5.5+**, a compatible gamepad, and a PC running
 
 ## Documentation
 
-**Visual guide:** [English](docs/index.html) ·
-[Português (Brasil)](docs/pt-br/index.html) · [Español](docs/es/index.html).
-English is the first-visit default. The visible language selector remembers an
-explicit choice and keeps the current topic. Search opens individual answers
-with excerpts; setup, pairing and the game menu have illustrated steps.
+**[Visual guide — installation, settings and controls](https://samirmartins.github.io/vibelight-tizen/)**
 
-The guide is ready for **GitHub Pages but is not hosted yet**. These links show
-HTML source on GitHub; open `docs/index.html` from a local checkout for the
-working site. For installation instructions readable directly on GitHub, use
-the [Installation Guide](INSTALLATION.md).
+[English](https://samirmartins.github.io/vibelight-tizen/?lang=en) · [Português (Brasil)](https://samirmartins.github.io/vibelight-tizen/pt-br/?lang=pt-br) · [Español](https://samirmartins.github.io/vibelight-tizen/es/?lang=es)
 
-Settings → General & about → Guide and help includes a local QR code for the
-planned Pages address, plus an offline controls reference. Publish and verify
-that address before distributing the QR-enabled release.
+Illustrated setup, controller mapping and searchable answers. Settings →
+General & about → Guide and help opens a QR code for your phone and an offline
+controls reference on the TV.
 
-| Status | Where to read |
-| --- | --- |
-| Published packages: **v4.0.2** | [Downloads and release notes](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.2) |
-| Current source, **unreleased** | [Changelog](CHANGELOG.md#unreleased) · [Draft release notes](RELEASE_NOTES.md) · visual guide above |
-
-The new settings, per-game statistics activation and ten-session history belong
-to the unreleased source. They are not available in the published 4.0.2 packages.
+**Latest release: [v4.0.3](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.3)** ·
+[Changelog](CHANGELOG.md#v403) · [Release notes](RELEASE_NOTES.md).
 
 ## Interface
 
-![Current-source VibeLight library with artificial PC and game data](docs/images/guide/en-library.jpg)
+![VibeLight 4.0.3 interface: library in English, Brazilian Portuguese and Spanish, settings, diagnosis, controls and guide](docs/images/interface.gif)
 
-Unreleased interface preview · artificial data ·
-[Image credits and licenses](docs/images/ATTRIBUTION.md).
+Artificial PC, game and session data · [Image credits and licenses](docs/images/ATTRIBUTION.md).
 
-## Current source
+## Features
 
 - Six settings categories: Picture, Sound, Controls, PCs and library, Diagnosis,
   General and about. English, Brazilian Portuguese and Spanish menus.
@@ -90,6 +77,6 @@ To remove one local diagnosis, open its record and choose Delete diagnosis.
 - **[ruanformigoni](https://github.com/ruanformigoni/moonlight-tizen)** — initial Web Audio foundation.
 - **[Moonlight Game Streaming Project](https://github.com/moonlight-stream)** — core streaming libraries.
 - **Earlier upstream work:** [Samsung Developers Forum](https://github.com/SamsungDForum/moonlight-chrome), [KyroFrCode](https://github.com/KyroFrCode/moonlight-chrome-tizen), [OneLiberty](https://github.com/OneLiberty/moonlight-chrome-tizen) and [ToyPoodleGaming](https://github.com/toypoodlegaming/moonlight-chrome-tizen).
-- **Claude Code and OpenAI Codex** — development assistance.
+- **OpenAI Codex** — development assistance.
 
 And to **every contributor** to those projects.

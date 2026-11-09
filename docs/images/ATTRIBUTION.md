@@ -16,15 +16,12 @@ Editable app-logo sources are `vibelight-code-logo.svg` and `vibelight-code-mark
 The stacked README composition uses `vibelight-readme-logo.svg` and
 `vibelight-readme-logo-light.svg`; its light/dark PNGs preserve transparency and
 proportions, with the name below the original symbol.
-`interface.gif` shows Wake PC/Play, settings, the Xbox mapping view, the Resume
-library in English, the Interface sounds option, the PlayStation mapping view,
-the library in Brazilian Portuguese, the initial Add Host screen, the Switch
-mapping view, the library in Spanish, the analog tuning panel and the in-game
-menu over a SuperTuxKart background, in that order, with 1.5 seconds per frame.
-Similar library, settings and mapping views are separated by at least one
-different screen. The twelve screen captures are 1920 × 1080; the mapping,
-analog and in-game frames use the shipped controller artwork and the open-game
-image credited above.
+`interface.gif` was refreshed for v4.0.3 on 2026-11-09. Eight frames show the
+library in English, Brazilian Portuguese and Spanish, interleaved with settings,
+local diagnosis, the in-game menu, controller mapping and the guide QR panel.
+All PCs, session measurements and interaction states are synthetic. The eight
+full-screen intermediate PNGs are private authoring outputs; the GIF and the
+localized guide JPEGs are distributed here.
 
 ## Controller artwork source
 

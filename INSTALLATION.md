@@ -2,12 +2,11 @@
 
 VibeLight Tizen requires Tizen 5.5 or newer. The TV and the device used for installation must be on the same network.
 
-This is the Markdown installation reference for GitHub. The illustrated guide is
-available locally in [English](docs/index.html#install),
-[Português (Brasil)](docs/pt-br/index.html#install) and
-[Español](docs/es/index.html#install). GitHub Pages is not active yet; HTML links
-open source files on GitHub. The guide previews unreleased source features;
-the available packages are [v4.0.2](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.2).
+This is the Markdown installation reference. The illustrated guide is online in
+[English](https://samirmartins.github.io/vibelight-tizen/?lang=en#install),
+[Português (Brasil)](https://samirmartins.github.io/vibelight-tizen/pt-br/?lang=pt-br#install)
+and [Español](https://samirmartins.github.io/vibelight-tizen/es/?lang=es#install).
+It covers [v4.0.3](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.3).
 
 ## Apps2Samsung (recommended)
 
@@ -51,8 +50,7 @@ The downloaded WGT must be repackaged and signed for the TV; installing it uncha
 
 Open VibeShine or Sunshine on the PC, select that PC in VibeLight and enter the
 TV's PIN in the host's web interface. See the illustrated
-[pairing guide](docs/index.html#pair-pin).
+[pairing guide](https://samirmartins.github.io/vibelight-tizen/#pair-pin).
 
-Check the installed version before expecting a feature described in
-[Unreleased](CHANGELOG.md#unreleased). Building from source uses the separate
+Check your installed version against the [release notes](RELEASE_NOTES.md). Building from source uses the separate
 [local compilation and packaging guide](build-tools/README.md#local-compilation-and-packaging).
