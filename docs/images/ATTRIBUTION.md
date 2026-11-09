@@ -16,10 +16,10 @@ Editable app-logo sources are `vibelight-code-logo.svg` and `vibelight-code-mark
 The stacked README composition uses `vibelight-readme-logo.svg` and
 `vibelight-readme-logo-light.svg`; its light/dark PNGs preserve transparency and
 proportions, with the name below the original symbol.
-`interface.gif` was refreshed for v4.0.3 on 2026-11-09. Eight frames show the
+`interface.gif` was refreshed for v4.0.3 on 2026-11-09. Nine frames show the
 library in English, Brazilian Portuguese and Spanish, interleaved with settings,
-local diagnosis, the in-game menu, controller mapping and the guide QR panel.
-All PCs, session measurements and interaction states are synthetic. The eight
+local diagnosis and A/B comparison, the in-game menu, controller mapping and the guide QR panel.
+All PCs, session measurements and interaction states are synthetic. The nine
 full-screen intermediate PNGs are private authoring outputs; the GIF and the
 localized guide JPEGs are distributed here.
 

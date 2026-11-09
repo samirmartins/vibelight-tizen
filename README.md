@@ -40,7 +40,7 @@ controls reference on the TV.
 
 ## Interface
 
-![VibeLight 4.0.3 interface: library in English, Brazilian Portuguese and Spanish, settings, diagnosis, controls and guide](docs/images/interface.gif)
+![VibeLight 4.0.3 interface: library in English, Brazilian Portuguese and Spanish, settings, diagnosis and A/B comparison, controls and guide](docs/images/interface.gif)
 
 Artificial PC, game and session data · [Image credits and licenses](docs/images/ATTRIBUTION.md).
 
