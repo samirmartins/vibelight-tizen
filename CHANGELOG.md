@@ -9,6 +9,12 @@ that reason: the two lines are separate and should never be read as one.
 
 ## Unreleased
 
+No changes yet.
+
+## v4.0.4
+
+Released 2026-11-14. Changes since v4.0.3.
+
 ### Fixed
 
 - Separates mouse pointer capture from video keyframe requests, and suppresses
