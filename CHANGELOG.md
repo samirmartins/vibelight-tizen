@@ -9,7 +9,11 @@ that reason: the two lines are separate and should never be read as one.
 
 ## Unreleased
 
-No changes yet.
+### Fixed
+
+- Separates mouse pointer capture from video keyframe requests, and suppresses
+  the unmatched button release after a click used only to capture the pointer.
+  Decoder startup and video recovery keep ownership of their existing keyframes.
 
 ## v4.0.3
 

@@ -300,6 +300,12 @@ authorization; a draft or tag also requires approval.
 
 ## Local session diagnostics and settings
 
+`mouse_capture_test.js` compiles the production DOM input handlers and checks
+the initial capture click, paired button releases, movement, repeated/reacquired
+capture and late notifications after stop. Input capture requests no video
+keyframes; decoder startup/recovery sources stay unchanged. These are boundary
+tests, not a reproduction of Samsung compositor/decoder behavior on a TV.
+
 Guide and help uses the committed `wasm/static/res/guide-qr.svg`; builds require
 no QR service or encoder. To change its permanent destination, update the readable
 address and regenerate with `python3 build-tools/generate-guide-qr.py` (authoring

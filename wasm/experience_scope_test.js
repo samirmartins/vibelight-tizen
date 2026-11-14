@@ -17,5 +17,5 @@ function withoutPayload(s){
 const base=cp.execFileSync('git',['cat-file','blob','b46c204:wasm/wasmplayer.cpp'],{encoding:'utf8'});
 assert.equal(withoutPayload(fs.readFileSync('wasm/wasmplayer.cpp','utf8')),withoutPayload(base),'native video/PTS/decoder/pacing healthy paths unchanged');
 for(const file of ['wasm/main.cpp','wasm/input.cpp','wasm/gamepad.cpp','wasm/auddec.cpp','wasm/audio_ring.hpp','wasm/platform/audio.js','wasm/platform/audio-worklet.js'])
- assert.equal(fs.readFileSync(file,'utf8'),cp.execFileSync('git',['cat-file','blob','b46c204:'+file],{encoding:'utf8'}),file+' playback unchanged');
-console.log('experience_scope_test: exact approved files, negative controls and unchanged native playback/audio/input PASS');
+ assert.equal(scope.normalize(file,fs.readFileSync(file,'utf8')),cp.execFileSync('git',['cat-file','blob','b46c204:'+file],{encoding:'utf8'}),file+' playback unchanged outside the exact tested input transition');
+console.log('experience_scope_test: exact approved files, negative controls, unchanged native playback/audio and remaining input PASS');

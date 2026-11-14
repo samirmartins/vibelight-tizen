@@ -1,7 +1,8 @@
 'use strict';
-// Exact approved settings/diagnostics delta. Unknown edits never normalize away.
+// Exact approved settings/diagnostics and input-transition deltas. Unknown edits never normalize away.
 const crypto=require('crypto'),cp=require('child_process');
 const approved={
+  "wasm/input.cpp": "1084f095b74ad1ac142139490c6384eeb324e9da0c77132f4fd8a918dbe88cba",
   "wasm/platform/menu-tools.js": "ff03639c0e1964adb06a4da86ddc18fed2a71dbd5cdbe6cc99132bffbbd857f5",
   "wasm/index.html": "4efd9f9e8697455a5a9ccea2074724f8e6cd6fbc9ef0839f0af180e3fa6e32cd",
   "wasm/platform/index.js": "c10b64ad918fd4cffcb81e0e473e47b166bf2fe24fa4c265f67875897b9ded4d",

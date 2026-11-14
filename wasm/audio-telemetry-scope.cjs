@@ -185,6 +185,12 @@ function assertFrozen(reference, paths) {
           'only the separately tested scoped-quit deadline may differ');
         continue;
       }
+      if (file === 'wasm/input.cpp') {
+        const old = cp.execFileSync('git', ['cat-file', 'blob', reference+':'+file], {encoding:'utf8'});
+        const input = require('./experience-scope.cjs').normalize(file, fs.readFileSync(file,'utf8'));
+        assert.strictEqual(input, old, 'exact tested pointer-capture and paired-release delta only');
+        continue;
+      }
       assert.strictEqual(file, 'wasm/wasmplayer.cpp', 'unrelated inputs unchanged');
       const old = cp.execFileSync('git', ['show', reference+':'+file], {encoding:'utf8'});
       const overlay = require('./overlay-aggregation-scope.cjs').normalize;

@@ -25,6 +25,10 @@ const remaining = changed.filter(file => {
     assert.strictEqual(current,cp.execFileSync('git',['cat-file','blob','b46c204:'+file],{encoding:'utf8'}),
       'exact independently tested menu-dialog lifecycle integration');return false;
   }
+  if(file==='wasm/input.cpp'){
+    assert.strictEqual(current,cp.execFileSync('git',['cat-file','blob','v3.4.10:'+file],{encoding:'utf8'}),
+      'exact independently tested pointer-capture and paired-release delta');return false;
+  }
   const review=require('./review-corrections-scope.cjs');
   if (['libgamestream/pairing.c','libgamestream/http.c','wasm/auddec.cpp','wasm/audio_ring.hpp','wasm/platform/audio.js','wasm/platform/audio-worklet.js'].includes(file)) {
     assert(review.matches(file,current),'exact separately tested correction: '+file); return false;

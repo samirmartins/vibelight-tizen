@@ -72,8 +72,10 @@ EM_BOOL MoonlightInstance::HandleMouseUp(const EmscriptenMouseEvent &event) {
   }
 
   const int button = ConvertButtonToLiButton(event.button);
-  LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, button);
-  if (button > 0 && button < static_cast<int>(m_HeldMouseButtons.size())) {
+  // The click that acquired pointer capture never sent a press to the host.
+  if (button > 0 && button < static_cast<int>(m_HeldMouseButtons.size()) &&
+      m_HeldMouseButtons.test(button)) {
+    LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, button);
     m_HeldMouseButtons.reset(button);
   }
   return EM_TRUE;
@@ -245,11 +247,8 @@ void MoonlightInstance::DidLockMouse(int32_t result) {
   }
 
   m_MouseLocked = (result == 0);
-  if (m_MouseLocked) {
-    // Request an IDR frame to dump the frame queue that may have
-    // built up from the GL pipeline being stalled.
-    LiRequestIdrFrame();
-  }
+  // Pointer capture is an input transition, not a video discontinuity.
+  // The EMSS decoder owns initial keyframes and actual video recovery.
 }
 
 void MoonlightInstance::MouseLockLost() {
