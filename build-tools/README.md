@@ -23,6 +23,22 @@ Dependencies: Node.js 22, GCC/G++, FFmpeg with libx264, OpenSSL development head
 and Git/GNU timeout. Native fixtures use ASan/UBSan.
 The runner checks completion markers, rejects unhandled rejections, bounds each
 process and cleans temporary files, including failed runs.
+
+The same command runs on x86 and ARM. On x86 the default compiler is used
+unchanged. On ARM kernels with a 39-bit address space (for example Raspberry Pi
+OS) the AddressSanitizer runtime of newer GCC releases cannot start; the runner
+probes this and, when needed, uses GCC 12 with its static ASan runtime through
+temporary `gcc`/`g++` wrappers (`native-toolchain.cjs`). Time limits are
+calibrated on x86 and four times longer on ARM; `ML_TEST_TIMEOUT_SCALE=<1-100>`
+overrides the factor. Debian/Raspberry Pi OS packages:
+
+```bash
+sudo apt install build-essential ffmpeg libssl-dev gcc-12 g++-12
+```
+
+If Git reports dubious ownership (a synchronized folder owned by another user),
+run once `git config --global --add safe.directory <checkout>`; the runner prints
+the exact command.
 Source comparisons reference historical tags and reviewed commit checkpoints;
 use a full checkout and preserve that history. CI uses `fetch-depth: 0` and read-only permissions, without
 signing secrets. These tests do not compile the Samsung target or prove TV performance.
