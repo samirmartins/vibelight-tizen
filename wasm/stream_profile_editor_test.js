@@ -32,7 +32,7 @@ const row = (editor, id) => plain(editor.rows().find(item => item.id === id));
 {
   const saved = {resolution: '2560:1440', frameRate: '30', bitrate: 60.5, codec: 'HEVC', hdr: true, audio: '51Surround'};
   const editor = make(saved);
-  assert.deepStrictEqual(plain(editor.rows().map(item => item.text)), ['1440p', '30 FPS', '60.5 Mbps', 'HEVC', 'On', '5.1 Surround']);
+  assert.deepStrictEqual(plain(editor.rows().map(item => item.text)), ['1440p', '30 FPS', '60.5 Mbps', 'HEVC', 'On', '5.1 Surround Sound']);
   assert.deepStrictEqual(plain(editor.profile()), saved);
 }
 
@@ -45,7 +45,7 @@ const row = (editor, id) => plain(editor.rows().find(item => item.id === id));
   editor.adjust('resolution', -1);
   assert.strictEqual(row(editor, 'resolution').text, '4K');
   for (const [id, expected] of [['frameRate', ['30 FPS', '60 FPS', 'Default']], ['codec', ['H.264', 'HEVC', 'AV1', 'Default']],
-      ['hdr', ['On', 'Off', 'Default']], ['audio', ['Stereo', '5.1 Surround', '7.1 Surround', 'Default']]]) {
+      ['hdr', ['On', 'Off', 'Default']], ['audio', ['Stereo', '5.1 Surround Sound', '7.1 Surround Sound', 'Default']]]) {
     const cycle = [];
     for (let i = 0; i < expected.length; i++) { editor.adjust(id, 1); cycle.push(row(editor, id).text); }
     assert.deepStrictEqual(cycle, expected, id);

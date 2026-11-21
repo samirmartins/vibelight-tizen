@@ -91,7 +91,7 @@ const A = {width: 2, height: 3, fps: 4, bitrate: 5, audio: 16, codec: 19, hdr: 2
     assert.strictEqual(result.diagnostics[0].config.bitrate, 60);
     assert.strictEqual(result.diagnostics[0].config.audio, '51Surround');
     assert.strictEqual(result.timersAdded, baseline.timersAdded);
-    assert(result.stages.includes('Starting Example Game... · Game profile: 1440p · 30 FPS · 60 Mbps · HEVC · HDR on · 5.1 Surround'),
+    assert(result.stages.includes('Starting Example Game... · Game profile: 1440p · 30 FPS · 60 Mbps · HEVC · HDR on · 5.1 Surround Sound'),
       'the start shows the profile origin and its values: ' + JSON.stringify(result.stages));
     assert.strictEqual(result.stages.filter(text => /^Starting Example Game/.test(text)).length, 1);
   }
@@ -109,7 +109,7 @@ const A = {width: 2, height: 3, fps: 4, bitrate: 5, audio: 16, codec: 19, hdr: 2
     const hostOnly = await run({profiles: {'fixture-pc': {host: {bitrate: 12}}}});
     assert.strictEqual(hostOnly.args[A.bitrate], '12000');
     assert(hostOnly.stages.includes('Starting Example Game... · PC profile: 12 Mbps'), JSON.stringify(hostOnly.stages));
-    assert(result.stages.includes('Starting Example Game... · Game profile: 720p · 25 Mbps · 7.1 Surround'),
+    assert(result.stages.includes('Starting Example Game... · Game profile: 720p · 25 Mbps · 7.1 Surround Sound'),
       'both layers contribute their fields: ' + JSON.stringify(result.stages));
   }
 

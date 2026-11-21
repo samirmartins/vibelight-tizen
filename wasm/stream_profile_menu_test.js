@@ -140,7 +140,7 @@ const stored = e => JSON.parse(e.store.get(KEY) || '{"hosts":{}}');
   assert(e.profiles.setHost('pc-a', {codec: 'HEVC'}));
   e.menu.open(request());
   assert.deepStrictEqual(rowText(e, 'bitrate'), ['Bitrate', '◀ 20 Mbps ▶', 'Settings: 30 Mbps']);
-  assert.strictEqual(rowText(e, 'audio')[1], '◀ 5.1 Surround ▶');
+  assert.strictEqual(rowText(e, 'audio')[1], '◀ 5.1 Surround Sound ▶');
   assert.strictEqual(e.document.getElementById('sp-remove').disabled, false);
   e.document.getElementById('sp-remove').click();
   assert(!e.document.getElementById('streamProfileDialog').open);

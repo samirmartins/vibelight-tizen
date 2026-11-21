@@ -6,7 +6,7 @@ var StreamProfileEditor = (function() {
   var HOLD_GAP_MS = 400, HOLD_FAST_MS = 1000;
   var RESOLUTION_TEXT = {'854:480': '480p', '1280:720': '720p', '1920:1080': '1080p', '2560:1440': '1440p', '3840:2160': '4K'};
   var CODEC_TEXT = {H264: 'H.264', HEVC: 'HEVC', AV1: 'AV1'};
-  var AUDIO_TEXT = {Stereo: 'Stereo', '51Surround': '5.1 Surround', '71Surround': '7.1 Surround'};
+  var AUDIO_TEXT = {Stereo: 'Stereo', '51Surround': '5.1 Surround Sound', '71Surround': '7.1 Surround Sound'};
   var ROWS = ['resolution', 'frameRate', 'bitrate', 'codec', 'hdr', 'audio'];
   var LABELS = {resolution: 'Resolution', frameRate: 'Frame rate', bitrate: 'Bitrate', codec: 'Codec', hdr: 'HDR', audio: 'Audio'};
 

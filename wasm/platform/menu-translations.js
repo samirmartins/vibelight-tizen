@@ -318,8 +318,6 @@ var MenuTranslations = [
   ["Bitrate", "Bitrate", "Tasa de bits"],
   ["Codec", "Codec", "Códec"],
   ["HDR", "HDR", "HDR"],
-  ["5.1 Surround", "Surround 5.1", "Envolvente 5.1"],
-  ["7.1 Surround", "Surround 7.1", "Envolvente 7.1"],
   ["HDR on", "HDR ativado", "HDR activado"],
   ["HDR off", "HDR desativado", "HDR desactivado"],
   ["Remove profile", "Remover perfil", "Eliminar perfil"],
