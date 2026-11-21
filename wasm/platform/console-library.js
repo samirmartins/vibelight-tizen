@@ -176,7 +176,7 @@ var ConsoleLibrary = (function() {
     return values.length === 1 ? values[0] : null;
   }
   function controls() {
-    return ['libraryPCsBtn','languageBtn','settingsBtn','quitRunningAppBtn','libraryWake','libraryPlay','libraryFavorite','libraryAll','libraryFavorites','libraryRecent','libraryRefresh'].filter(function(name) {
+    return ['libraryPCsBtn','languageBtn','settingsBtn','quitRunningAppBtn','libraryWake','libraryPlay','libraryFavorite','libraryProfile','libraryAll','libraryFavorites','libraryRecent','libraryRefresh'].filter(function(name) {
       var node = el(name); return node && !node.disabled && node.style.display !== 'none' && !node.hidden;
     });
   }
@@ -202,6 +202,9 @@ var ConsoleLibrary = (function() {
     el('libraryFavorite').disabled = !app || busy;
     el('libraryFavorite').textContent = app && r.favorites.indexOf(app.id) !== -1 ? '★ Favorite' : '☆ Favorite';
     el('libraryFavorite').setAttribute('aria-pressed', !!app && r.favorites.indexOf(app.id) !== -1);
+    el('libraryProfile').disabled = !app || busy;
+    el('libraryProfile').textContent = app && typeof StreamProfiles !== 'undefined' &&
+      StreamProfiles.hasGame(String(host.serverUid), app.id) ? 'Profile ●' : 'Profile';
     el('libraryRefresh').disabled = false;
     el('quitRunningAppBtn').style.display = host.online && Number(host.currentGame) > 0 ? '' : 'none';
     var card = el('game-container-' + selected);
@@ -419,6 +422,10 @@ var ConsoleLibrary = (function() {
     el('libraryPlay').onclick = function() { play(selected); };
     el('libraryWake').onclick = wake;
     el('libraryFavorite').onclick = favorite;
+    el('libraryProfile').onclick = function() {
+      var app = picked();
+      if (app && !busy && typeof openStreamProfileEditor === 'function') openStreamProfileEditor('game', host, app);
+    };
     el('libraryRefresh').onclick = function(){return refresh(false);};
     el('libraryPCsBtn').onclick = showHosts;
     el('libraryHomeBtn').onclick = function() { var pc = preferred(); if (pc) showApps(pc); };

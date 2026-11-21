@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="static/css/stream-overlay.css">
   <link rel="stylesheet" href="static/css/menu-i18n.css">
   <link rel="stylesheet" href="static/css/controller-mapping.css">
+  <link rel="stylesheet" href="static/css/stream-profile.css">
   <link rel="stylesheet" href="static/css/vibelight.css">
   <script type="text/javascript" src="platform.js"></script>
 <link rel="stylesheet" href="static/css/settings-experience.css">
@@ -274,6 +275,15 @@
                   <img src="static/res/ic_remove_from_queue_white_48px.svg" id="removeAllHostsIcon">
                 </button>
               </div>
+            </div>
+<div class="setting-option settings-danger">
+              <label>Remove all profiles</label>
+              <span class="mdl-list__item-text-body"></span>
+              <div id="removeAllProfilesMenu">
+                <button type="button" id="removeAllProfilesBtn" class="mdl-button mdl-js-button mdl-js-ripple-effect" aria-label="Remove all streaming profiles">
+                  Remove all PC and game streaming profiles
+                </button>
+              </div>
             </div></div>
 <div id="advancedSettings" class="settings-options"><h2 class="settings-section-title">During the game</h2>
 <div class="setting-option">
@@ -348,6 +358,7 @@
             <button type="button" id="libraryWake" class="console-button">Wake PC</button>
             <button type="button" id="libraryPlay" class="console-button console-button-primary">Play</button>
             <button type="button" id="libraryFavorite" class="console-button" aria-pressed="false">☆ Favorite</button>
+            <button type="button" id="libraryProfile" class="console-button">Profile</button>
           </div>
         </div>
         <div class="console-filters" aria-label="Library filters">
@@ -386,6 +397,8 @@
   <script type="text/javascript" src="platform/library-navigation.js"></script>
   <script type="text/javascript" src="platform/controller-mapping.js"></script>
   <script type="text/javascript" src="platform/controller-tuning.js"></script>
+  <script type="text/javascript" src="platform/stream-profiles.js"></script>
+  <script type="text/javascript" src="platform/stream-profile-menu.js"></script>
   <script type="text/javascript" src="platform/controller-mapping-menu.js"></script>
   <script type="text/javascript" src="platform/audio.js"></script>
   <script type="text/javascript" src="platform/menu-tools.js"></script>

@@ -672,7 +672,7 @@ const Views = {
   },
   HostMenuDialog: {
     view: new ListView(() => {
-      const actions = ['refreshApps', 'wakeHost', 'deleteHost', 'viewDetails', 'closeHostMenu'];
+      const actions = ['refreshApps', 'wakeHost', 'streamProfile', 'deleteHost', 'viewDetails', 'closeHostMenu'];
       return actions.map(action => action === 'closeHostMenu' ? action : action + '-' + Views.HostMenuDialog.hostname);
     }),
     up: function() {
@@ -1010,7 +1010,8 @@ const Views = {
       'ipAddressFieldModeBtn',
       'optimizeGamesBtn',
       'sortAppsListBtn',
-      'removeAllHostsBtn'
+      'removeAllHostsBtn',
+      'removeAllProfilesBtn'
     ]),
     up: function() {
       this.view.prevOption();

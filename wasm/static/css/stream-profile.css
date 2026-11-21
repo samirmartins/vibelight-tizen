@@ -1,0 +1,17 @@
+/* Compact streaming-profile popup. Scoped to its own ids and classes; no gameplay,
+   library or stream selectors, no transitions or animations. */
+.sp-overlay { position:fixed; inset:0; z-index:10000; align-items:center; justify-content:center; background:rgba(0,0,0,.7); }
+#streamProfileDialog { box-sizing:border-box; position:relative; margin:auto; padding:.9em 1.3em 1.1em; width:-webkit-fit-content; width:fit-content; min-width:28em; max-width:90vw; max-height:92vh; overflow-y:auto; border:1px solid #3b4a61; border-top:3px solid #00a3c6; border-radius:12px; background:#121a26; color:#eaf1fb; }
+#streamProfileDialog * { box-sizing:border-box; }
+#streamProfileDialog .sp-title { margin:0 0 .7em; font-size:1.15em; font-weight:700; color:#eaf1fb; }
+#streamProfileDialog .sp-rows { display:flex; flex-direction:column; gap:.35em; }
+#streamProfileDialog button { font:inherit; color:#eaf1fb; background:#222d3d; border:1px solid #3c4b62; border-radius:9px; padding:.5em .85em; cursor:pointer; min-height:34px; }
+#streamProfileDialog button:hover, #streamProfileDialog button:focus { border-color:#63e3f4; outline:2px solid #63e3f4; outline-offset:1px; }
+#streamProfileDialog button:disabled { opacity:.45; cursor:default; }
+#streamProfileDialog .sp-row { display:grid; grid-template-columns:7em minmax(11em,1fr) auto; align-items:center; gap:.9em; width:100%; text-align:left; }
+#streamProfileDialog .sp-label { color:#9fb0c8; }
+#streamProfileDialog .sp-value { font-weight:700; text-align:center; white-space:nowrap; }
+#streamProfileDialog .sp-default { color:#7d8ea8; font-size:.85em; white-space:nowrap; }
+#streamProfileDialog .sp-status { min-height:1.4em; margin:.7em 0 .3em; color:#f3c969; font-size:.92em; }
+#streamProfileDialog .sp-actions { display:flex; justify-content:flex-end; gap:.5em; margin-top:.4em; }
+#streamProfileDialog #sp-save { border-color:#2cc4de; background:linear-gradient(90deg,#0a6379,#0e87a2); }

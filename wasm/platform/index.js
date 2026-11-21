@@ -65,6 +65,7 @@ function attachListeners() {
   $('#sortAppsListSwitch').on('click', saveSortAppsList);
   $('#optimizeGamesSwitch').on('click', saveOptimizeGames);
   $('#removeAllHostsBtn').on('click', deleteAllHostsDialog);
+  $('#removeAllProfilesBtn').on('click', deleteAllProfilesDialog);
   $('#rumbleFeedbackSwitch').on('click', saveRumbleFeedback);
   $('#mouseEmulationSwitch').on('click', saveMouseEmulation);
   $('#controllerMappingBtn').on('click', function() { ControllerMappingMenu.open(); });
@@ -944,6 +945,57 @@ function updateMacAddress(host) {
 }
 
 // Show the Host Menu dialog with host button options
+// Actions of a PC card menu, in display order (also the controller order).
+function hostMenuActions(host) {
+  return [
+    {
+      id: 'refreshApps-' + host.hostname,
+      class: 'host-menu-button',
+      text: 'Refresh apps',
+      action: function() {
+        // Refresh the list of apps for the target host
+        snackbarLogLong('Refreshing the list of ' + host.hostname + ' applications...');
+        host.clearBoxArt();
+        host.getAppListWithCacheFlush();
+      }
+    },
+    {
+      id: 'wakeHost-' + host.hostname,
+      class: 'host-menu-button',
+      text: 'Wake PC (Wake-on-LAN)',
+      action: function() {
+        setTimeout(function() { WakeHost.open(host); }, 100);
+      }
+    },
+    {
+      id: 'streamProfile-' + host.hostname,
+      class: 'host-menu-button',
+      text: 'Stream profile',
+      action: function() {
+        setTimeout(function() { openStreamProfileEditor('host', host); }, 100);
+      }
+    },
+    {
+      id: 'deleteHost-' + host.hostname,
+      class: 'host-menu-button',
+      text: 'Delete PC',
+      action: function() {
+        // Remove the selected host from the list
+        setTimeout(() => deleteHostDialog(host), 100);
+      }
+    },
+    {
+      id: 'viewDetails-' + host.hostname,
+      class: 'host-menu-button',
+      text: 'View Details',
+      action: function() {
+        // View details of the selected host
+        setTimeout(() => hostDetailsDialog(host), 100);
+      }
+    },
+  ];
+}
+
 function hostMenuDialog(host) {
   // Create an overlay for the dialog and append it to the body
   var hostMenuDialogOverlay = $('<div>', {
@@ -969,46 +1021,8 @@ function hostMenuDialog(host) {
     class: 'mdl-dialog__content'
   }).appendTo(hostMenuDialog);
 
-  // Define the options for the menu with the corresponding attributes
-  var hostMenuDialogOptions = [
-    {
-      id: 'refreshApps-' + host.hostname,
-      class: 'host-menu-button',
-      text: 'Refresh apps',
-      action: function() {
-        // Refresh the list of apps for the target host
-        snackbarLogLong('Refreshing the list of ' + host.hostname + ' applications...');
-        host.clearBoxArt();
-        host.getAppListWithCacheFlush();
-      }
-    },
-    {
-      id: 'wakeHost-' + host.hostname,
-      class: 'host-menu-button',
-      text: 'Wake PC (Wake-on-LAN)',
-      action: function() {
-        setTimeout(function() { WakeHost.open(host); }, 100);
-      }
-    },
-    {
-      id: 'deleteHost-' + host.hostname,
-      class: 'host-menu-button',
-      text: 'Delete PC',
-      action: function() {
-        // Remove the selected host from the list
-        setTimeout(() => deleteHostDialog(host), 100);
-      }
-    },
-    {
-      id: 'viewDetails-' + host.hostname,
-      class: 'host-menu-button',
-      text: 'View Details',
-      action: function() {
-        // View details of the selected host
-        setTimeout(() => hostDetailsDialog(host), 100);
-      }
-    },
-  ];
+  // The menu actions, with their button ids, in the order they are shown
+  var hostMenuDialogOptions = hostMenuActions(host);
 
   // Loop through each option to create a button in the dialog
   hostMenuDialogOptions.forEach(function(menuOption) {
@@ -1112,6 +1126,8 @@ function deleteHostDialog(host) {
     delete hosts[host.serverUid];
     // Save the updated hosts
     saveHosts();
+    // The PC's streaming profiles go with it
+    if (typeof StreamProfiles !== 'undefined') StreamProfiles.forgetHost(String(host.serverUid));
     // If host removed, show snackbar message
     snackbarLog(host.hostname + ' has been deleted successfully.');
     deleteHostOverlay.style.display = 'none';
@@ -1175,6 +1191,8 @@ function deleteAllHostsDialog() {
           saveHosts();
         }
       }
+      // Without PCs no profile applies
+      if (typeof StreamProfiles !== 'undefined') StreamProfiles.clearAll();
       // If all hosts removed, show snackbar message
       snackbarLog('All hosts have been deleted successfully.');
       deleteHostOverlay.style.display = 'none';
@@ -1186,6 +1204,40 @@ function deleteAllHostsDialog() {
       Navigation.switch();
     });
   }
+}
+
+// Confirms removing every PC and game profile; PCs, pairings and Settings stay.
+function deleteAllProfilesDialog() {
+  var counts = typeof StreamProfiles !== 'undefined' ? StreamProfiles.count() : {hosts: 0, games: 0};
+  if (counts.hosts === 0 && counts.games === 0) {
+    snackbarLog('No streaming profiles exist.');
+    return;
+  }
+  var overlay = document.querySelector('#deleteHostDialogOverlay');
+  var dialog = document.querySelector('#deleteHostDialog');
+  document.getElementById('deleteHostDialogTitle').innerHTML = 'Remove All Profiles';
+  document.getElementById('deleteHostDialogText').textContent =
+    'Remove all PC and game profiles? Your Settings and PC pairings are kept.';
+  overlay.style.display = 'flex';
+  if (typeof MenuDialogs !== 'undefined') MenuDialogs.prepare(dialog, 'cancelDeleteHost', Views.DeleteHostDialog, {opener: 'removeAllProfilesBtn'});
+  dialog.showModal();
+  isDialogOpen = true;
+  Navigation.push(Views.DeleteHostDialog);
+  function closeDialog() {
+    overlay.style.display = 'none';
+    dialog.close();
+    isDialogOpen = false;
+    Navigation.pop();
+    Navigation.switch();
+  }
+  $('#cancelDeleteHost').off('click');
+  $('#cancelDeleteHost').on('click', closeDialog);
+  $('#continueDeleteHost').off('click');
+  $('#continueDeleteHost').on('click', function() {
+    var removed = StreamProfiles.clearAll();
+    closeDialog();
+    snackbarLog(removed ? 'All streaming profiles have been removed.' : 'Could not remove the profiles. Check storage and try again.');
+  });
 }
 
 // Show the Host Details dialog with host information details
@@ -1887,10 +1939,28 @@ function startGame(host, appID, audioPrepared) {
     return ready.then(function(accepted) {
       if (!accepted || !launchCurrent()) return;
       // Retrieve all stream configuration options from the Settings view
-      var streamWidth = $('#selectResolution').data('value').split(':')[0];
-      var streamHeight = $('#selectResolution').data('value').split(':')[1];
-      var frameRate = $('#selectFramerate').data('value').toString();
-      var bitrate = parseFloat($('#bitrateSlider').val()) * 1000;
+      var settings = currentStreamSettings();
+      var streamWidth = settings.resolution.split(':')[0];
+      var streamHeight = settings.resolution.split(':')[1];
+      var frameRate = settings.frameRate;
+      var bitrate = settings.bitrate * 1000;
+      var audioConfig = settings.audio;
+      var videoCodec = settings.codec;
+      var hdrMode = settings.hdr ? 1 : 0;
+      // A PC or game profile replaces only its own fields; without one these
+      // values stay exactly the Settings values.
+      var streamProfile = effectiveStreamProfile(host, appID, settings);
+      var profileSuffix = '';
+      if (streamProfile) {
+        streamWidth = streamProfile.values.resolution.split(':')[0];
+        streamHeight = streamProfile.values.resolution.split(':')[1];
+        frameRate = streamProfile.values.frameRate;
+        bitrate = streamProfile.values.bitrate * 1000;
+        videoCodec = streamProfile.values.codec;
+        hdrMode = streamProfile.values.hdr ? 1 : 0;
+        audioConfig = streamProfile.values.audio;
+        profileSuffix = streamProfileSuffix(streamProfile);
+      }
       var rikey = generateRemoteInputKey();
       var rikeyid = generateRemoteInputKeyId();
       var gamepadMask = getConnectedGamepadMask();
@@ -1901,11 +1971,8 @@ function startGame(host, appID, audioPrepared) {
       const optimizeGames = $('#optimizeGamesSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const rumbleFeedback = $('#rumbleFeedbackSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const mouseEmulation = $('#mouseEmulationSwitch').parent().hasClass('is-checked') ? 1 : 0;
-      var audioConfig = $('#selectAudio').data('value').toString();
       const audioJitterMs = parseInt($('#jitterSlider').val());
       const playHostAudio = $('#playHostAudioSwitch').parent().hasClass('is-checked') ? 1 : 0;
-      var videoCodec = $('#selectCodec').data('value').toString();
-      const hdrMode = $('#hdrModeSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const fullRange = $('#fullRangeSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const gameMode = $('#gameModeSwitch').parent().hasClass('is-checked') ? 1 : 0;
       const disableWarnings = $('#disableWarningsSwitch').parent().hasClass('is-checked') ? 1 : 0;
@@ -1917,8 +1984,8 @@ function startGame(host, appID, audioPrepared) {
       $('#connection-warnings, #performance-stats').css('background', 'transparent').text('');
 
       // Shows a loading message to launch the application and start stream mode
-      if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Starting ' + appToStart.title + '...');
-      else $('#loadingSpinnerMessage').text('Starting ' + appToStart.title + '...');
+      if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Starting ' + appToStart.title + '...' + profileSuffix);
+      else $('#loadingSpinnerMessage').text('Starting ' + appToStart.title + '...' + profileSuffix);
       showStreamMode();
       SessionDiagnostics.configure({game:appToStart.title,config:{pacing:!!framePacing,hdr:!!hdrMode,gameMode:!!gameMode,bitrate:bitrate/1000,audio:audioConfig,audioLimitMs:audioJitterMs}});
       launchStep = 'host';
@@ -1972,6 +2039,54 @@ function startGame(host, appID, audioPrepared) {
       Navigation.switch(); Navigation.change(Views.Apps);
     }).catch(function() { snackbarLogLong('Could not restore the game library.'); });
   });
+}
+
+// The Settings values a stream starts with when no profile applies.
+function currentStreamSettings() {
+  return {
+    resolution: $('#selectResolution').data('value'),
+    frameRate: $('#selectFramerate').data('value').toString(),
+    bitrate: parseFloat($('#bitrateSlider').val()),
+    codec: $('#selectCodec').data('value').toString(),
+    hdr: $('#hdrModeSwitch').parent().hasClass('is-checked'),
+    audio: $('#selectAudio').data('value').toString()
+  };
+}
+
+// Opens the profile popup for a PC (scope 'host') or for one of its games.
+function openStreamProfileEditor(scope, host, app) {
+  if (typeof StreamProfileMenu === 'undefined') return false;
+  var request = {
+    scope: scope, uid: host.serverUid, title: scope === 'host' ? host.hostname : app.title,
+    settings: currentStreamSettings(), limits: {maxWidth: maxSupportedWidth},
+    opener: scope === 'host' ? 'host-container-' + host.serverUid : 'libraryProfile'
+  };
+  if (scope === 'game') request.appId = app.id;
+  return StreamProfileMenu.open(request);
+}
+
+// Stream values for this PC and game, or null when no profile applies.
+function effectiveStreamProfile(host, appID, settings) {
+  if (typeof StreamProfiles === 'undefined') return null;
+  try {
+    var result = StreamProfiles.effective(host.serverUid, appID, settings, {maxWidth: maxSupportedWidth});
+    return result.source === 'none' ? null : result;
+  } catch (e) { return null; }
+}
+
+// " · Game profile: 720p · 25 Mbps" after the start message; the origin is the most specific layer.
+function streamProfileSuffix(profile) {
+  var words = function(text) { return typeof MenuI18n !== 'undefined' && MenuI18n.text ? MenuI18n.text(text) : text; };
+  var parts = typeof StreamProfileEditor !== 'undefined' ? StreamProfileEditor.describe(profile, words) : [];
+  var text = ' · ' + words(profile.source === 'game' ? 'Game profile' : 'PC profile') + (parts.length ? ': ' + parts.join(' · ') : '');
+  profile.notes.forEach(function(note) { text += ' · ' + words(streamProfileNotice(note)); });
+  return text;
+}
+
+function streamProfileNotice(note) {
+  return note === 'resolution-over-panel-limit' ?
+    'This TV cannot show the profile resolution; using the Settings resolution.' :
+    'HDR is off in this profile: it needs HEVC or AV1.';
 }
 
 // Stop the running app title, refresh the server info, and then return to Apps grid
