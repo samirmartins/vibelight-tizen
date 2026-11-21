@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include <emscripten.h>
+
 #include <Limelight.h>
 
 #define KEY_PREFIX 0x80

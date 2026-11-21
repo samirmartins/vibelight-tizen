@@ -2,8 +2,11 @@
 // Compile the real wasm/input.cpp and exercise the text bridge: JavaScript fills a
 // 32-byte buffer and asks for one protocol text event. The transport is a boundary;
 // this does not prove behavior on the Samsung runtime or on a host.
-const fs = require('fs'), cp = require('child_process'), os = require('os'), path = require('path');
+const assert = require('assert'), fs = require('fs'), cp = require('child_process'), os = require('os'), path = require('path');
 const source = fs.readFileSync('wasm/input.cpp', 'utf8');
+// The native stubs define EMSCRIPTEN_KEEPALIVE, so a missing include would compile here and fail in the SDK.
+assert(!source.includes('EMSCRIPTEN_KEEPALIVE') || /#include <emscripten(\/emscripten)?\.h>/.test(source),
+  'wasm/input.cpp uses EMSCRIPTEN_KEEPALIVE without including <emscripten.h>');
 let fixture = fs.readFileSync('wasm/fixtures/input-stubs.cpp', 'utf8');
 const tests = `
 int main() {
@@ -57,7 +60,7 @@ fixture = fixture.replace('#include <cassert>', '#include <cassert>\n#include <i
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'moonlight-text-test-'));
 try {
   const file = path.join(dir, 'test.cpp'), bin = path.join(dir, 'test');
-  fs.writeFileSync(file, fixture + source.replace('#include "moonlight_wasm.hpp"', '') + tests);
+  fs.writeFileSync(file, fixture + source.replace('#include "moonlight_wasm.hpp"', '').replace('#include <emscripten.h>', '') + tests);
   cp.execFileSync('g++', ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', '-fno-omit-frame-pointer',
     '-Imoonlight-common-c/src', file, '-o', bin], {stdio: 'inherit'});
   cp.execFileSync(bin, [], {stdio: 'inherit', env: {...process.env, ASAN_OPTIONS: 'detect_leaks=1', UBSAN_OPTIONS: 'halt_on_error=1'}});
