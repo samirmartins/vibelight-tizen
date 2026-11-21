@@ -45,4 +45,11 @@ for test in audio_ring audio_ring_stress dispatcher video_timing video_telemetry
     "wasm/${test}_test.cpp" -o "$test_directory/$test"
   timeout --kill-after=5s "$((30 * scale))s" "$test_directory/$test"
 done
-echo 'All core behavioral and scope-contract tests passed; TV and extended checks are separate.'
+# Documentation: three-language site, release versions and Markdown links, then
+# the generated pages must be reproducible from docs/_source.
+echo 'Running build-tools/docs-test.cjs'
+ML_TEST_NAME=docs-test timeout --kill-after=5s "$((60 * scale))s" \
+  node --unhandled-rejections=strict --require ./build-tools/test-process.cjs build-tools/docs-test.cjs
+echo 'Running build-tools/build-docs.cjs --check'
+timeout --kill-after=5s "$((60 * scale))s" node build-tools/build-docs.cjs --check
+echo 'All core behavioral, scope-contract and documentation tests passed; TV and extended checks are separate.'

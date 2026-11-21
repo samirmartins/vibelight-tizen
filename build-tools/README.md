@@ -357,18 +357,22 @@ coverage; audio/browser/event rates use their recording interval.
 `menu_dialogs_test.js` checks cancel/close ownership and restoration of focus,
 including delayed native close events and rapid reopening.
 `stream_startup_test.js` and `library_refresh_test.js` cover cancellation ownership
-and list updates without restarting the app. `experience_scope_test.js` verifies
-the exact approved delta with negative controls and freezes native playback,
-audio and input outside the opt-in payload formatter.
+and list updates without restarting the app.
 
 The static documentation is in `docs/` (GitHub Pages, no build or remote services).
 It describes current source; publishing it and new WGTs are separate actions.
 Browser/fixture results are not Samsung SDK compilation or physical TV evidence.
 
-[CHANGELOG.md](../CHANGELOG.md#v403) and [RELEASE_NOTES.md](../RELEASE_NOTES.md)
-describe v4.0.3. The online [visual guide](https://samirmartins.github.io/vibelight-tizen/)
+[CHANGELOG.md](../CHANGELOG.md#v404) and [RELEASE_NOTES.md](../RELEASE_NOTES.md)
+describe v4.0.4. The online [visual guide](https://samirmartins.github.io/vibelight-tizen/)
 covers this release. Keep published changelog sections intact; record future
 changes separately and update the guide metadata when releasing them.
+`metadata.published` in `build-docs.cjs` is the single published version:
+`docs-test.cjs` requires README, INSTALLATION, this section, RELEASE_NOTES,
+the CHANGELOG section and the site to name it, allows `res/config.xml` to be a
+newer unpublished candidate and requires the CMake project version to follow
+`res/config.xml`. It also checks every relative link and anchor in the
+repository Markdown offline. `run-tests.sh` runs both documentation checks.
 
 ### Edit the trilingual guide
 
@@ -382,7 +386,8 @@ node build-tools/build-docs.cjs --check
 node build-tools/docs-test.cjs
 ```
 
-Commit the generated `docs/index.html`, `docs/pt-br/index.html` and
+The last two commands are the documentation part of `run-tests.sh`, runnable
+alone while editing. Commit the generated `docs/index.html`, `docs/pt-br/index.html` and
 `docs/es/index.html` with their content/assets. GitHub Pages serves them directly;
 it does not run Node or require npm dependencies. Keep `.nojekyll`.
 

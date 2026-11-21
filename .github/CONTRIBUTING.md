@@ -43,7 +43,8 @@ node build-tools/build-docs.cjs --check
 node build-tools/docs-test.cjs
 ```
 
-Check content/links for Markdown-only edits. Verify affected language, search,
+For Markdown-only edits, `node build-tools/docs-test.cjs` checks release
+versions and relative links/anchors; review the content itself. Verify affected language, search,
 keyboard and mobile flows when changing website behavior. See the
 [authoring notes](../build-tools/README.md#edit-the-trilingual-guide).
 
