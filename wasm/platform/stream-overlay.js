@@ -11,11 +11,11 @@ var StreamOverlay = (function() {
   var NEUTRAL_AXIS = 0.25;
 
   var config = {volumeStep: DEFAULT_STEP};
-  var built = false, open = false, closing = false, busy = false, confirm = false;
+  var built = false, open = false, closing = false, busy = false, confirm = false, shortcutsOpen = false;
   var maskState = 0;
   var root = null, title = null, status = null, list = null, hint = null, confirmBox = null;
-  var confirmText = null;
-  var actionButtons = [], actionLabels = [], actionMetas = [], confirmButtons = [];
+  var confirmText = null, shortcutBox = null, shortcutTitle = null, shortcutBack = null;
+  var actionButtons = [], actionLabels = [], actionMetas = [], confirmButtons = [], shortcutButtons = [];
   var frameHandle = 0, releaseTimer = 0, nextRefresh = 0, lastToggleAt = 0;
   var resumeFocus = false;
   var pads = Object.create(null);
@@ -158,7 +158,7 @@ var StreamOverlay = (function() {
   }
 
   function actions() {
-    return [
+    var all = [
       {id: 'resume', icon: 'play_arrow', label: function() { return translate('Resume'); },
        meta: 'Back to the game', primary: true,
        run: function() { close(); }},
@@ -167,6 +167,8 @@ var StreamOverlay = (function() {
        run: toggleMute},
       {id: 'stats', icon: 'bar_chart', label: statsLabel, meta: 'Only on this TV · History in Settings → Diagnosis',
        run: toggleStats},
+      {id: 'shortcuts', icon: 'keyboard', label: function() { return translate('Shortcuts'); },
+       meta: 'Keys sent to the PC', run: openShortcuts},
       {id: 'disconnect', icon: 'link_off', label: function() { return translate('Disconnect'); },
        meta: busy ? 'Closing on the PC may continue.' : 'Keeps the game on the PC',
        run: function() {
@@ -178,6 +180,13 @@ var StreamOverlay = (function() {
        meta: 'Closes the game on the PC', danger: true,
        run: askEndGame}
     ];
+    return typeof StreamShortcuts === 'undefined' ? all.filter(function(item) { return item.id !== 'shortcuts'; }) : all;
+  }
+
+  function actionIndex(id) {
+    var defs = actions();
+    for (var i = 0; i < defs.length; i++) if (defs[i].id === id) return i;
+    return 0;
   }
 
   function build() {
@@ -247,11 +256,31 @@ var StreamOverlay = (function() {
     });
     confirmBox.appendChild(confirmText);
     confirmBox.appendChild(confirmActions);
+    shortcutBox = create('div', 'streamOverlayShortcuts', 'streamOverlayShortcuts');
+    shortcutBox.hidden = true;
+    shortcutTitle = create('p', 'streamOverlayShortcutTitle', 'streamOverlayShortcutTitle');
+    var shortcutGrid = create('div', 'streamOverlayShortcutGrid', 'streamOverlayShortcutGrid');
+    shortcutButtons = [];
+    if (typeof StreamShortcuts !== 'undefined') {
+      StreamShortcuts.list().forEach(function(item) {
+        var button = create('button', 'streamOverlayShortcut-' + item.id, 'console-button streamOverlayShortcutButton', item.label);
+        button.setAttribute('type', 'button');
+        button.setAttribute('data-shortcut', item.id);
+        shortcutGrid.appendChild(button);
+        shortcutButtons.push(button);
+      });
+    }
+    shortcutBack = create('button', 'streamOverlayShortcutBack', 'console-button streamOverlayShortcutButton streamOverlayShortcutBack');
+    shortcutBack.setAttribute('type', 'button');
+    shortcutBox.appendChild(shortcutTitle);
+    shortcutBox.appendChild(shortcutGrid);
+    shortcutBox.appendChild(shortcutBack);
     panel.appendChild(header);
     panel.appendChild(status);
     panel.appendChild(list);
     panel.appendChild(hint);
     panel.appendChild(confirmBox);
+    panel.appendChild(shortcutBox);
     root.appendChild(panel);
     document.body.appendChild(root);
     built = true;
@@ -262,7 +291,7 @@ var StreamOverlay = (function() {
     setText(title, translate('Stream menu'));
     setText(status, busy ? translate('Ending the game on the PC...') : translate(errorText));
     setText(hint, translate('Volume: Left/Right adjusts; Confirm toggles mute.'));
-    if (hint) hint.hidden = confirm;
+    if (hint) hint.hidden = confirm || shortcutsOpen;
     var defs = actions();
     for (var i = 0; i < defs.length && i < actionButtons.length; i++) {
       var label = defs[i].label();
@@ -278,6 +307,8 @@ var StreamOverlay = (function() {
       translate('The running game will be closed. Unsaved progress may be lost.'));
     setText(confirmButtons[0], translate('Yes'));
     setText(confirmButtons[1], translate('No'));
+    setText(shortcutTitle, translate('Send a shortcut to the PC'));
+    setText(shortcutBack, translate('Back'));
   }
 
   function startFrames() {
@@ -326,9 +357,11 @@ var StreamOverlay = (function() {
     errorText = '';
     busy = false;
     confirm = false;
+    shortcutsOpen = false;
     root.hidden = false;
     list.hidden = false;
     confirmBox.hidden = true;
+    shortcutBox.hidden = true;
     open = true;
     pads = Object.create(null);
     resumeFocus = false;
@@ -343,22 +376,28 @@ var StreamOverlay = (function() {
 
   // hide() removes the panel but keeps the native mask while the stream stops.
   function hide() {
+    if (typeof StreamShortcuts !== 'undefined') StreamShortcuts.cancel();
     if (!open) return;
     open = false;
     confirm = false;
+    shortcutsOpen = false;
     busy = false;
     errorText = '';
     root.hidden = true;
     confirmBox.hidden = true;
+    shortcutBox.hidden = true;
     FocusManager.close();
     stopFrames();
   }
 
   function close(force) {
     if (force) {
+      if (typeof StreamShortcuts !== 'undefined') StreamShortcuts.cancel();
       if (!built) return true;
       open = false;
       confirm = false;
+      shortcutsOpen = false;
+      shortcutBox.hidden = true;
       busy = false;
       errorText = '';
       resumeFocus = false;
@@ -373,10 +412,12 @@ var StreamOverlay = (function() {
     // press on resume.
     open = false;
     confirm = false;
+    shortcutsOpen = false;
     busy = false;
     errorText = '';
     root.hidden = true;
     confirmBox.hidden = true;
+    shortcutBox.hidden = true;
     FocusManager.close();
     closing = true;
     resumeFocus = true;
@@ -401,9 +442,11 @@ var StreamOverlay = (function() {
     busy = !!value;
     if (open) {
       confirm = false;
+      shortcutsOpen = false;
       confirmBox.hidden = true;
+      shortcutBox.hidden = true;
       list.hidden = false;
-      FocusManager.open(busy ? [actionButtons[3]] : actionButtons, busy ? 0 : 4);
+      FocusManager.open(busy ? [actionButtons[actionIndex('disconnect')]] : actionButtons, busy ? 0 : actionIndex('end'));
     }
     refresh();
   }
@@ -431,13 +474,43 @@ var StreamOverlay = (function() {
     confirm = false;
     confirmBox.hidden = true;
     list.hidden = false;
-    FocusManager.open(actionButtons, 4);
+    FocusManager.open(actionButtons, actionIndex('end'));
+    refresh();
+  }
+
+  function openShortcuts() {
+    if (busy || !shortcutButtons.length) return;
+    shortcutsOpen = true;
+    errorText = '';
+    list.hidden = true;
+    shortcutBox.hidden = false;
+    FocusManager.open(shortcutButtons.concat([shortcutBack]), 0);
+    refresh();
+  }
+
+  function closeShortcuts() {
+    shortcutsOpen = false;
+    shortcutBox.hidden = true;
+    list.hidden = false;
+    FocusManager.open(actionButtons, actionIndex('shortcuts'));
     refresh();
   }
 
   function accept() {
     if (busy) {
       if (typeof StreamSession !== 'undefined') StreamSession.disconnect();
+      return;
+    }
+    if (shortcutsOpen) {
+      var picked = FocusManager.index();
+      if (picked >= shortcutButtons.length) { closeShortcuts(); return; }
+      if (StreamShortcuts.send(shortcutButtons[picked].getAttribute('data-shortcut'))) {
+        close();       // back to the game so the shortcut is seen at once
+      } else {
+        closeShortcuts();
+        errorText = 'Could not send the shortcut.';
+        refresh();
+      }
       return;
     }
     if (confirm) {
@@ -461,12 +534,13 @@ var StreamOverlay = (function() {
   function back() {
     if (busy) { close(); return; }
     if (confirm) { cancelConfirm(); return; }
+    if (shortcutsOpen) { closeShortcuts(); return; }
     close();
   }
 
   function step(direction) {
     if (busy) return;
-    if (confirm) {
+    if (confirm || shortcutsOpen) {
       FocusManager.move(direction === 'up' || direction === 'left' ? -1 : 1);
       return;
     }

@@ -156,3 +156,18 @@
 #streamOverlayConfirmYes:hover,
 #streamOverlayConfirmYes.hovered { border-color: #d97669; background: #8d3932; }
 #streamOverlayConfirmNo { background: #2a3445; }
+#streamOverlayShortcuts { margin-top: 4px; }
+#streamOverlayShortcuts[hidden] { display: none; }
+#streamOverlayShortcutTitle { margin: 0 0 10px; color: #aab7cb; font-size: 18px; }
+#streamOverlayShortcutGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+#streamOverlay .streamOverlayShortcutButton {
+  padding: 12px 14px;
+  border: 1px solid #3b475c;
+  border-radius: 12px;
+  background: #232b3a;
+  font-size: 21px;
+}
+#streamOverlay .streamOverlayShortcutButton:hover,
+#streamOverlay .streamOverlayShortcutButton.hovered { background: #2a3445; border-color: #5c6d88; }
+#streamOverlay .streamOverlayShortcutButton:focus { outline: 3px solid #63e3f4; outline-offset: 3px; }
+#streamOverlayShortcutBack { width: 100%; }
