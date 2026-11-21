@@ -132,6 +132,8 @@ class MoonlightInstance {
   bool IsStreamStopping() const {
     return !m_StopComplete.load(std::memory_order_acquire);
   }
+  // True while a session is running. Read by the text entry bridge in input.cpp.
+  bool IsRunning() const { return m_Running.load(); }
 
   MessageResult CancelRequest();
 

@@ -7,6 +7,9 @@ const source = fs.readFileSync('wasm/input.cpp', 'utf8');
 // The native stubs define EMSCRIPTEN_KEEPALIVE, so a missing include would compile here and fail in the SDK.
 assert(!source.includes('EMSCRIPTEN_KEEPALIVE') || /#include <emscripten(\/emscripten)?\.h>/.test(source),
   'wasm/input.cpp uses EMSCRIPTEN_KEEPALIVE without including <emscripten.h>');
+// The stub class has every field public, but in moonlight_wasm.hpp they are private: free functions in
+// input.cpp may only call public members, never read g_Instance->m_* directly.
+assert(!/g_Instance->m_/.test(source), 'wasm/input.cpp reads a private MoonlightInstance field through g_Instance');
 let fixture = fs.readFileSync('wasm/fixtures/input-stubs.cpp', 'utf8');
 const tests = `
 int main() {

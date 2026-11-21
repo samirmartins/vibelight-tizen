@@ -283,7 +283,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void* utf8TextBuffer() {
 // -3: not 1..32 bytes; -2: no running session; otherwise the library result.
 extern "C" EMSCRIPTEN_KEEPALIVE int sendUtf8Text(int length) {
   if (length < 1 || length > kMaxUtf8TextBytes) return -3;
-  if (g_Instance == nullptr || !g_Instance->m_Running.load()) return -2;
+  if (g_Instance == nullptr || !g_Instance->IsRunning()) return -2;
   return LiSendUtf8TextEvent(s_Utf8TextBuffer, static_cast<unsigned int>(length));
 }
 

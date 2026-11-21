@@ -41,6 +41,7 @@ class MoonlightInstance {
 public:
  bool m_MouseLocked = true, m_WaitingForAllModifiersUp = false;
  std::atomic<bool> m_Running{true};
+ bool IsRunning() const { return m_Running.load(); }
  std::bitset<256> m_HeldKeys;
  std::bitset<8> m_HeldMouseButtons;
  long m_MouseLastPosX = -1, m_MouseLastPosY = -1;
