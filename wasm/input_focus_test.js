@@ -44,7 +44,7 @@ int main() {
 const tmp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'moonlight-focus-test-'));
 try {
  const file = path.join(tmp, 'test.cpp'), bin = path.join(tmp, 'test');
- fs.writeFileSync(file, fixture + source.replace('#include "moonlight_wasm.hpp"', '') + tests);
+ fs.writeFileSync(file, fixture + source.replace('#include "moonlight_wasm.hpp"', '').replace('#include <emscripten.h>', '') + tests);
  cp.execFileSync('g++', ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', '-fno-omit-frame-pointer',
   '-Imoonlight-common-c/src', file, '-o', bin], {stdio: 'inherit'});
  cp.execFileSync(bin, [], {stdio: 'inherit', env: {...process.env, ASAN_OPTIONS: 'detect_leaks=1', UBSAN_OPTIONS: 'halt_on_error=1'}});

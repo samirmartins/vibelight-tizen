@@ -45,7 +45,7 @@ int main() {
  handlePointerLockError(5,nullptr,nullptr);assert(!app.m_MouseLocked&&idrs==0);
 }
 `;
-const source=fs.readFileSync('wasm/input.cpp','utf8').replace('#include "moonlight_wasm.hpp"','');
+const source=fs.readFileSync('wasm/input.cpp','utf8').replace('#include "moonlight_wasm.hpp"','').replace('#include <emscripten.h>','');
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'moonlight-mouse-capture-'));
 try{
  const file=path.join(dir,'test.cpp'),bin=path.join(dir,'test');fs.writeFileSync(file,fixture+source+tests);
