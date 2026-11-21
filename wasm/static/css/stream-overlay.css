@@ -171,3 +171,31 @@
 #streamOverlay .streamOverlayShortcutButton.hovered { background: #2a3445; border-color: #5c6d88; }
 #streamOverlay .streamOverlayShortcutButton:focus { outline: 3px solid #63e3f4; outline-offset: 3px; }
 #streamOverlayShortcutBack { width: 100%; }
+#streamOverlayText { margin-top: 4px; }
+#streamOverlayText[hidden] { display: none; }
+#streamOverlayTextTitle { margin: 0 0 10px; color: #aab7cb; font-size: 18px; }
+#streamOverlayTextInput {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #3b475c;
+  border-radius: 12px;
+  background: #151b27;
+  color: #eaf1fb;
+  font: inherit;
+  font-size: 21px;
+}
+#streamOverlayTextInput:focus { outline: 3px solid #63e3f4; outline-offset: 3px; }
+#streamOverlayTextHint { margin: 8px 0 10px; color: #8997ad; font-size: 16px; }
+#streamOverlayTextActions { display: flex; flex-direction: row; gap: 10px; }
+#streamOverlay .streamOverlayTextButton {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid #3b475c;
+  border-radius: 12px;
+  background: #232b3a;
+  font-size: 21px;
+}
+#streamOverlay .streamOverlayTextButton:hover,
+#streamOverlay .streamOverlayTextButton.hovered { background: #2a3445; border-color: #5c6d88; }
+#streamOverlay .streamOverlayTextButton:focus { outline: 3px solid #63e3f4; outline-offset: 3px; }

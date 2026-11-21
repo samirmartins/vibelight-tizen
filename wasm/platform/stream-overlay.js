@@ -11,10 +11,11 @@ var StreamOverlay = (function() {
   var NEUTRAL_AXIS = 0.25;
 
   var config = {volumeStep: DEFAULT_STEP};
-  var built = false, open = false, closing = false, busy = false, confirm = false, shortcutsOpen = false;
+  var built = false, open = false, closing = false, busy = false, confirm = false, shortcutsOpen = false, textOpen = false;
   var maskState = 0;
   var root = null, title = null, status = null, list = null, hint = null, confirmBox = null;
   var confirmText = null, shortcutBox = null, shortcutTitle = null, shortcutBack = null;
+  var textBox = null, textInput = null, textTitle = null, textHint = null, textSend = null, textBack = null;
   var actionButtons = [], actionLabels = [], actionMetas = [], confirmButtons = [], shortcutButtons = [];
   var frameHandle = 0, releaseTimer = 0, nextRefresh = 0, lastToggleAt = 0;
   var resumeFocus = false;
@@ -169,6 +170,8 @@ var StreamOverlay = (function() {
        run: toggleStats},
       {id: 'shortcuts', icon: 'keyboard', label: function() { return translate('Shortcuts'); },
        meta: 'Keys sent to the PC', run: openShortcuts},
+      {id: 'text', icon: 'edit', label: function() { return translate('Type text'); },
+       meta: 'Typed on the TV, sent to the PC', run: openText},
       {id: 'disconnect', icon: 'link_off', label: function() { return translate('Disconnect'); },
        meta: busy ? 'Closing on the PC may continue.' : 'Keeps the game on the PC',
        run: function() {
@@ -180,7 +183,22 @@ var StreamOverlay = (function() {
        meta: 'Closes the game on the PC', danger: true,
        run: askEndGame}
     ];
-    return typeof StreamShortcuts === 'undefined' ? all.filter(function(item) { return item.id !== 'shortcuts'; }) : all;
+    return all.filter(function(item) {
+      if (item.id === 'shortcuts') return typeof StreamShortcuts !== 'undefined';
+      if (item.id === 'text') return typeof StreamText !== 'undefined';
+      return true;
+    });
+  }
+
+  // Leaves every submenu and forgets typed text: the field never keeps anything.
+  function resetModes() {
+    confirm = false;
+    shortcutsOpen = false;
+    textOpen = false;
+    if (confirmBox) confirmBox.hidden = true;
+    if (shortcutBox) shortcutBox.hidden = true;
+    if (textBox) textBox.hidden = true;
+    if (textInput) textInput.value = '';
   }
 
   function actionIndex(id) {
@@ -275,12 +293,34 @@ var StreamOverlay = (function() {
     shortcutBox.appendChild(shortcutTitle);
     shortcutBox.appendChild(shortcutGrid);
     shortcutBox.appendChild(shortcutBack);
+    textBox = create('div', 'streamOverlayText', 'streamOverlayText');
+    textBox.hidden = true;
+    textTitle = create('p', 'streamOverlayTextTitle', 'streamOverlayTextTitle');
+    textInput = create('input', 'streamOverlayTextInput', 'streamOverlayTextInput');
+    textInput.setAttribute('type', 'text');
+    textInput.setAttribute('maxlength', String(typeof StreamText !== 'undefined' ? StreamText.MAX_CHARACTERS : 256));
+    textInput.setAttribute('autocomplete', 'off');
+    textInput.setAttribute('spellcheck', 'false');
+    textInput.setAttribute('autocapitalize', 'off');
+    textHint = create('p', 'streamOverlayTextHint', 'streamOverlayTextHint');
+    var textActions = create('div', 'streamOverlayTextActions', 'streamOverlayTextActions');
+    textSend = create('button', 'streamOverlayTextSend', 'console-button streamOverlayTextButton');
+    textBack = create('button', 'streamOverlayTextBack', 'console-button streamOverlayTextButton');
+    textSend.setAttribute('type', 'button');
+    textBack.setAttribute('type', 'button');
+    textActions.appendChild(textSend);
+    textActions.appendChild(textBack);
+    textBox.appendChild(textTitle);
+    textBox.appendChild(textInput);
+    textBox.appendChild(textHint);
+    textBox.appendChild(textActions);
     panel.appendChild(header);
     panel.appendChild(status);
     panel.appendChild(list);
     panel.appendChild(hint);
     panel.appendChild(confirmBox);
     panel.appendChild(shortcutBox);
+    panel.appendChild(textBox);
     root.appendChild(panel);
     document.body.appendChild(root);
     built = true;
@@ -291,7 +331,7 @@ var StreamOverlay = (function() {
     setText(title, translate('Stream menu'));
     setText(status, busy ? translate('Ending the game on the PC...') : translate(errorText));
     setText(hint, translate('Volume: Left/Right adjusts; Confirm toggles mute.'));
-    if (hint) hint.hidden = confirm || shortcutsOpen;
+    if (hint) hint.hidden = confirm || shortcutsOpen || textOpen;
     var defs = actions();
     for (var i = 0; i < defs.length && i < actionButtons.length; i++) {
       var label = defs[i].label();
@@ -309,6 +349,10 @@ var StreamOverlay = (function() {
     setText(confirmButtons[1], translate('No'));
     setText(shortcutTitle, translate('Send a shortcut to the PC'));
     setText(shortcutBack, translate('Back'));
+    setText(textTitle, translate('Type text for the PC'));
+    setText(textHint, translate('Press OK on the field to open the keyboard.'));
+    setText(textSend, translate('Send'));
+    setText(textBack, translate('Back'));
   }
 
   function startFrames() {
@@ -356,12 +400,9 @@ var StreamOverlay = (function() {
     muteState = null;
     errorText = '';
     busy = false;
-    confirm = false;
-    shortcutsOpen = false;
+    resetModes();
     root.hidden = false;
     list.hidden = false;
-    confirmBox.hidden = true;
-    shortcutBox.hidden = true;
     open = true;
     pads = Object.create(null);
     resumeFocus = false;
@@ -379,13 +420,10 @@ var StreamOverlay = (function() {
     if (typeof StreamShortcuts !== 'undefined') StreamShortcuts.cancel();
     if (!open) return;
     open = false;
-    confirm = false;
-    shortcutsOpen = false;
     busy = false;
     errorText = '';
     root.hidden = true;
-    confirmBox.hidden = true;
-    shortcutBox.hidden = true;
+    resetModes();
     FocusManager.close();
     stopFrames();
   }
@@ -395,13 +433,11 @@ var StreamOverlay = (function() {
       if (typeof StreamShortcuts !== 'undefined') StreamShortcuts.cancel();
       if (!built) return true;
       open = false;
-      confirm = false;
-      shortcutsOpen = false;
-      shortcutBox.hidden = true;
       busy = false;
       errorText = '';
       resumeFocus = false;
       root.hidden = true;
+      resetModes();
       FocusManager.close();
       finishClose();
       return true;
@@ -411,13 +447,10 @@ var StreamOverlay = (function() {
     // closed it is released. Otherwise the same button becomes a fresh host
     // press on resume.
     open = false;
-    confirm = false;
-    shortcutsOpen = false;
     busy = false;
     errorText = '';
     root.hidden = true;
-    confirmBox.hidden = true;
-    shortcutBox.hidden = true;
+    resetModes();
     FocusManager.close();
     closing = true;
     resumeFocus = true;
@@ -441,10 +474,7 @@ var StreamOverlay = (function() {
   function busyState(value) {
     busy = !!value;
     if (open) {
-      confirm = false;
-      shortcutsOpen = false;
-      confirmBox.hidden = true;
-      shortcutBox.hidden = true;
+      resetModes();
       list.hidden = false;
       FocusManager.open(busy ? [actionButtons[actionIndex('disconnect')]] : actionButtons, busy ? 0 : actionIndex('end'));
     }
@@ -496,9 +526,51 @@ var StreamOverlay = (function() {
     refresh();
   }
 
+  function openText() {
+    if (busy || !textInput) return;
+    textOpen = true;
+    errorText = '';
+    textInput.value = '';
+    list.hidden = true;
+    textBox.hidden = false;
+    FocusManager.open([textInput, textSend, textBack], 0);
+    refresh();
+  }
+
+  function closeText() {
+    textOpen = false;
+    textInput.value = '';
+    textBox.hidden = true;
+    list.hidden = false;
+    FocusManager.open(actionButtons, actionIndex('text'));
+    refresh();
+  }
+
+  function sendText() {
+    var result = StreamText.send(textInput.value);
+    if (result.ok) {
+      textInput.value = '';
+      close();         // back to the game; the text is on its way
+      return;
+    }
+    errorText = result.reason === 'empty' ? 'Type some text first.' :
+      result.reason === 'too-long' ? 'The text is too long.' : 'Could not send the text.';
+    refresh();
+  }
+
   function accept() {
     if (busy) {
       if (typeof StreamSession !== 'undefined') StreamSession.disconnect();
+      return;
+    }
+    if (textOpen) {
+      var field = FocusManager.index();
+      if (field === 0) {
+        // The same way the other dialogs open the TV keyboard.
+        textInput.focus();
+        if (typeof textInput.click === 'function') textInput.click();
+      } else if (field === 1) sendText();
+      else closeText();
       return;
     }
     if (shortcutsOpen) {
@@ -535,12 +607,13 @@ var StreamOverlay = (function() {
     if (busy) { close(); return; }
     if (confirm) { cancelConfirm(); return; }
     if (shortcutsOpen) { closeShortcuts(); return; }
+    if (textOpen) { closeText(); return; }
     close();
   }
 
   function step(direction) {
     if (busy) return;
-    if (confirm || shortcutsOpen) {
+    if (confirm || shortcutsOpen || textOpen) {
       FocusManager.move(direction === 'up' || direction === 'left' ? -1 : 1);
       return;
     }

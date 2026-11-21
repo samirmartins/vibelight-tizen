@@ -3,8 +3,8 @@
 // volume API, gamepads and native stop. Not a Tizen or real-TV emulator.
 const assert = require('assert'), fs = require('fs'), vm = require('vm');
 const {fixture} = require('./fixtures/stream-overlay.cjs');
-// Menu order: Resume, Volume, Statistics, Shortcuts, Disconnect, End game on the PC.
-const AT = {disconnect: 4, end: 5};
+// Menu order: Resume, Volume, Statistics, Shortcuts, Type text, Disconnect, End game on the PC.
+const AT = {disconnect: 5, end: 6};
 
 (async () => {
   {

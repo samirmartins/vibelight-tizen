@@ -17,7 +17,8 @@ function makeElement(tag, id) {
     setAttribute(name, value) { this.attrs[name] = String(value); },
     getAttribute(name) { return this.attrs[name] === undefined ? null : this.attrs[name]; },
     focus() { this.focused++; },
-    blur() { this.blurred++; }
+    blur() { this.blurred++; },
+    click() { this.clicked = (this.clicked || 0) + 1; }
   };
   return node;
 }
@@ -116,6 +117,7 @@ function fixture(options = {}) {
   vm.runInContext(fs.readFileSync('wasm/platform/focus-manager.js', 'utf8'), c);
   vm.runInContext(fs.readFileSync('wasm/platform/stream-session.js', 'utf8'), c);
   vm.runInContext(fs.readFileSync('wasm/platform/stream-shortcuts.js', 'utf8'), c);
+  vm.runInContext(fs.readFileSync('wasm/platform/stream-text.js', 'utf8'), c);
   vm.runInContext(fs.readFileSync('wasm/platform/stream-overlay.js', 'utf8'), c);
 
   function frame() {

@@ -17,7 +17,7 @@ function opened(options = {}) {
   f.step();   // prime the pad
   const hold = () => [...f.timers.values()].find(timer => timer.ms === 40);
   const node = id => f.document.getElementById(id);
-  const shortcutsIndex = () => ['resume', 'volume', 'stats', 'shortcuts', 'disconnect', 'end'].indexOf('shortcuts');
+  const shortcutsIndex = () => ['resume', 'volume', 'stats', 'shortcuts', 'text', 'disconnect', 'end'].indexOf('shortcuts');
   const select = index => f.c.FocusManager.select(index);
   return {f, keys, hold, node, select, shortcutsIndex};
 }
@@ -27,7 +27,7 @@ function opened(options = {}) {
   const {f, node} = opened();
   assert.strictEqual(f.text('streamOverlay-shortcuts-label'), 'Atalhos', 'bundled pt-BR label');
   assert.strictEqual(f.text('streamOverlay-shortcuts-meta'), 'Teclas enviadas ao PC');
-  const order = ['resume', 'volume', 'stats', 'shortcuts', 'disconnect', 'end'];
+  const order = ['resume', 'volume', 'stats', 'shortcuts', 'text', 'disconnect', 'end'];
   assert.deepStrictEqual(order.map(id => !!node('streamOverlay-' + id)), order.map(() => true));
   assert.strictEqual(node('streamOverlay-shortcuts').getAttribute('data-action'), 'shortcuts');
 }
@@ -141,11 +141,11 @@ for (const leave of ['force', 'hide', 'visibility']) {
   const {f, node} = t;
   assert.strictEqual(f.text('streamOverlay-disconnect-label'), 'Desconectar');
   assert.strictEqual(f.text('streamOverlay-end-label'), 'Encerrar jogo no PC');
-  t.select(5);                                // End game on the PC
+  t.select(6);                                // End game on the PC
   f.press({0: true}); f.release();
   assert.strictEqual(node('streamOverlayConfirm').hidden, false);
   assert.strictEqual(f.c.FocusManager.index(), 1, 'the confirmation defaults to No');
   f.press({0: true}); f.release();            // No
-  assert.strictEqual(f.c.FocusManager.index(), 5, 'cancelling returns to End game');
+  assert.strictEqual(f.c.FocusManager.index(), 6, 'cancelling returns to End game');
 }
 console.log('stream_overlay_shortcuts_test: menu entry, submenu navigation, send and close, native failure, release on hide/stop, busy state and unchanged session actions PASS');

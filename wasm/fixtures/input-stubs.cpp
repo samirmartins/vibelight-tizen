@@ -3,6 +3,7 @@
 #include <bitset>
 #include <vector>
 #include <cassert>
+#include <string>
 #include <cstdint>
 #include <cstddef>
 #include "Limelight.h"
@@ -23,6 +24,12 @@ extern "C" int LiSendMouseButtonEvent(char action, int code) { events.push_back(
 extern "C" int LiSendMouseMoveEvent(short x, short y) { events.push_back({2, x, y, 0}); return 0; }
 extern "C" int LiSendHighResScrollEvent(short ticks) { events.push_back({3, ticks, 0, 0}); return 0; }
 extern "C" void LiRequestIdrFrame(void) {}
+#ifndef EMSCRIPTEN_KEEPALIVE
+#define EMSCRIPTEN_KEEPALIVE
+#endif
+std::vector<std::string> texts;
+int textResult = 0;
+extern "C" int LiSendUtf8TextEvent(const char* text, unsigned int length) { texts.emplace_back(text, length); return textResult; }
 namespace emscripten { template<class T> void function(const char*, T) {} }
 static const char* kCanvasName = "fixture";
 void emscripten_request_pointerlock(const char*, bool) {}

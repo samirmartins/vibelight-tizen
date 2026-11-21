@@ -267,6 +267,24 @@ void sendKeyboardEvent(uint32_t keyCode, uint16_t action, char modifiers) {
   g_Instance->SendKeyboardInput(keyCode, action, modifiers);
 }
 
+// Text typed on the TV reaches the PC in blocks of at most 32 UTF-8 bytes, the
+// size of one protocol text event: JavaScript writes the bytes into this buffer
+// and asks for the send. It runs only when the user sends text from the stream
+// menu, on the browser main thread, and never during normal play.
+static constexpr int kMaxUtf8TextBytes = 32;
+static char s_Utf8TextBuffer[kMaxUtf8TextBytes];
+
+extern "C" EMSCRIPTEN_KEEPALIVE void* utf8TextBuffer() {
+  return s_Utf8TextBuffer;
+}
+
+// -3: not 1..32 bytes; -2: no running session; otherwise the library result.
+extern "C" EMSCRIPTEN_KEEPALIVE int sendUtf8Text(int length) {
+  if (length < 1 || length > kMaxUtf8TextBytes) return -3;
+  if (g_Instance == nullptr || !g_Instance->m_Running.load()) return -2;
+  return LiSendUtf8TextEvent(s_Utf8TextBuffer, static_cast<unsigned int>(length));
+}
+
 EMSCRIPTEN_BINDINGS(input) {
   emscripten::function("sendKeyboardEvent", &sendKeyboardEvent);
 }
