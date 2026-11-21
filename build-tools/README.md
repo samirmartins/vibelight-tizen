@@ -16,9 +16,16 @@ Runs every `wasm/*_test.js` and six standalone C++ tests: audio ring, concurrent
 PCM stress, dispatcher, video timing, telemetry and mocked Wake-on-LAN.
 The JavaScript entries also compile native fixtures for RTSP/Opus, input focus,
 codec setup, decoder errors, session teardown, certificates and H.264 pixel equality.
-Historical source-identity checks are consolidated in `scope_contract_test.js`;
-they enforce approved scope, not performance. Baselines must not be refreshed
-silently to make a failing test pass.
+The only source-freeze check is `scope_contract_test.js`: native code, vendored
+protocol/codec libraries (`moonlight-common-c`, `libgamestream`, `h264bitstream`,
+`opus`), `CMakeLists.txt` and the gameplay JavaScript (audio, audio worklet,
+gamepad, display, diagnostics) must match the SHA-256 recorded in
+`wasm/frozen-sources.json`. New native files are covered automatically. After an
+approved, tested change to one of these files, run
+`node build-tools/frozen-sources.cjs --update` and commit the manifest with the
+change, never separately or to silence an unexplained failure. The CMake project
+version line is excluded and checked against `res/config.xml` instead. Menus and
+interface code are covered by behavioral tests, not by source freezes.
 Dependencies: Node.js 22, GCC/G++, FFmpeg with libx264, OpenSSL development headers
 and Git/GNU timeout. Native fixtures use ASan/UBSan.
 The runner checks completion markers, rejects unhandled rejections, bounds each
@@ -39,8 +46,9 @@ sudo apt install build-essential ffmpeg libssl-dev gcc-12 g++-12
 If Git reports dubious ownership (a synchronized folder owned by another user),
 run once `git config --global --add safe.directory <checkout>`; the runner prints
 the exact command.
-Source comparisons reference historical tags and reviewed commit checkpoints;
-use a full checkout and preserve that history. CI uses `fetch-depth: 0` and read-only permissions, without
+Some behavioral tests compile or run an earlier release next to the current code
+(RTP/recovery, controller, audio, navigation and pairing comparisons), so use a
+full checkout with tags and preserve that history. CI uses `fetch-depth: 0` and read-only permissions, without
 signing secrets. These tests do not compile the Samsung target or prove TV performance.
 
 Transport recovery: `video_transport_test.js` compares real RTP/depacketizer
@@ -87,8 +95,8 @@ Browser/EMSS adapters are not a Samsung decoder or a physical controller.
 Optional controller mapping: `controller_mapping_test.js` checks permutation
 validation, persistence/failure, exact trigger bits, multi-controller snapshots
 and the original function identity when OFF. The editor/test loop is menu-only;
-sticks, rumble and native streaming algorithms are unchanged. Historical source
-guards allow only the explicit integration points, not arbitrary input changes.
+sticks, rumble and native streaming algorithms are unchanged; native input code
+is part of the source-freeze contract.
 
 Optional audio telemetry: `audio_telemetry_test.js` compares Worklet/fallback
 Float32 output and drift control with v3.4.3 across rates/channels and ON/OFF

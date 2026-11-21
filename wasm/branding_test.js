@@ -1,87 +1,5 @@
 'use strict';
-const fs = require('fs'), cp = require('child_process'), assert = require('assert');
-const normalize = require('./branding-scope.cjs').normalize;
-const files = ['wasm/platform/index.js', 'wasm/platform/console-library.js', 'wasm/platform/messages.js',
-  'wasm/main.cpp', 'wasm/index.html', 'CMakeLists.txt', 'res/config.xml'];
-for (const file of files) {
-  const current = fs.readFileSync(file, 'utf8');
-  const stable = cp.execFileSync('git', ['show', 'v3.4.10:' + file], {encoding: 'utf8'});
-  assert.strictEqual(normalize(file, current), stable, file + ': display-only changes');
-  const mutation = current + '\nthrow new Error("unexpected behavior");\n';
-  assert.notStrictEqual(normalize(file, mutation), stable, 'neighboring changes are not hidden');
-}
-// No native, protocol, input, audio, clock, diagnostic or session logic changes.
-const frozen = ['moonlight-common-c', 'libgamestream', 'h264bitstream',
-  'wasm/*.cpp', 'wasm/*.hpp', 'wasm/platform', 'wasm/static/js',
-  'wasm/static/css/style.css', 'wasm/static/css/menu-tools.css',
-  'wasm/static/css/console-library.css', 'wasm/static/css/controller-mapping.css'];
-const changed = cp.execFileSync('git', ['diff', '--name-only', 'v3.4.10', '--', ...frozen], {encoding: 'utf8'}).trim().split('\n').filter(Boolean);
-const pacing = require('./frame-pacing-scope.cjs');
-const remaining = changed.filter(file => {
-  const experience=require('./experience-scope.cjs');
-  if(experience.added[file]){assert(experience.matchesAdded(file,fs.readFileSync(file)),file+' approved new asset');return false;}
-  const current=require('./experience-scope.cjs').normalize(file,fs.readFileSync(file,'utf8'));
-  if(file==='wasm/platform/menu-tools.js'){
-    assert.strictEqual(current,cp.execFileSync('git',['cat-file','blob','b46c204:'+file],{encoding:'utf8'}),
-      'exact independently tested menu-dialog lifecycle integration');return false;
-  }
-  if(file==='wasm/input.cpp'){
-    assert.strictEqual(current,cp.execFileSync('git',['cat-file','blob','v3.4.10:'+file],{encoding:'utf8'}),
-      'exact independently tested pointer-capture and paired-release delta');return false;
-  }
-  const review=require('./review-corrections-scope.cjs');
-  if (['libgamestream/pairing.c','libgamestream/http.c','wasm/auddec.cpp','wasm/audio_ring.hpp','wasm/platform/audio.js','wasm/platform/audio-worklet.js'].includes(file)) {
-    assert(review.matches(file,current),'exact separately tested correction: '+file); return false;
-  }
-  if (file === 'wasm/audio_ring_test.cpp') { assert(!fs.readFileSync('CMakeLists.txt','utf8').includes(file)); return false; }
-  if(file==='wasm/platform/diagnostics.js'){assert.strictEqual(current,cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}),'diagnostic baseline after exact approved delta');return false;}
-  if (file === 'wasm/platform/messages.js') return false; // Exact normalized handler verified above.
-  if (['wasm/platform/menu-i18n.js','wasm/platform/menu-translations.js'].includes(file)) return false;
-  if (file === 'wasm/platform/release-update.js') {
-    assert.strictEqual(require('crypto').createHash('sha256').update(current).digest('hex'),
-      '9d814d3a7cc57dc1783d8d434b2287c34a941f7e79647a421db79d7c240621af', 'exact release notice module');
-    return false;
-  }
-  const access=require('./controller-access-scope.cjs');
-  if(access.files.includes(file)) {
-    assert.strictEqual(access.normalize(file,current),cp.execFileSync('git',['show','v3.4.13:'+file],{encoding:'utf8'}));
-    return false;
-  }
-  const identity=require('./controller-identity-scope.cjs');
-  if(identity.files.includes(file)) {
-    assert.strictEqual(identity.normalize(file,current),cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}),
-      'exact independently tested controller identity integration: '+file);return false;
-  }
-  if (file === 'wasm/platform/remote_controller.js') {
-    assert.strictEqual(require('./stage5-scope.cjs').normalize(file,current),
-      cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}), 'exact Stage 5 remote cleanup');
-    return false;
-  }
-  const beforeReturn=require('./stream-return-scope.cjs').normalize(file,current);
-  if(beforeReturn!==current&&!files.includes(file)&&!pacing.files.includes(file)) {
-    assert.strictEqual(beforeReturn,cp.execFileSync('git',['show','v3.4.10:'+file],{encoding:'utf8'}),
-      'exact independently tested stop-to-menu integration: '+file);return false;
-  }
-  if (pacing.files.includes(file) && !files.includes(file)) {
-    const normalized = pacing.normalize(file, fs.readFileSync(file, 'utf8'));
-    const old = pacing.added.includes(file) ? '' : cp.execFileSync('git', ['show', 'v3.4.10:' + file], {encoding:'utf8'});
-    assert.strictEqual(normalized, old, 'exact optional pacing change: ' + file); return false;
-  }
-  if (['wasm/frame_pacing_fixture.c', 'wasm/frame_pacing_test.cpp'].includes(file)) {
-    assert(!fs.readFileSync('CMakeLists.txt','utf8').includes(file)); return false;
-  }
-  return true;
-});
-assert.deepStrictEqual(remaining.sort(), files.filter(f => (f.startsWith('wasm/platform/') && !f.endsWith('/messages.js')) || f === 'wasm/main.cpp')
-  .concat(['wasm/platform/interface-sounds.js',
-    'wasm/platform/library-navigation.js',
-    'wasm/platform/focus-manager.js',
-    'wasm/platform/stream-session.js',
-    'wasm/platform/stream-overlay.js',
-    'wasm/platform/controller-identity.js',
-    'wasm/platform/quick-help.js',
-    'wasm/platform/controller-tuning.js',
-    'wasm/platform/controller-mapping.js']).sort(), 'approved menu-navigation, system-overlay, controller-identity and tuning delta only');
+const fs = require('fs'), assert = require('assert');
 const html = fs.readFileSync('wasm/index.html', 'utf8');
 for (const file of ['docs/images/vibelight-code-mark.svg', 'docs/images/vibelight-code-logo.svg']) {
   const svg = fs.readFileSync(file, 'utf8');
@@ -98,6 +16,5 @@ for (const rule of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{
 }
 assert(!/#(?:performance-stats|connection-warnings)\b|\.fullscreen\b|\bcanvas\b|\bvideo\b/.test(css), 'stream surfaces and overlay are untouched');
 assert(css.includes('background: #333846') && css.includes('background: #282c38'));
-console.log('branding_test: stable runtime/IDs/defaults retained; original global colors and scoped block editor/Code identity only PASS');
-
 assert(fs.readFileSync('wasm/static/res/vibelight-splash.png').equals(fs.readFileSync('docs/images/vibelight-readme-logo.png')), 'startup artwork matches README');
+console.log('branding_test: logo without cutout, internal identity, scoped CSS without runtime effects and matching splash PASS');

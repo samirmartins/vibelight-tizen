@@ -32,8 +32,6 @@ assert.strictEqual(feed(setup(current), Array(30).fill(NaN)), 6000);
 assert.strictEqual(feed(setup(current), Array(240).fill(Infinity)), 6000);
 const sparseOutliers = Array.from({length: 240}, (_, i) => i < 12 ? 33.33 : 1000 / 60);
 assert.strictEqual(feed(setup(current), sparseOutliers), feed(setup(old), sparseOutliers), 'existing trimmed-outlier behavior preserved');
-assert.strictEqual(current.slice(current.indexOf('function setDisplayStreamReference(')),
-  old.slice(old.indexOf('function setDisplayStreamReference(')), 'presentation/telemetry code untouched');
 // Removing the gate must fail the same behavioral assertion.
 const mutated = current.replace('deviationMs > meanMs * 0.05', 'false');
 assert.notStrictEqual(mutated, current);

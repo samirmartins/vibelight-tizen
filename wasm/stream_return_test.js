@@ -43,12 +43,6 @@ async function returnFromSettings(f) {
   f.c.ConsoleLibrary.settings();assert(f.c.ConsoleLibrary.back());await f.flush();
 }
 async function run() {
-  const scope=require('./stream-return-scope.cjs');
-  for(const file of scope.files) {
-    const text=fs.readFileSync(file,'utf8');
-    assert.strictEqual(scope.normalize(file,text),cp.execFileSync('git',['show','v3.4.12:'+file],{encoding:'utf8'}));
-    assert.strictEqual(scope.normalize(file,text+'\n// unrelated mutation\n'),text+'\n// unrelated mutation\n');
-  }
   const routes=f=>f.requests.map(args=>args[0].replace(/&uuid=[^&]+/,''));
   // Both entry paths already use the same library coordinator when ready.
   let f=fixture();f.state='on';await f.open();

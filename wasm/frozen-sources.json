@@ -1,0 +1,34 @@
+{
+  "comment": "SHA-256 of gameplay-critical sources. Update only in the commit of an approved, tested change to these files: node build-tools/frozen-sources.cjs --update",
+  "files": {
+    "CMakeLists.txt": "2fe87b5bd4ae6e25c59372d5a459f7f7a330e05a6db479012e45cb4064df70ab",
+    "wasm/auddec.cpp": "dc570fab9f5ec76b6051b2f11e448d6cad8adf66c527574a52740db8fceab7f5",
+    "wasm/audio_ring.hpp": "f2f571cf047aaeeb7be32f7957c4452657313102dbb7905cf48d87fb96686735",
+    "wasm/connectionlistener.cpp": "fe4b16adb04c37f83bfb592ccd23a5768c91431284b3b84f4f8216919fe9d818",
+    "wasm/dispatcher/lib.hpp": "04fba2b7bf60e48107d321745fa60aff54edc213721d5344dbca7bd615e64422",
+    "wasm/frame_pacing.hpp": "bb34dc065b524c18640525c3145cae9ff3f3b910d041a32727be876e4868b780",
+    "wasm/gamepad.cpp": "f027acbabdea0e0da9340a4975cc0b641c0971c08b7caae5d1f5b4f3ebe02eba",
+    "wasm/h264_sps.hpp": "5a4fbdeb1bfbe2fc193d7329b29961234479c382d58581ac3ac4a972af7bad70",
+    "wasm/http.cpp": "0193922d73451a925ad95af756059916621129da371bfdd6b52cd09a9b1140f2",
+    "wasm/input.cpp": "1084f095b74ad1ac142139490c6384eeb324e9da0c77132f4fd8a918dbe88cba",
+    "wasm/libchelper.c": "b3001286f7471e4bf6a717b98f5622b098bca63108826c0bd43742befacc1419",
+    "wasm/main.cpp": "405a510c8b86bc32d5f0ace850ff42f0c7ff4794cc9d09ed2e23006fc6a0a6c0",
+    "wasm/moonlight_wasm.hpp": "3dfe0ccee2d9f2e9044cf2b9851d4cbe5988508c019e0ffd78a67399e6569f70",
+    "wasm/platform/audio-worklet.js": "683da08d9e844deafb495aa255c89502961468a3587fa22a5be5aca9e3c03368",
+    "wasm/platform/audio.js": "3308b56e5af8c932958299ba39252ea641564c0187cbdb5f99ed2682a8ab38a3",
+    "wasm/platform/diagnostics.js": "bd7afe11923a5bb454837d3f51f211a91285ada1e2a37d1cb4d60f0ecf61cc40",
+    "wasm/platform/display.js": "0164d03e3dc359691deed0d9ed22336e306c402e4e854308c776eeeacfd07c6b",
+    "wasm/platform/gamepad.js": "7911117858a07ead64632e2038ca88433158115ade5dcf6ccf7b3bd23128244d",
+    "wasm/session_lifecycle.hpp": "a7cdc6dad041eec15b68994212f699db5dc7920488150883738528a80ef516e5",
+    "wasm/video_telemetry.hpp": "a0b5bcf59afa0196da2f7bbbaee5e7d03967cddec2bd86d14df6eeb0b1fec840",
+    "wasm/video_timing.hpp": "a7e75aa76954219bf94ef3512205f2f6952023778828d298d0c4b53363cda5cc",
+    "wasm/wakeonlan.hpp": "b1fe7aa9c84dbf3b56bae53dd0fa4b8943189bd2eab2ac5b02f6cb3bc086cb6d",
+    "wasm/wasmplayer.cpp": "2e6b1125d03ae44934a4ea3d1d5ba12fed146b3ebdc8cc1eeae678bf92950443"
+  },
+  "trees": {
+    "moonlight-common-c": "ab02a43ea1752bc96b21a8ff6a661837268443a13ffab5c898c1bd106768c863",
+    "libgamestream": "37b1793ad69b2a830f82fbc9aa9a73509757089aa1d04711b0b96c460dde11f8",
+    "h264bitstream": "1cfbbfc42310147aba567df51eb6957185db85b5d69babb0f91e83cef1661c4f",
+    "opus": "d27dc13258735fad0edf65f41b8381a6a93e40ba69487540169604f2c7247cf9"
+  }
+}

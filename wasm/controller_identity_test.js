@@ -2,12 +2,6 @@
 // Production browser snapshots and native sender; no real device or host.
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process'),path=require('path'),os=require('os');
 const prefix=fs.readFileSync('wasm/gamepad_snapshot_test.js','utf8').split('// A physical index hole')[0];
-const identityScope=require('./controller-identity-scope.cjs');
-for(const file of identityScope.files) {
- const text=fs.readFileSync(file,'utf8');
- assert.strictEqual(identityScope.normalize(file,text),cp.execFileSync('git',['show','0b77114:'+file],{encoding:'utf8'}));
- assert.strictEqual(identityScope.normalize(file,text+'\n// unexpected change\n'),text+'\n// unexpected change\n');
-}
 const out={};
 vm.runInNewContext(prefix+`
  output.c=context;output.pad=pad;output.heap=heap32;output.listeners=listeners;

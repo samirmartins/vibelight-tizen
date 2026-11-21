@@ -1,242 +1,43 @@
 'use strict';
-// Approved historical scope contracts; behavioral tests are independent.
+// The only source-freeze contract (see build-tools/frozen-sources.cjs): native
+// code, vendored protocol/codec libraries, build flags and gameplay JavaScript
+// must match wasm/frozen-sources.json byte for byte. Menus and interface are
+// covered by behavioral tests. Updating a hash belongs only in the commit of an
+// approved, tested change to that file.
+const assert = require('assert'), fs = require('fs');
+const frozen = require('../build-tools/frozen-sources.cjs');
 
-// Only the explicitly approved wake protocol may differ in native gamepad code.
-function withoutInputWake(source) {
- const assert = require('assert');
- source = require('./controller-mapping-scope.cjs').legacy('wasm/gamepad.cpp', source);
- source = source.replace(/#include <(?:condition_variable|mutex|limits)>\n/g, '')
-   .replace('#include <emscripten/threading.h>\n', '');
- const oldState = 'static std::mutex s_inputWakeMutex;\nstatic std::condition_variable s_inputWakeCv;\nstatic std::atomic<uint32_t> s_inputWakeGeneration{0};';
- const newState = 'alignas(4) static uint32_t s_inputWakeGeneration = 0;';
- assert(source.includes(oldState) || source.includes(newState), 'known input wake state');
- source = source.replace(oldState, '[input wake state]').replace(newState, '[input wake state]');
- const start = source.indexOf('void NotifyInputEvent()');
- const end = source.indexOf('bool InputNeedsTimedWake()', start);
- assert(start > 0 && end > start);
- return source.slice(0, start) + '[input wake methods]\n\n' + source.slice(end);
-}
-{
- const fs = require('fs'), cp = require('child_process'), assert = require('assert');
- assert.strictEqual(withoutInputWake(fs.readFileSync('wasm/gamepad.cpp', 'utf8')),
-   withoutInputWake(cp.execFileSync('git', ['show', 'v3.4.2:wasm/gamepad.cpp'], {encoding: 'utf8'})),
-   'gamepad snapshot/mapping/sampling/rumble unchanged outside the approved wake protocol');
-}
+const recorded = frozen.load();
+const current = frozen.compute();
+const changes = frozen.differences(recorded, current);
+assert.deepStrictEqual(changes, [], 'gameplay-critical sources changed: ' + changes.join(', ') +
+  '. If the change is approved and tested, run: node build-tools/frozen-sources.cjs --update');
 
-function withoutLogs(source) {
- source=require('./frame-pacing-scope.cjs').launch(source);
- source=require('./branding-scope.cjs').normalize('wasm/platform/index.js',source);
- source=require('./branding-scope.cjs').normalize('wasm/platform/messages.js',source);
- source=require(require('path').resolve('wasm/app-lifecycle-scope.cjs')).launch(source);
- source=source.replace(/\.catch\(function\(\) \{\s*handleMessage\('streamTerminated: 0'\);\s*snackbarLogLong\('Previous stream is still closing\. Retry shortly\.'\);\s*\}\)/g,'');
- const assert=require('assert');
- const parse=function calls(s,name) {
- const out=[];const re=new RegExp(name.replaceAll(".","\\.")+"\\s*\\(","g");let m;
- while((m=re.exec(s))){let i=re.lastIndex,depth=1,q=null,esc=false;
- for(;i<s.length&&depth;i++){const c=s[i];if(q){if(esc)esc=false;else if(c==="\\")esc=true;else if(c===q)q=null;}else if("'\"`".includes(c))q=c;else if(c==="(")depth++;else if(c===")")depth--;}
- if(depth)throw Error("unbalanced");if(s[i]===";")i++;out.push([m.index,i,s.slice(m.index,i)]);re.lastIndex=i;
- }return out;
-};
- for(const n of ['console.log','console.warn','console.error','console.debug','ClLogMessage','PostToJs']){
-  for(const[a,b]of parse(source,n).reverse())source=source.slice(0,a)+source.slice(b);
- }
- return source.replace(/\/\/ Logging both object[^\n]*/g,'').replace(/\.catch\(function\(\) \{\s*\}\)/g,'.catch(console.error)').replace(/\s+/g,' ').trim();
-}
+// The contract covers every native application source automatically, so a new
+// native file cannot escape it, and never covers tests or fixtures.
+const files = Object.keys(recorded.files);
+for (const file of frozen.nativeFiles()) assert(files.includes(file), 'native source frozen: ' + file);
+for (const file of [...frozen.GAMEPLAY_JS, 'CMakeLists.txt', 'wasm/wasmplayer.cpp', 'wasm/auddec.cpp',
+  'wasm/gamepad.cpp', 'wasm/input.cpp', 'wasm/main.cpp', 'wasm/frame_pacing.hpp']) assert(files.includes(file), file);
+assert(files.every(file => !/(_test|_fixture)\.(c|cpp|js)$/.test(file)), 'tests are not frozen');
+assert.deepStrictEqual(Object.keys(recorded.trees).sort(), [...frozen.TREES].sort());
 
+// Negative controls: one changed byte in a file or inside a vendored tree, and
+// the CMake version line alone, are detected or ignored exactly as specified.
+const read = name => fs.readFileSync(require('path').join(__dirname, '..', name));
+const tamper = target => name => name === target ? Buffer.concat([read(name), Buffer.from(' ')]) : read(name);
+assert.deepStrictEqual(frozen.differences(recorded, frozen.compute(tamper('wasm/wasmplayer.cpp'))), ['changed wasm/wasmplayer.cpp']);
+assert.deepStrictEqual(frozen.differences(recorded, frozen.compute(tamper('moonlight-common-c/src/RtpVideoQueue.c'))), ['changed moonlight-common-c']);
+const cmake = read('CMakeLists.txt').toString('utf8');
+const bumped = name => name === 'CMakeLists.txt' ? Buffer.from(cmake.replace(/(project\(MoonlightWasm VERSION )[0-9.]+\)/, '$199.0.0)')) : read(name);
+assert.deepStrictEqual(frozen.differences(recorded, frozen.compute(bumped)), [], 'version bump alone is checked by the documentation test');
+const flags = name => name === 'CMakeLists.txt' ? Buffer.from(cmake.replace('cmake_minimum_required', '# edit\ncmake_minimum_required')) : read(name);
+assert.deepStrictEqual(frozen.differences(recorded, frozen.compute(flags)), ['changed CMakeLists.txt']);
 
-{
-'use strict';
-const assert = require('assert'), fs = require('fs'), cp = require('child_process');
-const current = require('./video-recovery-scope.cjs').normalize('wasm/wasmplayer.cpp', fs.readFileSync('wasm/wasmplayer.cpp', 'utf8'));
-const baseline = cp.execFileSync('git', ['show', 'v3.3.8:wasm/wasmplayer.cpp'], {encoding: 'utf8'});
-function section(text, begin, end) {
-  const start = text.indexOf(begin);
-  assert.ok(start !== -1);
-  const stop = text.indexOf(end, start + begin.length);
-  assert.ok(stop > start);
-  return text.slice(start, stop);
-}
-function removeInstrumentedBlocks(text) {
-  const marker = 'if constexpr (CollectStats) {';
-  while (text.includes(marker)) {
-    const start = text.indexOf(marker);
-    let pos = start + marker.length, depth = 1;
-    while (depth && pos < text.length) {
-      const c = text[pos++];
-      if (c === '{') depth++;
-      else if (c === '}') depth--;
-    }
-    assert.strictEqual(depth, 0);
-    text = text.slice(0, start) + text.slice(pos);
-  }
-  return text;
-}
-const template = 'template<bool CollectStats>\nint MoonlightInstance::VidDecSubmitDecodeUnitImpl';
-const wrapper = 'int MoonlightInstance::VidDecSubmitDecodeUnit(';
-assert.strictEqual(section(current, '  // Assemble the packet.', '  if (appended) {'),
-                   section(baseline, '  // Assemble the packet.', '  if (appended) {'),
-                   'bitstream assembly, SPS fixup and AppendPacket parameters stay unchanged');
-assert.strictEqual(section(current, wrapper, 'void MoonlightInstance::AddVideoStats'),
-                   section(baseline, wrapper, 'void MoonlightInstance::AddVideoStats'));
-// Revised 3.3.9 changes clock snapshots/calibration only. Freeze
-// the unrelated paths, rather than claiming playback is identical to 3.3.8.
-assert.strictEqual(section(current, '  int framesElapsed =', '// Folds the interval since the previous append'),
-                   section(baseline, '  int framesElapsed =', '// Folds the interval since the previous append'),
-                   'normal PTS rate window and servo correction must match 3.3.8');
-assert.match(current, /\.capabilities = CAPABILITY_DIRECT_SUBMIT \| CAPABILITY_SLICES_PER_FRAME\(1\)/);
-require('./audio-telemetry-scope.cjs').assertFrozen('v3.3.8', [
-  'wasm/auddec.cpp', 'wasm/audio_ring.hpp',
-  'moonlight-common-c/src/VideoDepacketizer.c', 'moonlight-common-c/src/VideoStream.c',
-  'wasm/platform/audio.js', 'wasm/platform/audio-worklet.js',
-  'wasm/platform/display.js']);
-// JS rumble changes in 3.3.10 are covered by rumble_safety_test; input sampling
-// is separately protected by the approved input scope contract.
-
-}
-
-{
-'use strict';
-const fs=require('fs'),cp=require('child_process'),assert=require('assert');
-const baseline=cp.execFileSync('git',['show','v3.3.10:wasm/wasmplayer.cpp'],{encoding:'utf8'});
-const current=require('./overlay-aggregation-scope.cjs').normalize('wasm/wasmplayer.cpp',fs.readFileSync('wasm/wasmplayer.cpp','utf8'));
-function between(s,a,b) { const start=s.indexOf(a),end=s.indexOf(b,start);assert(start>=0&&end>start);return s.slice(start,end); }
-assert.strictEqual(between(current,'    } else if (videoFormat & (VIDEO_FORMAT_H265','    bool trackAdded'),
-  between(baseline,'    } else if (videoFormat & (VIDEO_FORMAT_H265','    bool trackAdded'));
-assert.strictEqual(between(current,'static TimeStamp NextPacketPts','bool MoonlightInstance::WaitFor')
-    .replace('  g_Instance->m_DecoderActive = false;\n', ''),
-  between(baseline,'static TimeStamp NextPacketPts','void MoonlightInstance::WaitFor'));
-const padOld=cp.execFileSync('git',['show','v3.3.10:wasm/platform/gamepad.js'],{encoding:'utf8'});
-const padNew=require('./controller-mapping-scope.cjs').normalize('wasm/platform/gamepad.js',fs.readFileSync('wasm/platform/gamepad.js','utf8'));
-assert.strictEqual(between(padNew,'// Streaming gamepad publisher','// Rumble is sampled cheaply in rAF'),
-  between(padOld,'// Streaming gamepad publisher','// Rumble is sampled cheaply in rAF'));
-for(const name of ['DURATION_MS','RENEW_MS','MIN_INTERVAL_MS','MAX_IN_FLIGHT','WATCHDOG_MS']) {
-  const re=new RegExp('var _RUMBLE_'+name+' = [0-9]+;');
-  assert.strictEqual(padNew.match(re)[0],padOld.match(re)[0]);
-}
-const frozen=['wasm/auddec.cpp','wasm/audio_ring.hpp','wasm/platform/audio.js','wasm/platform/audio-worklet.js',
-  'wasm/video_timing.hpp','moonlight-common-c',
-  ':(exclude)moonlight-common-c/src/RtspConnection.c',
-  ':(exclude)moonlight-common-c/src/RtspParser.c',
-  ':(exclude)moonlight-common-c/src/PlatformSockets.c',
-  ':(exclude)moonlight-common-c/src/Platform.h',
-  'wasm/platform/diagnostics.js','wasm/platform/display.js'];
-require('./audio-telemetry-scope.cjs').assertFrozen('v3.3.10', frozen);
-
-}
-
-{
-'use strict';
-const fs = require('fs'), cp = require('child_process'), assert = require('assert');
-// The identical v3.3.10 frozen-file set is checked above.
-const old = cp.execFileSync('git',['show','v3.3.10:wasm/platform/index.js'],{encoding:'utf8'});
-const now = require('./review-corrections-scope.cjs').normalize('wasm/platform/index.js',fs.readFileSync('wasm/platform/index.js','utf8'));
-function between(s,a,b,from=0) { const start=s.indexOf(a,from),end=s.indexOf(b,start); assert(start>=0&&end>start); return s.slice(start,end).trim(); }
-// The only allowed change in this segment is safe text insertion in the
-// pre-launch confirmation. Stream arguments and scheduling remain identical.
-assert.strictEqual(withoutLogs(between(now,'  // Reset the scheduler for the new stream','function stopGame')),
-  withoutLogs(between(old,'  // Reset the scheduler for the new stream','function stopGame').replace(
-    "document.getElementById('quitAppDialogText').innerHTML = currentApp.title",
-    "document.getElementById('quitAppDialogText').textContent = currentApp.title")));
-assert.strictEqual(withoutLogs(between(now,'  // Create the AudioContext here','\n}\n\nfunction startGame')),
-  withoutLogs(between(old,'  // Create the AudioContext here','  // Reset the scheduler for the new stream')));
-assert.strictEqual(between(now,'function showStreamMode()','// Maximize the size').replace('  ConsoleLibrary.suspend();\n  clearTimeout(startupScanTimer);\n  repeatAction = null;\n  clearTimeout(repeatTimeout);\n  clearTimeout(navigationTimeout);\n','').replace('  ConsoleLibrary.suspend();\n  clearTimeout(startupScanTimer);\n',''),
-  between(old,'function showStreamMode()','// Maximize the size'));
-assert.strictEqual(between(now,'function fullscreenWasmModule()','// Start the given appID'),
-  between(old,'function fullscreenWasmModule()','// Start the given appID'));
-const oldCss = require('./controller-mapping-scope.cjs').legacy('wasm/static/css/style.css', cp.execFileSync('git',['show','v3.3.10:wasm/static/css/style.css'],{encoding:'utf8'}));
-const css = require('./frame-pacing-scope.cjs').normalize('wasm/static/css/style.css', fs.readFileSync('wasm/static/css/style.css','utf8'));
-assert.strictEqual(css.slice(css.indexOf('   Streaming Layout')),oldCss.slice(oldCss.indexOf('   Streaming Layout')));
-
-}
-
-{
-'use strict';
-// Keep the approved 3.4.0 streaming implementation byte-for-byte except for
-// the explicitly authorized error/lifecycle and held-input changes.
-const fs = require('fs'), cp = require('child_process'), assert = require('assert');
-function old(file) { return require('./controller-mapping-scope.cjs').legacy(file, cp.execFileSync('git', ['show', 'v3.4.0:' + file], {encoding: 'utf8'})); }
-function current(file) { return require('./manual-library-scope.cjs').normalize(file,fs.readFileSync(file, 'utf8')); }
-function maskMethod(source, marker) {
- const start = source.indexOf(marker); assert(start >= 0, marker);
- let end = source.indexOf('{', start) + 1, depth = 1;
- while (depth) { const c = source[end++]; if (c === '{') depth++; else if (c === '}') depth--; assert(end <= source.length); }
- return source.slice(0, start) + marker + ' [tested separately]' + source.slice(end);
-}
-let player = require('./overlay-aggregation-scope.cjs').normalize('wasm/wasmplayer.cpp', current('wasm/wasmplayer.cpp')), baseline = old('wasm/wasmplayer.cpp');
-for (const marker of [
- 'void MoonlightInstance::SourceListener::OnPipelineError(', 'bool MoonlightInstance::WaitFor(',
- 'MoonlightInstance::SourceListener::SourceListener(', 'MoonlightInstance::VideoTrackListener::VideoTrackListener(',
- 'void MoonlightInstance::SourceListener::OnSourceOpen(', 'void MoonlightInstance::SourceListener::OnSourceOpenPending(',
- 'void MoonlightInstance::SourceListener::OnSourceClosed(', 'void MoonlightInstance::SourceListener::OnPlaybackPositionChanged(',
- 'void MoonlightInstance::VideoTrackListener::OnTrackOpen(', 'void MoonlightInstance::VideoTrackListener::OnTrackClosed(',
- 'void MoonlightInstance::VideoTrackListener::OnSessionIdChanged(']) {
- player = maskMethod(player, marker); baseline = maskMethod(baseline, marker);
-}
-player = player.replace('  g_Instance->m_DecoderActive = true;', '  g_Instance->m_H264DecoderActive = (videoFormat & VIDEO_FORMAT_H264) != 0;')
- .replace('m_DecoderPipelineFailed = false;', 'm_H264PipelineFailed = false;')
- .replace('  g_Instance->m_DecoderActive = false;\n', '');
-player = player.replace('g_Instance->m_VideoTrackListener.get()', '&g_Instance->m_VideoTrackListener');
-const openBegin=player.indexOf('  auto openTicket ='),openEnd=player.indexOf('\n',player.indexOf('  if (!openResult)',openBegin));
-assert(openBegin>=0&&openEnd>openBegin);
-player=player.slice(0,openBegin)+'  g_Instance->m_Source->Open([](EmssOperationResult){});'+player.slice(openEnd);
-assert.strictEqual(player, baseline, 'no other video/PTS/assembly/presentation change');
-let main = current('wasm/main.cpp')
- .replace('  emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_TRUE, handleFocusLost);\n', '')
- .replace('  emscripten_set_visibilitychange_callback(NULL, EM_TRUE, handleVisibilityChange);\n', '');
-
-let mainOld = old('wasm/main.cpp');
-for(const marker of ['void MoonlightInstance::RequestStop(', 'void MoonlightInstance::ReleaseMedia(', 'bool MoonlightInstance::BeginSession(']) {
- const masked=maskMethod(main,marker);main=masked.replace(marker+' [tested separately]','');
-}
-for(const marker of ['MoonlightInstance::MoonlightInstance(', 'void MoonlightInstance::OnConnectionStarted(', 'void MoonlightInstance::OnConnectionStopped(',
- 'void MoonlightInstance::StopConnection(', 'void* MoonlightInstance::StopThreadFunc(',
- 'void* MoonlightInstance::ConnectionThreadFunc(', 'MessageResult MoonlightInstance::StartStream(']) {
- main=maskMethod(main,marker);mainOld=maskMethod(mainOld,marker);
-}
-assert.strictEqual(withoutLogs(main),withoutLogs(mainOld),'unrelated native methods unchanged');
-
-const input = current('wasm/input.cpp'), inputOld = old('wasm/input.cpp');
-function extract(source, start, end) { return source.slice(source.indexOf(start), source.indexOf(end, source.indexOf(start))); }
-for (const [start, end] of [
- ['EM_BOOL MoonlightInstance::HandleMouseMove', 'EM_BOOL MoonlightInstance::HandleMouseUp'],
- ['EM_BOOL MoonlightInstance::HandleWheel', 'EM_BOOL MoonlightInstance::HandleKeyDown'],
- ['void MoonlightInstance::ReportMouseMovement', 'void MoonlightInstance::MouseLockLost']
-]) assert.strictEqual(extract(input, start, end), extract(inputOld, start, end));
-for (const [marker, action] of [
- ['EM_BOOL MoonlightInstance::HandleKeyDown', 'KEY_ACTION_DOWN'],
- ['EM_BOOL MoonlightInstance::HandleKeyUp', 'KEY_ACTION_UP']
-]) {
- const next = marker.includes('Down') ? 'EM_BOOL MoonlightInstance::HandleKeyUp' : 'EM_BOOL handleKeyDown';
- assert.strictEqual(extract(input, marker, next).replace(
-   '  SendKeyboardInput(keyCode, ' + action + ', modifiers);',
-   '  LiSendKeyboardEvent(KEY_PREFIX << 8 | keyCode, ' + action + ', modifiers);'), extract(inputOld, marker, next));
-}
-const files = cp.execFileSync('git', ['ls-tree', '-r', '--name-only', 'v3.4.0', '--',
- 'moonlight-common-c', 'libgamestream', 'wasm/platform', 'wasm/static', 'wasm/index.html',
- 'wasm/auddec.cpp', 'wasm/audio_ring.hpp', 'wasm/gamepad.cpp', 'wasm/video_timing.hpp', 'wasm/video_telemetry.hpp'], {encoding: 'utf8'}).trim().split('\n');
-for (const file of files) {
- if (['moonlight-common-c/src/RtspConnection.c', 'wasm/platform/console-library.js',
-      'wasm/platform/index.js', 'wasm/static/css/console-library.css', 'wasm/index.html',
-      'moonlight-common-c/src/RtspParser.c', 'moonlight-common-c/src/Platform.h',
-      'moonlight-common-c/src/PlatformSockets.c',
-      'wasm/static/js/utils.js','wasm/static/js/mdns-browser/main.js'].includes(file)) continue;
- if (['wasm/platform/messages.js','wasm/platform/common.js'].includes(file)) {
-  assert.strictEqual(withoutLogs(current(file)),withoutLogs(old(file)),file+' privacy-only logging');
- } else if (file === 'wasm/gamepad.cpp') {
-  assert.strictEqual(withoutInputWake(current(file)), withoutInputWake(old(file)), file+' wake-only change');
- } else if (file === 'wasm/platform/menu-tools.js') {
-  assert.strictEqual(require('./library-availability-scope.cjs').normalize(file,current(file)), old(file), file+' availability-probe opt-in only');
- } else if (file === 'wasm/platform/remote_controller.js') {
-  assert.strictEqual(require('./stage5-scope.cjs').normalize(file,current(file)), old(file), file+' exact Stage 5 remote cleanup');
- } else assert.strictEqual(require('./audio-telemetry-scope.cjs').normalize(file,require('./controller-mapping-scope.cjs').normalize(file,current(file))), require('./audio-telemetry-scope.cjs').normalize(file,old(file)), file);
-}
-const index = current('wasm/platform/index.js'), indexOld = old('wasm/platform/index.js');
-assert.strictEqual(withoutLogs(index.slice(0, index.indexOf('function restoreDefaultsSettingsValues()'))),
- withoutLogs(indexOld.slice(0, indexOld.indexOf('function restoreDefaultsSettingsValues()'))),
- 'normal launch/stop, stream arguments, audio preparation and scheduling unchanged');
-assert.strictEqual(withoutLogs(index.slice(index.indexOf('function loadHTTPCerts()'))),
- withoutLogs(indexOld.slice(indexOld.indexOf('function loadHTTPCerts()'))), 'pairing and host restoration unchanged');
-
-}
-
-console.log('scope_contract_test: all approved contracts preserved; duplicate frozen-file check removed');
+// Installation identity: updates over an existing install keep pairing and preferences.
+const config = fs.readFileSync('res/config.xml', 'utf8');
+assert(config.includes('id="http://samsung.tv/MoonlightWasm"'), 'widget id');
+assert(config.includes('<tizen:application id="MoonLightS.MoonlightWasm" package="MoonLightS"'), 'application id and package');
+assert(config.includes('<name>VibeLight</name>'), 'application name');
+console.log('scope_contract_test: ' + files.length + ' files and ' + Object.keys(recorded.trees).length +
+  ' vendored trees frozen; new native files covered; tamper, tree and CMake-version controls; installation identity OK');

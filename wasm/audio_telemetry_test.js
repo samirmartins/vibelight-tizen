@@ -138,5 +138,4 @@ for(const rate of [44100,48000,96000])for(const channels of [1,2,6,8]) {
   c._audWorkletNode.port.postMessage=()=>{throw Error('Fixture port closed');};
   assert.doesNotThrow(()=>c.setAudioTelemetryEnabled('overlay',true),'optional port failure must not break sound');
 }
-require('./audio-telemetry-scope.cjs').assertFrozen('v3.4.3',require('./audio-telemetry-scope.cjs').files);
 console.log('audio_telemetry_test: 24 worklet/12 fallback sample-exact cases, OFF min/max idle, ON stats, mixed/stale consumer transitions, unchanged drift/overlay and 23 -> 3 clock loads OK');

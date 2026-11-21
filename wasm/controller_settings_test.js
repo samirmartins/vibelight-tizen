@@ -28,10 +28,6 @@ vm.runInNewContext(index.slice(resetStart,resetEnd),{
  storeData(key,value){assert.strictEqual(key,'rumbleFeedback');resetValue=value;}
 });
 assert.strictEqual(resetState,true);assert.strictEqual(resetValue,true,'explicit reset saves the new ON default');
-const normalizeDefaults=require('./rumble-default-scope.cjs').normalize;
-const oldIndex=cp.execFileSync('git',['show','v3.4.4:wasm/platform/index.js'],{encoding:'utf8'});
-assert.strictEqual(normalizeDefaults('wasm/platform/index.js',index),oldIndex,'all non-default index code unchanged');
-assert.notStrictEqual(normalizeDefaults('wasm/platform/index.js',index.replace('previousValue.rumbleFeedback == false','previousValue.rumbleFeedback == true')),oldIndex,'saved-choice changes rejected');
 const expected=['host.address','host.httpPort','streamWidth','streamHeight','frameRate','bitrate.toString()',
  'rikey','rikeyid.toString()','host.appVersion','host.gfeVersion',"$root.find('sessionUrl0').text().trim()",
  'host.serverCodecModeSupport','framePacing','optimizeGames','rumbleFeedback','mouseEmulation',

@@ -70,13 +70,6 @@ function run(command, arguments_, extra = {}) {
 const sanitizerEnv = {...process.env, ASAN_OPTIONS: 'detect_leaks=1:abort_on_error=1',
   UBSAN_OPTIONS: 'halt_on_error=1:print_stacktrace=1'};
 try {
-  const recoveryScope = require('./video-recovery-scope.cjs');
-  for (const file of recoveryScope.files) {
-    const source = read(file), baseline = read(file, true);
-    assert.strictEqual(recoveryScope.normalize(file, source), baseline, 'strict approved patch: ' + file);
-    assert.notStrictEqual(recoveryScope.normalize(file, source + '\n// unauthorized edit\n'), baseline,
-      'unknown edit must remain visible: ' + file);
-  }
   const base = path.join(root, 'moonlight-common-c');
   for (const legacy of [true, false]) {
     const name = legacy ? 'baseline' : 'current', directory = path.join(temporary, name);

@@ -256,42 +256,5 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
  f.button(0,true);f.advance(48);f.button(0,false);f.advance(64);
  assert.deepStrictEqual(f.moves.map(move=>move[0]),['accept']);
 }
-// Freeze the historical navigation delta. Only the exact independently tested
-// video/refresh patch may differ in subsequent streaming versions.
-const normalize=require('./library-navigation-scope.cjs').normalize;
-const paths=cp.execFileSync('git',['ls-tree','-r','--name-only','v3.4.8','--',
- 'wasm','moonlight-common-c','libgamestream','CMakeLists.txt','res/config.xml'],{encoding:'utf8'}).trim().split('\n')
- .filter(file=>!file.endsWith('_test.js')&&!file.endsWith('.cjs')&&!/_fixture\.(?:c|cpp)$/.test(file)&&file!=='wasm/platform/controller-mapping.js');
 assert(!read('CMakeLists.txt').includes('video_recovery_fixture'), 'native fixture stays out of app');
-for(const file of paths){
- if(!['wasm/platform/index.js','wasm/platform/gamepad.js','wasm/platform/console-library.js','wasm/platform/messages.js',
-  'wasm/platform/navigation.js','wasm/platform/controller-mapping-menu.js','wasm/platform/controller-mapping.js',
-  'wasm/main.cpp','wasm/index.html','CMakeLists.txt','res/config.xml'].includes(file)) {
-  const transport=require('./video-transport-scope.cjs');
-  if(transport.files.includes(file))assert.strictEqual(transport.normalize(file,read(file)),old(file),'exact video/refresh delta: '+file);
-  else if(require('./controller-identity-scope.cjs').files.includes(file))
-    assert.strictEqual(require('./controller-identity-scope.cjs').normalize(file,read(file)),old(file),'exact tested controller identity delta: '+file);
-  else if(file==='wasm/platform/remote_controller.js')
-    assert.strictEqual(require('./stage5-scope.cjs').normalize(file,read(file)),old(file),'exact Stage 5 remote cleanup');
-  else if(file==='wasm/platform/app-lifecycle.js'||file==='wasm/static/js/utils.js')
-    assert.strictEqual(require('./stream-return-scope.cjs').normalize(file,read(file)),old(file),'exact tested stop-to-menu delta: '+file);
-  else if(file==='wasm/http.cpp')
-    assert.strictEqual(require('./session-transition-scope.cjs').normalize(file,read(file)),old(file),'exact tested host-quit deadline only');
-  else if (require('./frame-pacing-scope.cjs').files.includes(file))
-    assert.strictEqual(require('./frame-pacing-scope.cjs').normalize(file,read(file)),old(file),'exact optional pacing integration: '+file);
-  else assert.deepStrictEqual(require('./branding-scope.cjs').asset(file,fs.readFileSync(file)),cp.execFileSync('git',['show','v3.4.8:'+file]),'unchanged runtime bytes or exact approved icon: '+file);
-  continue;
- }
- let current=normalize(file,read(file)),base=old(file);
- if(file==='CMakeLists.txt')current=current.replace('project(MoonlightWasm VERSION 3.4.10)','project(MoonlightWasm VERSION 3.4.8)').replace('project(MoonlightWasm VERSION 3.4.9)','project(MoonlightWasm VERSION 3.4.8)');
- if(file==='res/config.xml')current=current.replace(' version="3.4.10"',' version="3.4.8"').replace(' version="3.4.9"',' version="3.4.8"');
- assert.strictEqual(current,base,'runtime frozen outside library hooks: '+file);
-}
-for(const [file,from,to]of [
- ['wasm/platform/index.js','LibraryNavigation.handle(e.detail);','LibraryNavigation.handle(null);'],
- ['wasm/platform/gamepad.js','setInterval(pollGamepads, 16)','setInterval(pollGamepads, 32)'],
- ['wasm/platform/console-library.js','epoch++;','epoch+=2;'],
- ['wasm/platform/navigation.js','viewStack.push(view);','viewStack.push(null);']]){
- assert.notStrictEqual(normalize(file,read(file).replace(from,to)),old(file),'neighboring mutation rejected');
-}
-console.log('library_navigation_test: real polling/listener and view stack; library/Settings/PCs/add-PC/pairing corrected, 350/100 ms single timer, hysteresis, button/D-pad bounce gate with preserved repeat cadence, reversal, two pads, modal transitions/held-axis suppression, stale callbacks, confirm/back, Nintendo A/B, LB/RB filters, LT/RT/right-stick pages, Start/Guide help, stop/start and frozen gameplay PASS (synthetic timing, not TV latency)');
+console.log('library_navigation_test: real polling/listener and view stack; library/Settings/PCs/add-PC/pairing corrected, 350/100 ms single timer, hysteresis, button/D-pad bounce gate with preserved repeat cadence, reversal, two pads, modal transitions/held-axis suppression, stale callbacks, confirm/back, Nintendo A/B, LB/RB filters, LT/RT/right-stick pages, Start/Guide help and stop/start PASS (synthetic timing, not TV latency)');

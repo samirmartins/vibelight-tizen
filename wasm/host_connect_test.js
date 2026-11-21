@@ -72,18 +72,7 @@ const flush=async()=>{for(let i=0;i<100;i++)await Promise.resolve();};
   assert.match(await bounded,/respond/);assert(!host._authenticatedOnline);assert.strictEqual(timers.size,0);
   c.isInGame=true;let calls=0;c.sendMessage=()=>{calls++;return Promise.resolve(info());};
   await assert.rejects(host.connect(c.createMenuRequestScope()));assert.strictEqual(calls,0);assert.strictEqual(timers.size,0);
-  // Freeze all unrelated logic against the preceding candidate, independently
-  // of the behavioral fixtures and older release guards.
-  const normalize=require('./host-connect-scope.cjs').normalize;
-  for(const file of ['wasm/static/js/utils.js','wasm/platform/console-library.js','wasm/platform/index.js']) {
-    const source=fs.readFileSync(file,'utf8'),oldSource=cp.execFileSync('git',['show','ed86862:'+file],{encoding:'utf8'});
-    assert.strictEqual(normalize(file,source),oldSource,'only bounded menu connection changes: '+file);
-    assert.notStrictEqual(normalize(file,source+'\n// unexpected change\n'),oldSource,'unknown edits remain visible');
-  }
   const index=fs.readFileSync('wasm/platform/index.js','utf8');
   assert(index.includes('host.connect(scope).then(function() {'),'startup uses the same coordinator');
-  const tools=fs.readFileSync('wasm/platform/menu-tools.js','utf8');
-  assert.strictEqual(require('./manual-library-scope.cjs').normalize('wasm/platform/menu-tools.js',tools),
-    cp.execFileSync('git',['show','ed86862:wasm/platform/menu-tools.js'],{encoding:'utf8'}).replace('    scope.useAppListProbe = true;\n',''));
-  console.log('host_connect_test: fresh startup coordinator, full fallback, pinned identity, preserved pairing/cache, supersession, late reply, timeout cleanup, zero gameplay work and exact source scope OK');
+  console.log('host_connect_test: fresh startup coordinator, full fallback, pinned identity, preserved pairing/cache, supersession, late reply, timeout cleanup, zero gameplay work OK');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -85,15 +85,7 @@ for(const combo of [[8,9,4,5],[8,4,5,2]]){
  assert.deepStrictEqual(Array.from(f.c._gpNextWords),unchanged,'shortcut combos bypass custom mapping');
 }
 f.c._gpButtonCount=18;assert.strictEqual(f.m.sessionBuilder(f.c._gpBuildSnapshot),f.c._gpBuildSnapshot);
-// Source guards remain exact around the mapping integration.
-const scope=require('./controller-mapping-scope.cjs');
-for(const file of ['wasm/platform/index.js','wasm/platform/navigation.js','wasm/platform/gamepad.js','wasm/index.html']) {
- const current=fs.readFileSync(file,'utf8'),old=cp.execFileSync('git',['show','9b6687e:'+file],{encoding:'utf8'});
- const expected=scope.legacy(file,old);
- assert.strictEqual(scope.normalize(file,current),expected,file+' approved mapping integration');
- assert.notStrictEqual(scope.normalize(file,current+'\n// unexpected change'),expected,'negative scope fixture');
-}
 for(const id of ['cm-family-xbox','cm-family-playstation','cm-family-nintendo','cm-key-grid','cm-targets','cm-analog-row','cm-analog-panel'])
  assert(menu.includes(id),'new editor '+id);
 assert(!menu.includes('cm-rows'),'old dense assignment table removed');
-console.log('controller_mapping_test: per-family profiles, validation, v1 migration, three-family snapshots, shortcuts and editor scope OK');
+console.log('controller_mapping_test: per-family profiles, validation, v1 migration, three-family snapshots, shortcuts and editor layout OK');

@@ -1,16 +1,8 @@
 'use strict';
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),cp=require('child_process');
-const file='wasm/platform/gamepad.js',source=require('./rumble-work-scope.cjs').normalize(file,fs.readFileSync(file,'utf8'));
+// Behavior is compared with daca400, the version before menu snapshot reuse.
+const file='wasm/platform/gamepad.js',source=fs.readFileSync(file,'utf8');
 const baseline=cp.execFileSync('git',['show','daca400:'+file],{encoding:'utf8'});
-const normalize=require('./controller-menu-scope.cjs').normalize;
-assert.strictEqual(normalize(file,source),baseline,'menu snapshot reuse only');
-const boundary='// Streaming gamepad publisher';
-assert.strictEqual(source.slice(source.indexOf(boundary)),baseline.slice(baseline.indexOf(boundary)),'complete gameplay/rumble source unchanged');
-for(const [a,b] of [['setInterval(pollGamepads, 16)','setInterval(pollGamepads, 32)'],
-  ["type: 'button', index: i, pressed: newButtons[i].pressed","type: 'button', index: i, pressed: false"],
-  ['this.axes[i] !== newAxes[i]','this.axes[i] != newAxes[i]']]) {
- assert(source.includes(a));assert.notStrictEqual(normalize(file,source.replace(a,b)),baseline,'unexpected sampling/event mutation rejected');
-}
 function fixture(text=source,legacy=false) {
  let poll=null,pads=[],state,serial=0;
  const events=[],listeners=new Map(),periods=[],allocations={buttons:0,changeArrays:0};

@@ -93,13 +93,5 @@ int main(){MoonlightInstance app;
   cp.execFileSync('g++',['-std=c++17','-O1','-g','-pthread','-fsanitize=address,undefined','-fno-omit-frame-pointer',file,'-o',binary],{stdio:'inherit'});
   cp.execFileSync(binary,[],{stdio:'inherit',env:{...process.env,ASAN_OPTIONS:'detect_leaks=1',UBSAN_OPTIONS:'halt_on_error=1'}});
  } finally {fs.rmSync(dir,{recursive:true,force:true});}
- const reviewed=require('./session-transition-scope.cjs');
- for(const file of reviewed.files) {
-  const current=fs.readFileSync(file,'utf8'),old=cp.execFileSync('git',['cat-file','blob','96584ac:'+file],{encoding:'utf8'});
-  assert.equal(reviewed.normalize(file,current),old);
-  const unknown=current+'\n// unrelated edit\n';assert.equal(reviewed.normalize(file,unknown),unknown);
-  const mutated=current.replace(/15000|launchScope|startGame.pending/, 'unreviewedChange');
-  assert.equal(reviewed.normalize(file,mutated),mutated,'unknown changes are not hidden');
- }
- console.log('host_quit_test: 15 s deadline, confirmed closure, refusal, stuck host, cancellation, stale callbacks, no residual timers/callbacks and native scoped wiring PASS');
+ console.log('host_quit_test: 15 s deadline, confirmed closure, refusal, stuck host, cancellation, stale callbacks, no residual timers/callbacks and native wiring PASS');
 })().catch(e=>{console.error(e);process.exitCode=1;});

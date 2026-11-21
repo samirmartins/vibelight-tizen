@@ -97,8 +97,5 @@ async function checkPads(source) {
   const cases=await checkHttp(preflight?null:fs.readFileSync(HTTP,'utf8'));
   if(preflight){console.log('shared_paths_test: preflight; equivalent duplicated cleanup/connection operations, '+cases+' Play/Resume parameter/error cases; no conflicting behavior selected PASS');return;}
   const transitions=await checkPads(fs.readFileSync(PAD,'utf8'));
-  const scope=require('./shared-paths-scope.cjs');
-  for(const file of scope.files){const text=fs.readFileSync(file,'utf8');assert.strictEqual(scope.normalize(file,text),before(file));
-    assert.strictEqual(scope.normalize(file,text+'\n// unknown neighboring edit\n'),text+'\n// unknown neighboring edit\n');}
-  console.log('shared_paths_test: '+cases+' shared Play/Resume cases (54 before/after comparisons), coercion/order/return/errors; '+transitions+' production snapshot transitions; exact negative scope guards PASS');
+  console.log('shared_paths_test: '+cases+' shared Play/Resume cases (54 before/after comparisons), coercion/order/return/errors; '+transitions+' production snapshot transitions PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});
