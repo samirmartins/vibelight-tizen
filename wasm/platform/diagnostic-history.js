@@ -102,6 +102,11 @@ var DiagnosticHistory = (function() {
     var ms=coverage(record,field);
     return field[3] ? (ms > 0 ? n * 60000 / ms : null) : n;
   }
+  // One value in the units of the comparison table (counts per minute, never raw).
+  function metric(record,key) {
+    for (var i=0;i<fields.length;i++) if (fields[i][0]===key) return value(record,fields[i]);
+    return null;
+  }
   function compare(a,b) {
     if (!a || !b || a.id === b.id) throw Error('Two distinct records required');
     return fields.map(function(field) {
@@ -122,6 +127,6 @@ var DiagnosticHistory = (function() {
       ids.push(id); return true;
     }};
   }
-  return {key:key,legacyKey:legacyKey,create:create,valid:valid,compare:compare,fields:fields,selection:selection};
+  return {key:key,legacyKey:legacyKey,create:create,valid:valid,compare:compare,metric:metric,fields:fields,selection:selection};
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports=DiagnosticHistory;

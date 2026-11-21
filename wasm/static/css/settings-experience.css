@@ -95,6 +95,8 @@
 #aboutSettings #restoreDefaultsBtn { width:auto; min-width:140px; margin:0; }
 .diagnosis-dialog { width:86vw; max-width:1540px; max-height:93vh; padding:23px 28px; }
 .diagnosis-dialog .diagnosis-privacy { margin:6px 0 13px; font-size:17px; }
+.diagnosis-dialog .diagnosis-hints { margin:8px 0; padding:10px 14px; background:#2a3347; border-left:3px solid #e0b84f; font-size:18px; white-space:pre-line; }
+.diagnosis-dialog .diagnosis-hints:empty { display:none; }
 .diagnosis-table th { width:22%; white-space:normal; }
 .diagnosis-table td { font-variant-numeric:tabular-nums; }
 .diagnosis-table small { display:block; font-size:14px; color:#b9c7d7; }

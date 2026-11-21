@@ -5,6 +5,8 @@ var DiagnosticView=(function() {
   function el(id){return document.getElementById(id);}
   function tr(s){return typeof MenuI18n!=='undefined' ? MenuI18n.text(s) : s;}
   function node(tag,text,className){var n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(className)n.className=className;return n;}
+  // One suggestion per line, translated here; computed only when a record or comparison is opened.
+  function hintLines(hints){return hints.map(function(h){return tr(h.text);}).join('\n');}
   function fmt(n){return typeof n==='number' && isFinite(n) ? n.toFixed(Math.abs(n)>=100 ? 0 : 2) : tr('No data');}
   function duration(ms){return (Math.max(0,ms)/60000).toFixed(1)+' min';}
   function date(r){return r.legacy ? tr('Previous report') : new Date(r.createdAt).toLocaleString(typeof MenuI18n!=='undefined' ? MenuI18n.locale() : 'en',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
@@ -38,7 +40,7 @@ var DiagnosticView=(function() {
     el('diagnosisDialog').setAttribute('data-view',mode);
     ['diagnosisConfig','diagnosisDevice','diagnosisRows','diagnosisList'].forEach(function(id){el(id).setAttribute('data-i18n-skip','true');});
     el('diagnosisTitle').textContent=tr(title);
-    ['diagnosisConfig','diagnosisDevice','diagnosisRows','diagnosisFinding','diagnosisPeak','diagnosisFoot','diagnosisActions','diagnosisList'].forEach(function(id){el(id).textContent='';});
+    ['diagnosisConfig','diagnosisDevice','diagnosisRows','diagnosisFinding','diagnosisHints','diagnosisPeak','diagnosisFoot','diagnosisActions','diagnosisList'].forEach(function(id){el(id).textContent='';});
     el('diagnosisPrivacy').textContent=tr('Statistics stay on this TV. Nothing is sent. Last 10 session records.');
   }
   function addRows(rows){rows.forEach(function(row){var r=node('tr');r.appendChild(node('th',tr(row[0])));r.appendChild(node('td',tr(row[1])));el('diagnosisRows').appendChild(r);});}
@@ -79,6 +81,7 @@ var DiagnosticView=(function() {
     el('diagnosisConfig').textContent=context(current);el('diagnosisDevice').textContent=[current.device,settings(current)].filter(Boolean).join(' · ');
     addRows(details ? current.details : current.rows);
     el('diagnosisFinding').textContent=tr(current.finding || '');
+    if(!details && typeof DiagnosticHints!=='undefined')el('diagnosisHints').textContent=hintLines(DiagnosticHints.forRecord(current).hints);
     if(details){el('diagnosisPeak').textContent=tr(current.peak || '');el('diagnosisFoot').textContent=tr(current.foot || '');}
     else el('diagnosisActions').appendChild(button('diagnosisDetails','Technical details',function(){report(true);},!current.details.length));
     if(!details)el('diagnosisActions').appendChild(button('diagnosisDelete','Delete diagnosis',confirmDelete));
@@ -116,6 +119,7 @@ var DiagnosticView=(function() {
     });
     el('diagnosisFinding').textContent=tr('Differences B − A. Consider configuration, scene and recorded duration.')+
       (differences.length ? ' '+tr('Different settings')+': '+differences.map(function(k){return tr(k);}).join(', ') : '');
+    if(typeof DiagnosticHints!=='undefined')el('diagnosisHints').textContent=hintLines(DiagnosticHints.forComparison(a,b));
     var header=node('tr');['Metric','Session A','Session B','Difference B − A'].forEach(function(v){header.appendChild(node('th',tr(v)));});el('diagnosisRows').appendChild(header);
     DiagnosticHistory.compare(a,b).slice(page*8,page*8+8).forEach(function(r){
       var row=node('tr');row.appendChild(node('th',tr(r.label)));

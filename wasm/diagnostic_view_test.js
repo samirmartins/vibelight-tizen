@@ -12,7 +12,7 @@ function fixture(records){
     click(){if(!this.disabled && this.onclick)this.onclick();}
     querySelectorAll(){const found=[];function walk(n){if(n.tagName==='BUTTON'&&!n.disabled)found.push(n);n.children.forEach(walk);}this.children.forEach(walk);return found;}
   }
-  for(const id of ['diagnosisDialog','diagnosisTitle','diagnosisConfig','diagnosisDevice','diagnosisRows','diagnosisList','diagnosisPrivacy','diagnosisFinding','diagnosisPeak','diagnosisFoot','diagnosisActions'])roots[id]=new Element();
+  for(const id of ['diagnosisDialog','diagnosisTitle','diagnosisConfig','diagnosisDevice','diagnosisRows','diagnosisList','diagnosisPrivacy','diagnosisFinding','diagnosisHints','diagnosisPeak','diagnosisFoot','diagnosisActions'])roots[id]=new Element();
   roots.diagnosisDialog.children=Object.values(roots).filter(n=>n!==roots.diagnosisDialog);
   const find=id=>roots[id] || roots.diagnosisDialog.querySelectorAll().find(n=>n.id===id);
   const storage=new Map(),calls=[];
@@ -25,7 +25,7 @@ function fixture(records){
     fetch(){throw Error('view sent a request');},XMLHttpRequest(){throw Error('view sent a request');},
     setTimeout(){throw Error('view started a collector');},Module:{setDiagnostics(){throw Error('view started native collection');}}};
   vm.createContext(c);
-  for(const name of ['diagnostic-history','diagnostic-view'])vm.runInContext(fs.readFileSync('wasm/platform/'+name+'.js','utf8'),c);
+  for(const name of ['diagnostic-history','diagnostic-hints','diagnostic-view'])vm.runInContext(fs.readFileSync('wasm/platform/'+name+'.js','utf8'),c);
   storage.set(c.DiagnosticHistory.key,JSON.stringify({version:2,records}));
   return {c,find,roots,calls,focus:()=>active&&active.id};
 }
@@ -62,5 +62,55 @@ check('empty, legacy and unavailable fields',()=>{
   const g=fixture([legacy]);g.c.DiagnosticView.latest();
   assert(!g.roots.diagnosisDevice.textContent.includes('4.0.2'),'legacy data cannot inherit the running version');
 });
+// Suggestions come only from the stored summaries and only when a record or comparison is opened.
+const long=(id,metrics={},config={},game='Artificial game '+id)=>({...record(id,config),game,recordedMs:300000,durationMs:300000,nativeMs:300000,
+  metrics:{lossPercent:0.1,rttVariation:2,audioUnderruns:0,audioOverruns:0,clientRejects:0,browserDrops:0,...metrics}});
+const GAPS='Frame gaps reached 2%. This often points to network loss. A wired connection or 5 GHz Wi-Fi may help; a lower bitrate can reduce gaps at the cost of image detail.';
+check('suggestion in a saved record',()=>{
+  const f=fixture([long(1,{lossPercent:2})]);f.c.DiagnosticView.latest();
+  assert.equal(f.roots.diagnosisHints.textContent,GAPS);
+  f.find('diagnosisDetails').click();
+  assert.equal(f.roots.diagnosisHints.textContent,'','technical details carry no suggestion');
+  f.find('diagnosisClose').click();
+  assert.equal(f.roots.diagnosisHints.textContent,GAPS,'back on the record the suggestion returns');
+});
+check('several suggestions, one per line',()=>{
+  const f=fixture([long(1,{lossPercent:2,rttVariation:12})]);f.c.DiagnosticView.latest();
+  const lines=f.roots.diagnosisHints.textContent.split('\n');
+  assert.equal(lines.length,2);
+  assert(lines[0].startsWith('Frame gaps reached 2%.') && lines[1].startsWith('Network latency varied by 12 ms.'));
+});
+check('stable recording says nothing needs changing',()=>{
+  const f=fixture([long(1)]);f.c.DiagnosticView.latest();
+  assert.equal(f.roots.diagnosisHints.textContent,'No problem found in this recording. There is nothing to adjust.');
+});
+check('no suggestion for short, partial-data or legacy records',()=>{
+  const short=fixture([record(1)]);short.c.DiagnosticView.latest();assert.equal(short.roots.diagnosisHints.textContent,'');
+  const legacy=record(1);legacy.legacy=true;legacy.config={};
+  const old=fixture([legacy]);old.c.DiagnosticView.latest();assert.equal(old.roots.diagnosisHints.textContent,'');
+  const list=fixture([long(1,{lossPercent:9})]);list.c.DiagnosticView.history();
+  assert.equal(list.roots.diagnosisHints.textContent,'','the history list shows none');
+});
+check('comparison suggestion by bitrate',()=>{
+  const f=fixture([long(2,{lossPercent:2},{bitrate:80},'Same game'),long(1,{lossPercent:0.2},{bitrate:50},'Same game')]);
+  f.c.DiagnosticView.history();f.find('diagnosis-record-0').click();f.find('diagnosis-record-1').click();
+  f.find('diagnosisCompare').click();
+  assert.equal(f.roots.diagnosisHints.textContent,'With 80 Mbps frame gaps reached 2%; with 50 Mbps they were 0.2%. The lower bitrate gives less image detail.');
+  f.find('diagnosisClose').click();
+  assert.equal(f.roots.diagnosisHints.textContent,'','leaving the comparison clears it');
+  const other=fixture([long(2,{lossPercent:2},{bitrate:80}),long(1,{lossPercent:0.2},{bitrate:50})]);   // different games
+  other.c.DiagnosticView.history();other.find('diagnosis-record-0').click();other.find('diagnosis-record-1').click();
+  other.find('diagnosisCompare').click();
+  assert.equal(other.roots.diagnosisHints.textContent,'');
+  const same=fixture([long(2,{lossPercent:2},{bitrate:50},'Same game'),long(1,{lossPercent:0.2},{bitrate:50},'Same game')]);
+  same.c.DiagnosticView.history();same.find('diagnosis-record-0').click();same.find('diagnosis-record-1').click();
+  same.find('diagnosisCompare').click();
+  assert.equal(same.roots.diagnosisHints.textContent,'');
+});
+check('the view stays offline and inert',()=>{
+  // The fixture throws on fetch, XMLHttpRequest, setTimeout and native collection.
+  const f=fixture([long(1,{lossPercent:2}),long(2,{lossPercent:0.1},{bitrate:20})]);
+  f.c.DiagnosticView.history();f.find('diagnosis-record-0').click();f.find('diagnosis-record-1').click();f.find('diagnosisCompare').click();
+});
 if(failures)process.exitCode=1;
-else console.log('diagnostic_view_test: saved configuration, A/B values, return focus, legacy and offline consultation PASS');
+else console.log('diagnostic_view_test: saved configuration, A/B values, return focus, legacy and offline consultation, local suggestions PASS');
