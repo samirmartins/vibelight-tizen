@@ -2,9 +2,8 @@
 // Compile the real DOM input handlers. Browser notifications and host transport
 // are boundaries; this does not simulate the Samsung decoder or prove TV behavior.
 const fs=require('fs'),cp=require('child_process'),os=require('os'),path=require('path'),assert=require('assert');
-const existing=fs.readFileSync('wasm/input_focus_test.js','utf8');
-let fixture=existing.slice(existing.indexOf('const fixture = `')+'const fixture = `'.length,existing.indexOf('`;\nconst tests = `'));
-assert(fixture.startsWith('\n#include'));
+let fixture=fs.readFileSync('wasm/fixtures/input-stubs.cpp','utf8');
+assert(fixture.includes('\n#include'));
 fixture=fixture.replace('extern "C" void LiRequestIdrFrame(void) {}','int idrs=0,locks=0;\nextern "C" void LiRequestIdrFrame(void) { ++idrs; }')
  .replace('void emscripten_request_pointerlock(const char*, bool) {}','void emscripten_request_pointerlock(const char*, bool) { ++locks; }');
 const tests=`

@@ -1,7 +1,7 @@
 'use strict';
 // Exercise production menu ordering and bounded cover retention after a stream.
 const assert=require('assert'),fs=require('fs'),vm=require('vm');
-const fixture=require('./library_cover_cache_test.js').fixture;
+const fixture=require('./fixtures/console-library.cjs').fixture;
 const flush=async()=>{for(let i=0;i<350;i++)await Promise.resolve();};
 (async()=>{
   const ordered=fixture(4);let ready;

@@ -2,7 +2,7 @@
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process');
 const file='wasm/platform/console-library.js',source=fs.readFileSync(file,'utf8');
 const baseline=cp.execFileSync('git',['show','97c158e:'+file],{encoding:'utf8'});
-const fixture=(n=4,options={})=>require('./library_cover_cache_test.js').fixture(n,undefined,options);
+const fixture=(n=4,options={})=>require('./fixtures/console-library.cjs').fixture(n,undefined,options);
 const key='moonlight.console.v1',focusKey=key+'.focus';
 function selected(f){return Array.from(f.node('game-grid').children).filter(card=>card.tabIndex===0).map(card=>Number(card.dataset.appId));}
 function view(f){return JSON.stringify({title:f.node('libraryTitle').textContent,play:f.node('libraryPlay').textContent,

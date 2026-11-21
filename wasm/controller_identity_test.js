@@ -1,7 +1,7 @@
 'use strict';
 // Production browser snapshots and native sender; no real device or host.
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process'),path=require('path'),os=require('os');
-const prefix=fs.readFileSync('wasm/gamepad_snapshot_test.js','utf8').split('// A physical index hole')[0];
+const prefix=fs.readFileSync('wasm/fixtures/gamepad-snapshot-prelude.js','utf8');
 const out={};
 vm.runInNewContext(prefix+`
  output.c=context;output.pad=pad;output.heap=heap32;output.listeners=listeners;

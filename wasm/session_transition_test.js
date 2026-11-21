@@ -1,8 +1,7 @@
 'use strict';
 // Execute the real launcher/lifecycle and menu switch with deferred native stop.
 const assert=require('assert'),fs=require('fs'),vm=require('vm');
-const source=fs.readFileSync('wasm/app_lifecycle_test.js','utf8');
-const prelude=source.slice(0,source.lastIndexOf('\n(async()=>{')); 
+const prelude=fs.readFileSync('wasm/fixtures/app-lifecycle-prelude.js','utf8');
 const h={require,console};vm.createContext(h);vm.runInContext(prelude+'\nglobalThis.makeFixture=fixture;globalThis.runLauncher=realLauncher;',h);
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
 function make() {

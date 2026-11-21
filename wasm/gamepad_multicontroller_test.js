@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('fs'),vm=require('vm');
-const prefix=fs.readFileSync('wasm/gamepad_snapshot_test.js','utf8').split('// A physical index hole')[0];
+const prefix=fs.readFileSync('wasm/fixtures/gamepad-snapshot-prelude.js','utf8');
 vm.runInNewContext(prefix+`
  const failures=[];
  const secondActuator={playEffect(type,effect){rumbleCalls.push({pad:2,effect});return {then(ok,bad){failures.push(bad);}};},reset(){rumbleCalls.push({pad:2,type:'reset'});}};

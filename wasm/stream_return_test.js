@@ -1,7 +1,7 @@
 'use strict';
 // Real menu, host coordinator and lifecycle; synthetic native completion/HTTP.
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process');
-const {setup}=require('./host_availability_test.js');
+const {setup}=require('./fixtures/host-availability.cjs');
 const native=fs.readFileSync('wasm/main.cpp','utf8');
 const afterStop=native.slice(native.indexOf('  // Last instance access:'));
 const bridge=afterStop.match(/m_StopComplete\.store\(true[^;]+;\s*MAIN_THREAD_ASYNC_EM_ASM\(\{([\s\S]*?)\n  \}, generation\);/);

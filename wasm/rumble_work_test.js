@@ -2,7 +2,7 @@
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process');
 const file='wasm/platform/gamepad.js',current=fs.readFileSync(file,'utf8');
 const baseline=cp.execFileSync('git',['show','v3.4.4:'+file],{encoding:'utf8'});
-const prefix=fs.readFileSync('wasm/gamepad_snapshot_test.js','utf8').split('// A physical index hole')[0]
+const prefix=fs.readFileSync('wasm/fixtures/gamepad-snapshot-prelude.js','utf8')
   .replace("fs.readFileSync('wasm/platform/gamepad.js', 'utf8')",'source');
 function run(source,body) {
   const output={};

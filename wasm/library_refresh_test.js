@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('assert');
-const {fixture}=require('./library_cover_cache_test.js');
+const {fixture}=require('./fixtures/console-library.cjs');
 (async()=>{
  const f=fixture();await f.open();let lists=0,reloads=0;
  f.c.location={reload(){reloads++;}};

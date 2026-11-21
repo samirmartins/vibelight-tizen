@@ -21,4 +21,11 @@ for (const file of fs.readdirSync('wasm').filter(name => name.endsWith('_test.js
   for (const match of text.matchAll(/(?:BASE|reference) ?= ?'(v[0-9.]+|[0-9a-f]{7,40})'/g)) used.add(match[1]);
 }
 assert.deepStrictEqual(runner[1].trim().split(/\s+/).sort(), [...used].sort(), 'run-tests.sh history references match the tests');
-console.log('test_runner_test: completion, unfinished promises, early exit, rejection, timeout and history reference list OK');
+// Tests are independent: shared setup lives in wasm/fixtures/, never inside
+// another test file (no require of, or source slicing from, another *_test.js).
+for (const file of fs.readdirSync('wasm').filter(name => name.endsWith('_test.js'))) {
+  const text = fs.readFileSync('wasm/' + file, 'utf8');
+  const others = [...text.matchAll(/['"](?:\.\/|wasm\/)([a-z0-9_]+_test\.js)['"]/g)].map(m => m[1]).filter(name => name !== file);
+  assert.deepStrictEqual(others, [], file + ' uses another test file instead of a fixture');
+}
+console.log('test_runner_test: completion, unfinished promises, early exit, rejection, timeout, history reference list and independent tests OK');

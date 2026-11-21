@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process');
-const {fixture}=require('./library_cover_cache_test.js');
+const {fixture}=require('./fixtures/console-library.cjs');
 function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};}
 (async()=>{
   // Disk cache must be visible before the first server response, including a

@@ -26,6 +26,9 @@ approved, tested change to one of these files, run
 change, never separately or to silence an unexplained failure. The CMake project
 version line is excluded and checked against `res/config.xml` instead. Menus and
 interface code are covered by behavioral tests, not by source freezes.
+Shared setup lives in `wasm/fixtures/` (modules, script preludes and native
+stubs); a test never imports or slices another test file, which
+`test_runner_test.js` enforces.
 Dependencies: Node.js 22, GCC/G++, FFmpeg with libx264, OpenSSL development headers
 and Git/GNU timeout. Native fixtures use ASan/UBSan.
 The runner checks completion markers, rejects unhandled rejections, bounds each

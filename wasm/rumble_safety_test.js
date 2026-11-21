@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('fs'), vm = require('vm'), cp = require('child_process'), assert = require('assert');
 // Reuse the input fixture; each scenario gets isolated state and fake time.
-const prefix = fs.readFileSync('wasm/gamepad_snapshot_test.js', 'utf8').split('// A physical index hole')[0]
+const prefix = fs.readFileSync('wasm/fixtures/gamepad-snapshot-prelude.js','utf8')
   .replace("fs.readFileSync('wasm/platform/gamepad.js', 'utf8')", 'source');
 const current = fs.readFileSync('wasm/platform/gamepad.js', 'utf8');
 function run(body, source = current) {

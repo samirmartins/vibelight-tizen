@@ -2,7 +2,7 @@
 // Production request scope, callback bridge, NvHTTP parser and quit coordinator.
 // Synthetic HTTP/clock; native cancellation/deadline wiring is checked below.
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process'),path=require('path'),os=require('os');
-const {setup}=require('./host_availability_test.js');
+const {setup}=require('./fixtures/host-availability.cjs');
 function fixture(options={}) {
  const f=setup(),c=f.c;let now=0,id=1,info=0;const timers=new Map(),jobs=[];
  c.Date=class extends Date {static now(){return now;}};

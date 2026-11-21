@@ -4,7 +4,7 @@ const {Worker}=require('worker_threads');
 const file='wasm/platform/gamepad.js';
 const current=fs.readFileSync(file,'utf8');
 const baseline=cp.execFileSync('git',['show','v3.4.3:'+file],{encoding:'utf8'});
-const prefix=fs.readFileSync('wasm/gamepad_snapshot_test.js','utf8').split('// A physical index hole')[0]
+const prefix=fs.readFileSync('wasm/fixtures/gamepad-snapshot-prelude.js','utf8')
   .replace("fs.readFileSync('wasm/platform/gamepad.js', 'utf8')",'source')
   .replace('  Atomics,','  Atomics: trackedAtomics,');
 function fixture(source) {

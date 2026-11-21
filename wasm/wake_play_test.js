@@ -1,7 +1,7 @@
 'use strict';
 // Real menu functions; controlled replies are not a TV/Sunshine emulator.
 const assert=require('assert'),fs=require('fs'),cp=require('child_process');
-const {fixture}=require('./library_cover_cache_test.js');
+const {fixture}=require('./fixtures/console-library.cjs');
 function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};}
 async function tick(f,ms){const entry=[...f.timers].find(([,t])=>t.ms===ms);assert(entry,'timer '+ms);f.timers.delete(entry[0]);entry[1].fn();await f.flush();}
 function setup(){

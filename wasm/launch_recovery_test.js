@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('assert'),fs=require('fs'),vm=require('vm');
-const prelude=fs.readFileSync('wasm/app_lifecycle_test.js','utf8').split('\n(async()=>{')[0];
+const prelude=fs.readFileSync('wasm/fixtures/app-lifecycle-prelude.js','utf8');
 const h={require,console};vm.createContext(h);vm.runInContext(prelude+'\nglobalThis.make=fixture;globalThis.launch=realLauncher;',h);
 (async()=>{
  for(const resume of [false,true])for(const audio of ['Stereo','51Surround','71Surround']){

@@ -64,7 +64,7 @@ async function checkHttp(current) {
   }
   return count;
 }
-const prefix=fs.readFileSync('wasm/gamepad_snapshot_test.js','utf8').split('// A physical index hole')[0]
+const prefix=fs.readFileSync('wasm/fixtures/gamepad-snapshot-prelude.js','utf8')
   .replace("fs.readFileSync('wasm/platform/gamepad.js', 'utf8')",'source');
 function padFixture(source) {
   const out={};vm.runInNewContext(prefix+`
