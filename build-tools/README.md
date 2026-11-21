@@ -175,9 +175,15 @@ submission do not establish Samsung presentation timing, latency or A/V sync.
 Optional seeded stress is separate from the core runner. The existing JS fixtures
 accept `ML_STARTUP_CASES`, `ML_RUMBLE_FRAMES`, `ML_AUDIO_SECONDS`,
 `ML_LIFECYCLE_CYCLES` and `ML_STRESS_SEED`; defaults keep the normal core bounded.
-`protocol-fuzz.cpp` is an optional ASan/UBSan driver for the real RTSP/SPS parsers,
-not linked into the application. The maintainer's local coordinator builds it,
-supplies bounded synthetic seeds, preserves failing inputs and runs TSan separately.
+`protocol-fuzz.cpp` is an ASan/UBSan/LSan driver for the real RTSP/SPS parsers,
+not linked into the application. `protocol_fuzz_test.js` builds it, derives the
+seeds (a minimal RTSP reply and a real libx264 SPS) and runs 400 deterministic
+mutations per parser in the core suite on x86 and in CI. On ARM the per-case
+leak scan of GCC 12's static ASan runtime costs seconds, so the default run is
+skipped there with an explicit notice; `ML_FUZZ_CASES=<n>` runs it anyway.
+`ML_STRESS_SEED`, `ML_FUZZ_TARGETS`, `ML_FUZZ_REPLAY` and `ML_FUZZ_CASE_DIR`
+select the seed, parser, replay case and where the last case is kept; the
+maintainer's local stress coordinator reuses this test with a larger budget.
 The reproduced duplicate-RTSP-header leak, truncated-header out-of-bounds read
 and H.264 Exp-Golomb/array-bound failures are covered by defensive repairs and
 regression tests. Valid SPS decoding preserves pixels, profile, level and references.
