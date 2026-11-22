@@ -17,7 +17,7 @@
     "wasm/platform/audio-worklet.js": "683da08d9e844deafb495aa255c89502961468a3587fa22a5be5aca9e3c03368",
     "wasm/platform/audio.js": "3308b56e5af8c932958299ba39252ea641564c0187cbdb5f99ed2682a8ab38a3",
     "wasm/platform/diagnostics.js": "bd7afe11923a5bb454837d3f51f211a91285ada1e2a37d1cb4d60f0ecf61cc40",
-    "wasm/platform/display.js": "0164d03e3dc359691deed0d9ed22336e306c402e4e854308c776eeeacfd07c6b",
+    "wasm/platform/display.js": "26b2be0f2eb69747499424a37d1be234789c52a0aa9cf8a61a702d58df38c1a6",
     "wasm/platform/gamepad.js": "7911117858a07ead64632e2038ca88433158115ade5dcf6ccf7b3bd23128244d",
     "wasm/session_lifecycle.hpp": "a7cdc6dad041eec15b68994212f699db5dc7920488150883738528a80ef516e5",
     "wasm/video_telemetry.hpp": "a0b5bcf59afa0196da2f7bbbaee5e7d03967cddec2bd86d14df6eeb0b1fec840",

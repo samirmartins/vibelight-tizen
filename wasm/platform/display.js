@@ -13,6 +13,7 @@ var _displayRefreshSamples = [];
 var _displayRefreshRaf = 0;
 var _displayRefreshLast = 0;
 var _displayRefreshDeadline = 0;
+var _displayRefreshListeners = [];
 
 // Stream/display telemetry. Presentation callbacks are enabled only while the
 // performance overlay is visible, so normal gameplay pays no per-frame JS cost.
@@ -77,10 +78,25 @@ function _displayFinishRefreshEstimate() {
     _displayRefreshX100 = Math.round(hz * 100);
     window._mlDisplayRefreshX100 = _displayRefreshX100;
     window._mlDisplayRefreshRawHz = _displayRefreshRawHz;
+    _displayNotifyRefresh();
     console.log('%c[display.js]', 'color: green;',
       'Measured display cadence: ' + _displayRefreshRawHz.toFixed(3) + ' Hz; reporting ' +
       (_displayRefreshX100 / 100).toFixed(2) + ' Hz');
   }
+}
+
+// Tells a listener the measured refresh (hundredths of Hz) now and after every later measurement.
+// A failing listener never stops the others or the measurement.
+function _displayNotifyRefresh(only) {
+  var targets = only ? [only] : _displayRefreshListeners.slice();
+  for (var i = 0; i < targets.length; i++) {
+    try { targets[i](_displayRefreshX100); } catch (e) { /* listeners are optional */ }
+  }
+}
+function onDisplayRefreshMeasured(listener) {
+  if (typeof listener !== 'function') return;
+  _displayRefreshListeners.push(listener);
+  if (_displayRefreshX100 > 0) _displayNotifyRefresh(listener);
 }
 
 function startDisplayRefreshEstimator() {
