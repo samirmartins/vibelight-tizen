@@ -167,10 +167,10 @@ if (typeof module !== 'undefined' && module.exports) {
 NvHTTP.prototype = {
   // Stopping a menu scope clears deadlines and suppresses XML/fallbacks.
   // Never cancel a global HTTP job from a menu timeout during a stream.
-  refreshServerInfoScoped: function(address, scope) {
+  refreshServerInfoScoped: function(address, scope, timeoutMs) {
     var self = this;
     var base = formatAddressForUrl(address);
-    var timeout = 4500;
+    var timeout = timeoutMs > 0 ? timeoutMs : 4500;
     function read(secure) {
       if (!scope.active) return Promise.reject(new Error('Menu request cancelled'));
       var url = (secure ? 'https://' : 'http://') + base + ':' +
@@ -210,8 +210,10 @@ NvHTTP.prototype = {
       if (self[key] !== undefined) probe[key] = self[key];
     });
     var fresh = createMenuRequestScope(), rejectAttempt;
+    var stopProbing = null;
     var owner = { cancel: function() {
       fresh.cancel();
+      if (stopProbing) stopProbing();
       if (rejectAttempt) rejectAttempt(new Error('Connection cancelled'));
     } };
     // Runtime ownership must never enter persisted host records.
@@ -223,14 +225,18 @@ NvHTTP.prototype = {
       rejectAttempt = reject;
       var select = function() {
         if (!current()) { reject(new Error('Connection cancelled')); return; }
-        probe.selectServerAddress(resolve, function() { reject(new Error('PC did not respond')); }, fresh);
+        stopProbing = probe.selectServerAddress(resolve, function(info) {
+          var error = new Error('PC did not respond');
+          if (info && info.tried) error.tried = info.tried;
+          reject(error);
+        }, fresh);
       };
       var waiting = typeof AppLifecycle !== 'undefined' ? AppLifecycle.waitForStreamStop(fresh) : null;
       if (waiting) waiting.then(select, reject); else select();
     });
     operation.cancel = owner.cancel;
-    // Five deduplicated candidates, each bounded to 4.5 s plus callback grace.
-    // A stale first IP must not consume the whole round before hostname lookup.
+    // Up to five deduplicated candidates, probed with a short stagger under one shared deadline (see
+    // selectServerAddress): a stale first IP delays nobody and a slow PC still has the whole budget.
     var parent = scope || createMenuRequestScope();
     var result = parent.request(function() { return operation; }, 26000).then(function(address) {
       if (!current()) throw new Error('Connection cancelled');
@@ -254,6 +260,7 @@ NvHTTP.prototype = {
     result = result.then(function(value) { cleanup(); return value; }, function(error) { cleanup(); throw error; });
     function cleanup() {
       fresh.cancel();
+      if (stopProbing) stopProbing();
       if (self._connectionAttempt === owner) self._connectionAttempt = null;
     }
     result.cancel = owner.cancel;
@@ -286,8 +293,8 @@ NvHTTP.prototype = {
   },
 
   // Refreshes the server info using a given address. This is useful for testing whether we can successfully ping a host at a given address
-  refreshServerInfoAtAddress: function(givenAddress, scope) {
-    if (scope) return this.refreshServerInfoScoped(givenAddress, scope);
+  refreshServerInfoAtAddress: function(givenAddress, scope, timeoutMs) {
+    if (scope) return this.refreshServerInfoScoped(givenAddress, scope, timeoutMs);
     var urlAddr = formatAddressForUrl(givenAddress);
     var secure = this.ppkstr != null;
     this._authenticatedOnline = false;
@@ -386,24 +393,41 @@ NvHTTP.prototype = {
     addCandidate(localSuffix);
     addCandidate(this.externalIP);
 
-    var tryNext = function(index) {
-      if (scope && !scope.active) return;
-      if (index >= candidates.length) {
-        console.error('%c[utils.js, selectServerAddress]', 'color: gray;', 'Operation failed; private details omitted.');
-        onFailure();
-        return;
-      }
-      var addr = candidates[index];
-      var probe = this.refreshServerInfoAtAddress(addr, scope);
-      probe.then(function() {
-        if (scope && !scope.active) return;
+    // The candidates are probed in preference order, each starting a short stagger after the previous one (or at once
+    // when the previous failed), all under the caller's shared deadline. The first valid answer wins. A PC that is alive
+    // but slow is found instead of being given up on after a few seconds per address, and a dead address delays nobody.
+    var STAGGER_MS = 300, PROBE_TIMEOUT_MS = 24000;
+    var started = 0, failed = 0, finished = false, staggerTimer = 0;
+    var finish = function() {
+      finished = true;
+      if (staggerTimer) { clearTimeout(staggerTimer); staggerTimer = 0; }
+    };
+    var startNext = function() {
+      if (staggerTimer) { clearTimeout(staggerTimer); staggerTimer = 0; }
+      if (finished || (scope && !scope.active)) { finish(); return; }
+      if (started >= candidates.length) return;
+      var addr = candidates[started++];
+      this.refreshServerInfoAtAddress(addr, scope, PROBE_TIMEOUT_MS).then(function() {
+        if (finished || (scope && !scope.active)) return;
+        finish();
         onSuccess(addr);
-      }.bind(this), function() {
-        tryNext.call(this, index + 1);
+      }, function() {
+        if (finished || (scope && !scope.active)) return;
+        failed++;
+        if (failed >= candidates.length) {
+          finish();
+          console.error('%c[utils.js, selectServerAddress]', 'color: gray;', 'Operation failed; private details omitted.');
+          onFailure({ tried: candidates.length });
+          return;
+        }
+        startNext.call(this); // a failed address hands over at once
       }.bind(this));
+      if (started < candidates.length) staggerTimer = setTimeout(startNext.bind(this), STAGGER_MS);
     }.bind(this);
 
-    tryNext(0);
+    if (!candidates.length) { onFailure({ tried: 0 }); return finish; }
+    startNext();
+    return finish; // stops the probing and its timer (used when the attempt ends or is cancelled)
   },
 
   toString: function() {

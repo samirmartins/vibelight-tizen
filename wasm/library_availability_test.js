@@ -67,10 +67,10 @@ function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve
   c.sendMessage=(name,args)=>{requests.push({name,args});return args[0].includes('new-fixture.local')?Promise.resolve('verified fixture'):Promise.reject(Error('unavailable'));};
   let scope=c.createMenuRequestScope();scope.serverInfoTimeoutMs=1500;
   assert.strictEqual(await host.connect(scope),'new-fixture.local');
-  assert.strictEqual(requests.length,3);assert(requests.every(r=>r.name==='openUrlScoped'&&r.args[0].startsWith('https://')&&r.args[1]===host.ppkstr&&r.args[3]===4500));
+  assert.strictEqual(requests.length,3);assert(requests.every(r=>r.name==='openUrlScoped'&&r.args[0].startsWith('https://')&&r.args[1]===host.ppkstr&&r.args[3]===24000));
   assert(!requests.some(r=>r.args[0].includes('wan.fixture.invalid')));assert.strictEqual(timers.size,0);
   requests=[];scope=c.createMenuRequestScope();await host.connect(scope);
-  assert(requests.every(r=>r.args[3]===4500));assert.strictEqual(timers.size,0);
+  assert(requests.every(r=>r.args[3]===24000));assert.strictEqual(timers.size,0);
   c.sendMessage=()=>Promise.resolve('wrong server');
   await assert.rejects(host.connect(c.createMenuRequestScope()));assert.strictEqual(host._authenticatedOnline,false);
   assert.strictEqual(timers.size,0);

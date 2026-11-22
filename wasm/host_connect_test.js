@@ -26,7 +26,7 @@ const flush=async()=>{for(let i=0;i<100;i++)await Promise.resolve();};
   host._parseServerInfo=()=>{throw Error('stale instance parser must not be inherited');};
   const saved=JSON.stringify([host.ppkstr,host.clientUid,host.wakeMacOverride,host._memCachedApplist]);
   c.sendMessage=(name,args)=>{
-    assert.strictEqual(name,'openUrlScoped');assert.strictEqual(args[1],host.ppkstr);assert.strictEqual(args[3],4500);
+    assert.strictEqual(name,'openUrlScoped');assert.strictEqual(args[1],host.ppkstr);assert.strictEqual(args[3],24000);
     requests.push(args[0]);return args[0].includes('fixture.local:')?Promise.resolve(info()):Promise.reject(Error('old address'));
   };
   assert.strictEqual(await host.connect(c.createMenuRequestScope()),'fixture.local');
@@ -63,11 +63,11 @@ const flush=async()=>{for(let i=0;i<100;i++)await Promise.resolve();};
     assert.strictEqual(host._authenticatedOnline,false);assert.strictEqual(host.httpsPort,47984);assert.strictEqual(timers.size,0);
   }
   c.sendMessage=()=>Promise.resolve(info());await host.connect(c.createMenuRequestScope());assert(host._authenticatedOnline);
-  // Per-request timeout advances to the next startup candidate; a total bound
+  // The candidates are probed with a stagger under one shared bound; the total bound
   // settles and cancels all outstanding work, without leaving retry machinery.
   c.sendMessage=()=>{const p=new Promise(()=>{});p.cancel=()=>cancelled++;return p;};
   scope=c.createMenuRequestScope();const bounded=host.connect(scope).catch(e=>e.message);
-  const per=[...timers].find(([,t])=>t.ms===5000);timers.delete(per[0]);per[1].fn();await flush();
+  await flush();
   const total=[...timers].find(([,t])=>t.ms===26000);assert(total);timers.delete(total[0]);total[1].fn();
   assert.match(await bounded,/respond/);assert(!host._authenticatedOnline);assert.strictEqual(timers.size,0);
   c.isInGame=true;let calls=0;c.sendMessage=()=>{calls++;return Promise.resolve(info());};

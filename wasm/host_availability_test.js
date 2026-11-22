@@ -12,7 +12,7 @@ const {setup,retry}=require('./fixtures/host-availability.cjs');
   assert.strictEqual(f.host.httpsPort,47984,'boot metadata cannot erase port');
   assert.strictEqual(f.node('libraryPlay').textContent,'Play');assert.strictEqual(f.timers.size,0);
   assert(f.requests[0][0].includes('/serverinfo?'),'startup serverinfo is the connection prerequisite');
-  assert(f.requests.filter(a=>a[0].includes('/serverinfo?')).every(a=>a[3]===4500));
+  assert(f.requests.filter(a=>a[0].includes('/serverinfo?')).every(a=>a[3]===24000));
   // The same running client survives another off/on cycle and accepts zero games.
   f.state='off';await f.c.ConsoleLibrary.open(f.host);await f.flush();assert(!f.host.online);
   f.state='malformed';await retry(f);assert(f.host.online);assert.match(f.node('libraryStatus').textContent,/Games unavailable/);assert.strictEqual(f.host._memCachedApplist.length,1,'bad response cannot replace last good cache');
