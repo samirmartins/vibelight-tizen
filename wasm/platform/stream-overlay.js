@@ -529,6 +529,7 @@ var StreamOverlay = (function() {
   function openText() {
     if (busy || !textInput) return;
     textOpen = true;
+    textButton = 1;
     errorText = '';
     textInput.value = '';
     list.hidden = true;
@@ -630,10 +631,23 @@ var StreamOverlay = (function() {
     FocusManager.select(target);
   }
 
+  // Typed text: the field on top, Send and Back side by side below it. Up and down switch between the
+  // field and the button row and return to the button they left.
+  var textButton = 1;
+  function stepTextRow() {
+    var current = FocusManager.index();
+    if (current === 0) FocusManager.select(textButton);
+    else { textButton = current; FocusManager.select(0); }
+  }
+
   function step(direction) {
     if (busy) return;
     if (shortcutsOpen && (direction === 'up' || direction === 'down')) {
       stepShortcutRow(direction === 'down');
+      return;
+    }
+    if (textOpen && (direction === 'up' || direction === 'down')) {
+      stepTextRow();
       return;
     }
     if (confirm || shortcutsOpen || textOpen) {

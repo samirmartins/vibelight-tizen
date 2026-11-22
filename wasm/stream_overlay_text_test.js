@@ -53,13 +53,19 @@ function opened(options = {}) {
   f.press({0: true}); f.release();
   assert(input.focused >= 1 && input.clicked === 1, 'OK focuses the field and clicks it to open the keyboard');
   assert.strictEqual(f.c.StreamOverlay.isOpen(), true);
-  // Down/up move between the field, Send and Back.
-  f.press({13: true}); f.release();
-  assert.strictEqual(f.c.FocusManager.index(), 1);
-  f.press({13: true}); f.release();
-  assert.strictEqual(f.c.FocusManager.index(), 2);
-  f.press({12: true}); f.release();
-  assert.strictEqual(f.c.FocusManager.index(), 1);
+  // Layout: the field on top, Send and Back side by side below it. Down and up move between the
+  // field and the row of buttons; left and right move inside the row.
+  const at = () => f.c.FocusManager.index();
+  const tap = pad => { f.press({[pad]: true}); f.release(); };
+  tap(13); assert.strictEqual(at(), 1, 'down from the field: Send');
+  tap(15); assert.strictEqual(at(), 2, 'right: Back');
+  tap(12); assert.strictEqual(at(), 0, 'up from Back: the field');
+  tap(13); assert.strictEqual(at(), 2, 'down returns to Back, the button it left');
+  tap(13); assert.strictEqual(at(), 0, 'down from the row wraps to the field');
+  tap(12); assert.strictEqual(at(), 2, 'up from the field: the row, same button');
+  tap(14); assert.strictEqual(at(), 1, 'left: Send');
+  tap(13); assert.strictEqual(at(), 0);
+  tap(12); assert.strictEqual(at(), 1, 'up from the field returns to Send, now the last button');
 }
 
 // Send: the text goes to the PC in UTF-8, the field is cleared and the menu closes.
@@ -102,7 +108,7 @@ for (const how of ['b', 'button']) {
   t.enter();
   node('streamOverlayTextInput').value = 'senha secreta';
   if (how === 'b') { f.press({1: true}); f.release(); }
-  else { f.press({13: true}); f.release(); f.press({13: true}); f.release(); f.press({0: true}); f.release(); }
+  else { f.press({13: true}); f.release(); f.press({15: true}); f.release(); f.press({0: true}); f.release(); }
   assert.strictEqual(node('streamOverlayActions').hidden, false, how);
   assert.strictEqual(node('streamOverlayText').hidden, true, how);
   assert.strictEqual(node('streamOverlayTextInput').value, '', how + ': the text is forgotten');
