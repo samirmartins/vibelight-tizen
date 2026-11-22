@@ -93,6 +93,19 @@ const stored = e => JSON.parse(e.store.get(KEY) || '{"hosts":{}}');
   assert.strictEqual(e.store.has(KEY), false);
 }
 
+// The TV remote also "clicks" the focused element after the key was handled. That click must not
+// change a row: the popup opens on Default, and one OK press moves exactly one step.
+{
+  const e = env();
+  e.menu.open(request());
+  e.document.activeElement.click();           // the default activation of the OK/Enter key that opened the popup
+  for (const id of ['resolution', 'frameRate', 'bitrate', 'codec', 'hdr', 'audio'])
+    assert.strictEqual(rowText(e, id)[1], '◀ Default ▶', id + ' still on Default');
+  e.menu.view.accept();                       // OK on the Resolution row
+  e.document.activeElement.click();           // and its default activation
+  assert.strictEqual(rowText(e, 'resolution')[1], '◀ 480p ▶', 'one OK press is one step, not two');
+}
+
 // Bitrate steps of 0.5 Mbps; holding accelerates.
 {
   const e = env(), view = e.menu.view;

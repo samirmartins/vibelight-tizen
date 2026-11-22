@@ -140,7 +140,8 @@ var StreamProfileMenu = (function() {
       button.appendChild(make('span', null, 'sp-label'));
       button.appendChild(make('span', null, 'sp-value'));
       button.appendChild(make('span', null, 'sp-default'));
-      button.onclick = function() { view.accept(); };
+      // No onclick on purpose: the TV remote clicks the focused element after the key was handled,
+      // which would move the row (opening on 480p, two steps per OK). Only the view changes rows.
       rows.appendChild(button);
     });
     dialog.appendChild(rows);
