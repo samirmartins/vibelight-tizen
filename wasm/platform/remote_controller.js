@@ -1,3 +1,15 @@
+// True when the focused element is a real text field, where Enter/Space belong to the browser.
+function remoteFocusIsEditable() {
+  const active = typeof document !== 'undefined' ? document.activeElement : null;
+  if (!active) return false;
+  if (active.isContentEditable) return true;
+  const tag = String(active.tagName || '').toUpperCase();
+  if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (tag !== 'INPUT') return false;
+  return !['checkbox', 'radio', 'range', 'button', 'submit', 'reset', 'image', 'file', 'color']
+    .includes(String(active.type || '').toLowerCase());
+}
+
 function remoteControllerHandler(e) {
   const keyCode = e.keyCode;
 
@@ -20,8 +32,10 @@ function remoteControllerHandler(e) {
       break;
     case tvKey.KEY_ENTER:
     case tvKey.KEY_REMOTE_ENTER:
-      // Select the current item
+      // Select the current item. The app has acted, so the browser must not also click
+      // whatever holds focus after the handler (double activation).
       Navigation.accept();
+      if (e.cancelable && !remoteFocusIsEditable()) e.preventDefault();
       break;
     case tvKey.KEY_RETURN:
       // Go back or cancel the operation
