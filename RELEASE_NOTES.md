@@ -5,6 +5,7 @@
 - The library follows the remote by rows: up and down change row, left and right stay
   in the row.
 - Two quick mouse clicks now select two diagnosis history records.
+- After clicking a library control with the pointer, the arrows and OK start from it.
 
 ## Downloads
 

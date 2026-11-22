@@ -22,6 +22,9 @@ Released 2026-11-22. Changes since v4.0.5. See the
 
 - Selects two history records when they are clicked quickly with a mouse; the
   browser's repeated click after the OK key is still dropped.
+- Makes the library follow a control focused with the pointer (Magic Remote or mouse):
+  the next arrow starts from it, OK presses it, and the remote's view switches between
+  the button bar and the games to match.
 
 ## v4.0.5
 
