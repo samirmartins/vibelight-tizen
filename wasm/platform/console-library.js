@@ -231,6 +231,20 @@ var ConsoleLibrary = (function() {
     }
     if (target) focusNav(0, target.name);
   }
+  // The bar and the remote's view follow the control that really got the focus, by pointer or by code:
+  // the next arrow starts from it, OK presses it, and the view matches where the focus is.
+  function viewIs(view) { return typeof Navigation.isCurrent !== 'function' || Navigation.isCurrent(view); }
+  function followFocus(event) {
+    if (!active || isInGame || isDialogOpen) return;
+    var node = event && event.target, names = controls(), at = node && node.id ? names.indexOf(node.id) : -1;
+    if (!viewIs(Views.Apps) && !viewIs(Views.AppsNav)) return;
+    if (at !== -1) {
+      navIndex = at;
+      if (!viewIs(Views.AppsNav)) Navigation.change(Views.AppsNav);
+    } else if (node && node.dataset && node.dataset.appId && node.parentNode === el('game-grid') && viewIs(Views.AppsNav)) {
+      Navigation.change(Views.Apps);
+    }
+  }
   // Up from the first row of the grid: the control row just above it, at the card's horizontal position.
   function navFromGrid(card) {
     Navigation.change(Views.AppsNav);
@@ -472,6 +486,7 @@ var ConsoleLibrary = (function() {
   }
   function bind() {
     if (bound) return; bound = true;
+    if (typeof document.addEventListener === 'function') document.addEventListener('focusin', followFocus);
     el('libraryPlay').onclick = function() { play(selected); };
     el('libraryWake').onclick = wake;
     el('libraryFavorite').onclick = favorite;
