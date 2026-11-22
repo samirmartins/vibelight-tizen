@@ -716,5 +716,9 @@ var MenuTranslations = [
   ["Delete diagnosis?", "Excluir diagnóstico?", "¿Eliminar diagnóstico?"],
   ["Delete", "Excluir", "Eliminar"],
   ["Only this record will be removed from this TV. Other diagnoses are kept.", "Somente este registro será removido desta TV. Os outros diagnósticos serão mantidos.", "Solo se eliminará este registro de esta TV. Se conservarán los demás diagnósticos."],
-  ["Could not delete diagnosis. Previous history was preserved.", "Não foi possível excluir o diagnóstico. O histórico anterior foi preservado.", "No se pudo eliminar el diagnóstico. Se conservó el historial anterior."]
+  ["Could not delete diagnosis. Previous history was preserved.", "Não foi possível excluir o diagnóstico. O histórico anterior foi preservado.", "No se pudo eliminar el diagnóstico. Se conservó el historial anterior."],
+  ["Experimental: 120 FPS depends on your TV and PC. If the picture freezes, choose 60 FPS.", "Experimental: o 120 FPS depende da sua TV e do PC. Se a imagem travar, escolha 60 FPS.", "Experimental: los 120 FPS dependen de tu televisor y de tu PC. Si la imagen se congela, elige 60 FPS."],
+  ["The last 120 FPS start did not finish. Back to 60 FPS.", "O último início em 120 FPS não terminou. Voltando para 60 FPS.", "El último inicio a 120 FPS no terminó. Se vuelve a 60 FPS."],
+  ["120 FPS is not available on this display. Using 60 FPS.", "O 120 FPS não está disponível nesta tela. Usando 60 FPS.", "Los 120 FPS no están disponibles en esta pantalla. Se usan 60 FPS."],
+  ["120 FPS needs a display that reports 120 Hz. Starting at 60 FPS.", "O 120 FPS exige uma tela que informe 120 Hz. Iniciando em 60 FPS.", "Los 120 FPS requieren una pantalla que indique 120 Hz. Se inicia a 60 FPS."],
 ];

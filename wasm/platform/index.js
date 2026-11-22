@@ -2268,11 +2268,61 @@ function saveResolution() {
   warnResolutionFramerate();
 }
 
+// A saved 120 waits here until the display measurement says the panel can show it.
+var highRefreshStored;
+
+// Restores the saved frame rate. A 120 FPS start that did not finish returns to 60 once; a saved 120
+// is applied later, by applyHighRefresh, when the panel is known to support it.
+function restoreFramerate(saved) {
+  if (saved == null) return;
+  if (typeof HighRefresh !== 'undefined') {
+    var recovery = HighRefresh.recover(localStorage, saved);
+    if (recovery.recovered) {
+      saved = recovery.rate;
+      storeData('frameRate', saved, null);
+      snackbarLogLong('The last 120 FPS start did not finish. Back to 60 FPS.');
+    } else if (String(saved) === HighRefresh.RATE) {
+      highRefreshStored = HighRefresh.RATE;
+      return;
+    }
+  }
+  $('.videoFramerateMenu li').each(function() {
+    if ($(this).data('value') === saved || String($(this).data('value')) === String(saved)) {
+      // Update the video frame rate field based on the given value
+      $('#selectFramerate').text($(this).text()).data('value', saved);
+    }
+  });
+}
+
+// The display measurement arrived (or changed): list 120 FPS only on a panel near 120 Hz.
+function applyHighRefresh(x100) {
+  if (typeof HighRefreshMenu === 'undefined' || typeof HighRefresh === 'undefined') return;
+  HighRefreshMenu.sync({
+    document: document,
+    menu: document.querySelector('.videoFramerateMenu'),
+    button: document.getElementById('selectFramerate'),
+    x100: x100,
+    stored: highRefreshStored,
+    value: function() { return String($('#selectFramerate').data('value')); },
+    choose: function(rate) { $('#selectFramerate').data('value', rate); highRefreshStored = undefined; },
+    onReset: function() {
+      storeData('frameRate', '60', null);
+      standardBitratePresets();
+      snackbarLogLong('120 FPS is not available on this display. Using 60 FPS.');
+    }
+  });
+}
+
 function saveFramerate() {
   var chosenFramerate = $(this).data('value');
-  $('#selectFramerate').text($(this).text()).data('value', chosenFramerate);
+  // A labelled option (120 FPS, Experimental) shows its badge like the audio options do.
+  if (typeof HighRefreshMenu !== 'undefined') HighRefreshMenu.render(document.getElementById('selectFramerate'), this);
+  else $('#selectFramerate').text($(this).text());
+  $('#selectFramerate').data('value', chosenFramerate);
+  highRefreshStored = undefined; // a choice made now replaces a value waiting for the display measurement
   console.log('%c[index.js, saveFramerate]', 'color: green;', 'Saving framerate value: ' + chosenFramerate);
   storeData('frameRate', chosenFramerate, null);
+  if (String(chosenFramerate) === '120') snackbarLogLong('Experimental: 120 FPS depends on your TV and PC. If the picture freezes, choose 60 FPS.');
 
   // Update the bitrate value based on the selected frame rate
   standardBitratePresets();
@@ -2835,14 +2885,7 @@ function loadUserDataCb() {
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored frameRate preferences.');
   getPreferenceData('frameRate', function(previousValue) {
-    if (previousValue.frameRate != null) {
-      $('.videoFramerateMenu li').each(function() {
-        if ($(this).data('value') === previousValue.frameRate) {
-          // Update the video frame rate field based on the given value
-          $('#selectFramerate').text($(this).text()).data('value', previousValue.frameRate);
-        }
-      });
-    }
+    restoreFramerate(previousValue.frameRate);
   });
 
   console.log('%c[index.js, loadUserDataCb]', 'color: green;', 'Load stored bitrate preferences.');
@@ -3117,6 +3160,8 @@ function onWindowLoad() {
   loadSystemInfo();
   loadUserData();
   startDisplayRefreshEstimator();
+  // 120 FPS is listed only once the panel is measured near 120 Hz.
+  if (typeof onDisplayRefreshMeasured === 'function') onDisplayRefreshMeasured(applyHighRefresh);
 }
 
 window.onload = onWindowLoad;
