@@ -48,8 +48,8 @@ versions and relative links/anchors; review the content itself. Verify affected 
 keyboard and mobile flows when changing website behavior. See the
 [authoring notes](../build-tools/README.md#edit-the-trilingual-guide).
 
-Keep new work in [Unreleased](../CHANGELOG.md#unreleased) and summarize it in
-[RELEASE_NOTES.md](../RELEASE_NOTES.md). Preserve published history, distinguish
+Record new work in [CHANGELOG.md](../CHANGELOG.md) under the section of the
+version that will ship it, and summarize it in [RELEASE_NOTES.md](../RELEASE_NOTES.md). Preserve published history, distinguish
 source features from available WGTs and leave an unassigned version as a draft.
 
 ## Pull requests

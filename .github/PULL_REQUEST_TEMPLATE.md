@@ -20,5 +20,5 @@ when applicable. Include known limitations and dependency changes.
 - [ ] The change stays within the stated scope.
 - [ ] Relevant tests or documentation/link checks passed.
 - [ ] User-visible changes are documented.
-- [ ] Unreleased changes and draft release notes remain distinct from published versions.
+- [ ] Changes for an unshipped version and draft release notes remain distinct from published versions.
 - [ ] Source, logs, screenshots and commit metadata contain no private information.

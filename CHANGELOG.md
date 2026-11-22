@@ -7,10 +7,6 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
-## Unreleased
-
-No changes yet.
-
 ## v4.0.5
 
 Released 2026-11-22. Changes since v4.0.4. See the
