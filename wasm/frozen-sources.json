@@ -23,7 +23,7 @@
     "wasm/video_telemetry.hpp": "a0b5bcf59afa0196da2f7bbbaee5e7d03967cddec2bd86d14df6eeb0b1fec840",
     "wasm/video_timing.hpp": "a7e75aa76954219bf94ef3512205f2f6952023778828d298d0c4b53363cda5cc",
     "wasm/wakeonlan.hpp": "b1fe7aa9c84dbf3b56bae53dd0fa4b8943189bd2eab2ac5b02f6cb3bc086cb6d",
-    "wasm/wasmplayer.cpp": "2e6b1125d03ae44934a4ea3d1d5ba12fed146b3ebdc8cc1eeae678bf92950443"
+    "wasm/wasmplayer.cpp": "e73c476a3f6e5f6c17195b7e284d4dc2e348f994e4278bda4fce0806eff9d183"
   },
   "trees": {
     "moonlight-common-c": "ab02a43ea1752bc96b21a8ff6a661837268443a13ffab5c898c1bd106768c863",

@@ -387,12 +387,30 @@ int MoonlightInstance::StartupVidDecSetup(int videoFormat, int width, int height
     // rejects the preferred form falls back instead of failing to start.
     std::vector<std::string> mimetypes;
 
+    // What the picture asks of the decoder: macroblocks per frame (H.264) and luma samples per second (HEVC, AV1).
+    const long long frameMbs = static_cast<long long>((width + 15) / 16) * ((height + 15) / 16);
+    const long long mbRate = frameMbs * redrawRate;
+    const unsigned long long sampleRate = static_cast<unsigned long long>(width) * height * redrawRate;
+    // Level 5.1 limits for HEVC and AV1; beyond them the declaration has to be 5.2.
+    const unsigned long long kLevel51SampleRate = 534773760ull;
+
     if (videoFormat & VIDEO_FORMAT_H264) {
       // 1440p60 needs Level 5.1 (14400 MB/frame, 864000 MB/s), not 4.2.
       // Scope this correction to 1440p <=60 Hz; preserve all other codec paths.
       if (width == 2560 && height == 1440 && redrawRate <= 60) {
         mimetypes.push_back("video/mp4; codecs=\"avc1.640033\"");
       } else {
+        // Level 4.2 describes at most 8704 MB/frame and 522240 MB/s (1080p up to 64 fps). A bigger or faster picture
+        // (4K, or anything above 60 fps) declares the level that covers it (H.264 table A-1): 5.1 up to 36864 MB/frame
+        // and 983040 MB/s, 5.2 up to 2073600 MB/s. The declaration used until now stays behind it as the fallback, so a
+        // decoder that refuses the higher level behaves exactly as before; where no level covers the picture it is the only one.
+        if (frameMbs > 8704 || mbRate > 522240) {
+          if (frameMbs <= 36864 && mbRate <= 983040) {
+            mimetypes.push_back("video/mp4; codecs=\"avc1.640033\"");
+          } else if (frameMbs <= 36864 && mbRate <= 2073600) {
+            mimetypes.push_back("video/mp4; codecs=\"avc1.640034\"");
+          }
+        }
         mimetypes.push_back("video/mp4; codecs=\"avc1.64002A\"");
       }
     } else if (videoFormat & (VIDEO_FORMAT_H265 | VIDEO_FORMAT_H265_MAIN10)) {
@@ -417,7 +435,7 @@ int MoonlightInstance::StartupVidDecSetup(int videoFormat, int width, int height
       //
       // Only worth doing below 1440p: above that the picture no longer fits the
       // smaller level at all, and level 5.0 and 5.1 produce the same buffer.
-      if ((uint64_t)width * (uint64_t)height <= 1920ull * 1080ull) {
+      if ((uint64_t)width * (uint64_t)height <= 1920ull * 1080ull && redrawRate <= 60) {
         // High tier first: level 4.1 Main tier caps at 20 Mbps, which is exactly
         // the 1080p60 preset, leaving a stream configured any higher against the
         // ceiling. High tier at the same level allows 50 Mbps.
@@ -425,13 +443,20 @@ int MoonlightInstance::StartupVidDecSetup(int videoFormat, int width, int height
         mimetypes.push_back(std::string("video/mp4; codecs=\"") + profile + "L123.B0\"");
       }
 
+      // Above Level 5.1's sample rate (4K at 120 fps) the declaration is 5.2, with 5.1 behind it as the fallback.
+      if (sampleRate > kLevel51SampleRate) {
+        mimetypes.push_back(std::string("video/mp4; codecs=\"") + profile + "L156.B0\"");
+      }
+
       // Level 5.1, the configuration used up to v2.1.0. Always last.
       mimetypes.push_back(std::string("video/mp4; codecs=\"") + profile + "L153.B0\"");
     } else if (videoFormat & VIDEO_FORMAT_AV1_MAIN8) {
-      // AV1 Main Level 5.1. A TV may support higher, e.g. 5.2 (av01.0.14M.08).
+      // AV1 Main Level 5.1; above its sample rate (4K at 120 fps) Level 5.2 comes first, with 5.1 as the fallback.
+      if (sampleRate > kLevel51SampleRate) mimetypes.push_back("video/mp4; codecs=\"av01.0.14M.08\"");
       mimetypes.push_back("video/mp4; codecs=\"av01.0.13M.08\"");
     } else if (videoFormat & VIDEO_FORMAT_AV1_MAIN10) {
-      // AV1 Main10 Level 5.1. A TV may support higher, e.g. 5.2 (av01.0.14M.10).
+      // AV1 Main10 Level 5.1; above its sample rate (4K at 120 fps) Level 5.2 comes first, with 5.1 as the fallback.
+      if (sampleRate > kLevel51SampleRate) mimetypes.push_back("video/mp4; codecs=\"av01.0.14M.10\"");
       mimetypes.push_back("video/mp4; codecs=\"av01.0.13M.10\"");
     } else {
       ClLogMessage("Failed to select video codec profile (videoFormat=0x%x)\n", videoFormat);
