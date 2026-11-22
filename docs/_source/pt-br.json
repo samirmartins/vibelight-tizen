@@ -296,7 +296,12 @@
             "No menu durante o jogo escolha Atalhos. Esc, Alt+Tab, Win, Win+D, Alt+Enter e Enter são enviados ao PC e o menu fecha para você ver o resultado na hora.",
             "Cima e baixo andam uma linha, esquerda e direita andam um item, e Voltar retorna ao menu. Nenhuma tecla fica presa depois do envio."
           ],
-          "keywords": "atalho shortcut esc alt tab win desktop teclado"
+          "keywords": "atalho shortcut esc alt tab win desktop teclado",
+          "image": {
+            "name": "shortcuts",
+            "caption": "Grade de atalhos no menu do streaming.",
+            "alt": "Grade de atalhos no menu do streaming."
+          }
         },
         {
           "id": "type-text",
@@ -305,7 +310,12 @@
             "No menu durante o jogo escolha Digitar texto. Aperte OK no campo para abrir o teclado da TV, digite e escolha Enviar. Acentos, símbolos e emoji chegam como texto no PC, até 256 caracteres por vez.",
             "Cima e baixo alternam entre o campo e os botões Enviar e Voltar; esquerda e direita alternam entre Enviar e Voltar. O texto é esquecido ao sair. Ele nunca usa o teclado do jogo."
           ],
-          "keywords": "digitar texto teclado acento enviar senha nota"
+          "keywords": "digitar texto teclado acento enviar senha nota",
+          "image": {
+            "name": "text",
+            "caption": "Digitar texto com o teclado da TV. O texto é ilustrativo.",
+            "alt": "Digitar texto com o teclado da TV. O texto é ilustrativo."
+          }
         },
         {
           "id": "refresh-library",
@@ -347,7 +357,12 @@
             "O HDR exige HEVC ou AV1: salvar HDR com H.264 é recusado, e uma sessão que começaria em HDR com H.264 começa em SDR e avisa. A mensagem de início mostra a origem, como Perfil do jogo: 720p · 25 Mbps.",
             "Configurações → PCs e biblioteca → Remover todos os perfis apaga todos os perfis de PC e de jogo. Configurações e pareamentos são mantidos."
           ],
-          "keywords": "perfil profile por jogo por pc resolucao bitrate hdr codec"
+          "keywords": "perfil profile por jogo por pc resolucao bitrate hdr codec",
+          "image": {
+            "name": "profile",
+            "caption": "Popup do perfil do jogo sobre a biblioteca. Valores ilustrativos.",
+            "alt": "Popup do perfil do jogo sobre a biblioteca. Valores ilustrativos."
+          }
         },
         {
           "id": "bitrate-defaults",
@@ -513,7 +528,12 @@
             "Ao abrir o Último diagnóstico, uma sessão salva de pelo menos dois minutos pode mostrar sugestões: lacunas de quadros, variação da latência de rede, falhas de áudio, quadros descartados ou processamento lento no PC, cada uma com o que costuma ajudar e o que isso custa.",
             "As regras são fixas e usam só os registros já salvos nesta TV. Nada é enviado, coletado nem alterado automaticamente, e nada roda durante o streaming. Com duas sessões do mesmo jogo, Comparar também pode apontar o bitrate quando só a sessão maior teve lacunas. O texto diz o que costuma ajudar, nunca uma causa certa."
           ],
-          "keywords": "diagnostico dicas sugestoes perda jitter audio hints"
+          "keywords": "diagnostico dicas sugestoes perda jitter audio hints",
+          "image": {
+            "name": "hints",
+            "caption": "Último diagnóstico com sugestões. Os números são ilustrativos, não resultados de testes na TV.",
+            "alt": "Último diagnóstico com sugestões. Os números são ilustrativos, não resultados de testes na TV."
+          }
         },
         {
           "id": "metrics",

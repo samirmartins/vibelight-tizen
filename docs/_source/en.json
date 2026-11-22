@@ -296,7 +296,12 @@
             "In the in-game menu choose Shortcuts. Esc, Alt+Tab, Win, Win+D, Alt+Enter and Enter are sent to the PC and the menu closes so you see the result at once.",
             "Up and down move one row, left and right move one item, and Back returns to the menu. No key stays pressed after sending."
           ],
-          "keywords": "shortcut atalho esc alt tab win desktop keyboard"
+          "keywords": "shortcut atalho esc alt tab win desktop keyboard",
+          "image": {
+            "name": "shortcuts",
+            "caption": "Shortcuts grid in the stream menu.",
+            "alt": "Shortcuts grid in the stream menu."
+          }
         },
         {
           "id": "type-text",
@@ -305,7 +310,12 @@
             "In the in-game menu choose Type text. Press OK on the field to open the TV keyboard, type, then choose Send. Accents, symbols and emoji arrive as text on the PC, up to 256 characters at a time.",
             "Up and down switch between the field and the Send and Back buttons; left and right switch between Send and Back. The text is forgotten when you leave. It never uses the game keyboard."
           ],
-          "keywords": "type text keyboard accent send password note"
+          "keywords": "type text keyboard accent send password note",
+          "image": {
+            "name": "text",
+            "caption": "Type text with the keyboard on the TV. Text is illustrative.",
+            "alt": "Type text with the keyboard on the TV. Text is illustrative."
+          }
         },
         {
           "id": "refresh-library",
@@ -347,7 +357,12 @@
             "HDR needs HEVC or AV1: saving HDR with H.264 is refused, and a session that would start HDR with H.264 starts in SDR and says so. The start message shows the origin, such as Game profile: 720p · 25 Mbps.",
             "Settings → PCs & library → Remove all profiles removes every PC and game profile. Settings and PC pairings are kept."
           ],
-          "keywords": "profile perfil per game per pc resolution bitrate hdr codec override"
+          "keywords": "profile perfil per game per pc resolution bitrate hdr codec override",
+          "image": {
+            "name": "profile",
+            "caption": "Game profile popup over the library. Values are illustrative.",
+            "alt": "Game profile popup over the library. Values are illustrative."
+          }
         },
         {
           "id": "bitrate-defaults",
@@ -513,7 +528,12 @@
             "When you open Last diagnosis, a saved session of at least two minutes can show suggestions: frame gaps, network latency variation, audio underruns, discarded frames or slow host processing, each with what often helps and what it costs.",
             "The rules are fixed and use only the records already saved on this TV. Nothing is sent, collected or changed automatically, and nothing runs during a stream. With two sessions of the same game, Compare can also point to bitrate when only the higher one had gaps. Wording says what often helps, never a certain cause."
           ],
-          "keywords": "diagnosis hints suggestions loss jitter audio dica sugestao"
+          "keywords": "diagnosis hints suggestions loss jitter audio dica sugestao",
+          "image": {
+            "name": "hints",
+            "caption": "Last diagnosis with suggestions. Numbers are illustrative, not TV test results.",
+            "alt": "Last diagnosis with suggestions. Numbers are illustrative, not TV test results."
+          }
         },
         {
           "id": "metrics",

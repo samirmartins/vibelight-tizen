@@ -296,7 +296,12 @@
             "En el menú durante el juego elige Atajos. Esc, Alt+Tab, Win, Win+D, Alt+Enter y Enter se envían al PC y el menú se cierra para que veas el resultado al instante.",
             "Arriba y abajo se mueven una fila, izquierda y derecha un elemento, y Volver regresa al menú. Ninguna tecla queda pulsada después del envío."
           ],
-          "keywords": "atajo shortcut esc alt tab win escritorio teclado"
+          "keywords": "atajo shortcut esc alt tab win escritorio teclado",
+          "image": {
+            "name": "shortcuts",
+            "caption": "Cuadrícula de atajos en el menú de la transmisión.",
+            "alt": "Cuadrícula de atajos en el menú de la transmisión."
+          }
         },
         {
           "id": "type-text",
@@ -305,7 +310,12 @@
             "En el menú durante el juego elige Escribir texto. Pulsa OK en el campo para abrir el teclado del televisor, escribe y elige Enviar. Acentos, símbolos y emojis llegan como texto al PC, hasta 256 caracteres por vez.",
             "Arriba y abajo alternan entre el campo y los botones Enviar y Volver; izquierda y derecha alternan entre Enviar y Volver. El texto se olvida al salir. Nunca usa el teclado del juego."
           ],
-          "keywords": "escribir texto teclado acento enviar contrasena nota"
+          "keywords": "escribir texto teclado acento enviar contrasena nota",
+          "image": {
+            "name": "text",
+            "caption": "Escribir texto con el teclado del televisor. El texto es ilustrativo.",
+            "alt": "Escribir texto con el teclado del televisor. El texto es ilustrativo."
+          }
         },
         {
           "id": "refresh-library",
@@ -347,7 +357,12 @@
             "El HDR requiere HEVC o AV1: guardar HDR con H.264 se rechaza, y una sesión que empezaría en HDR con H.264 empieza en SDR y lo avisa. El mensaje de inicio muestra el origen, como Perfil del juego: 720p · 25 Mbps.",
             "Ajustes → PC y biblioteca → Eliminar todos los perfiles borra todos los perfiles de PC y de juego. Los ajustes y los emparejamientos se conservan."
           ],
-          "keywords": "perfil profile por juego por pc resolucion tasa de bits hdr codec"
+          "keywords": "perfil profile por juego por pc resolucion tasa de bits hdr codec",
+          "image": {
+            "name": "profile",
+            "caption": "Ventana del perfil del juego sobre la biblioteca. Valores ilustrativos.",
+            "alt": "Ventana del perfil del juego sobre la biblioteca. Valores ilustrativos."
+          }
         },
         {
           "id": "bitrate-defaults",
@@ -513,7 +528,12 @@
             "Al abrir el Último diagnóstico, una sesión guardada de al menos dos minutos puede mostrar sugerencias: huecos de fotogramas, variación de la latencia de red, fallos de audio, fotogramas descartados o procesamiento lento en el PC, cada una con lo que suele ayudar y lo que cuesta.",
             "Las reglas son fijas y usan solo los registros ya guardados en este televisor. No se envía, recopila ni cambia nada automáticamente, y nada se ejecuta durante la transmisión. Con dos sesiones del mismo juego, Comparar también puede señalar la tasa de bits cuando solo la mayor tuvo huecos. El texto dice lo que suele ayudar, nunca una causa segura."
           ],
-          "keywords": "diagnostico sugerencias perdida jitter audio hints"
+          "keywords": "diagnostico sugerencias perdida jitter audio hints",
+          "image": {
+            "name": "hints",
+            "caption": "Último diagnóstico con sugerencias. Los números son ilustrativos, no resultados de pruebas en el televisor.",
+            "alt": "Último diagnóstico con sugerencias. Los números son ilustrativos, no resultados de pruebas en el televisor."
+          }
         },
         {
           "id": "metrics",
