@@ -164,5 +164,10 @@ check('selecting the second record moves focus to Compare',()=>{
   assert.equal(f.focus(),'diagnosis-record-2','after deselecting, focus stays on that record');
   assert.equal(f.find('diagnosisCompare'),undefined,'Compare is disabled with one record');
 });
+check('two quick mouse clicks both count',()=>{
+  const f=fixture([long(3),long(2),long(1)]);f.c.DiagnosticView.history();
+  f.find('diagnosis-record-0').click(true);f.find('diagnosis-record-2').click(true);   // no time between two real clicks
+  assert.match(f.roots.diagnosisFinding.textContent,/^2 \/ 2/,'a real click is never the echo of a handled one');
+});
 if(failures)process.exitCode=1;
 else console.log('diagnostic_view_test: saved configuration, A/B values, return focus, legacy and offline consultation, local suggestions PASS');
