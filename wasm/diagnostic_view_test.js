@@ -63,7 +63,7 @@ check('return focus',()=>{
   const f=fixture([record(2),record(1)]);
   f.c.DiagnosticView.history();f.find('diagnosis-record-0').click();f.find('diagnosis-record-1').click();
   f.find('diagnosisCompare').click();
-  f.find('diagnosisClose').click();assert.equal(f.focus(),'diagnosis-record-1','Back restores the last selected row');
+  f.find('diagnosisClose').click();assert.equal(f.focus(),'diagnosisCompare','Back from the comparison returns to the Compare button');
   f.find('diagnosis-record-0').click();f.find('diagnosisViewSelected').click();f.find('diagnosisDetails').click();
   f.find('diagnosisClose').click();f.find('diagnosisClose').click();assert.equal(f.focus(),'diagnosis-record-0');
 });
@@ -152,6 +152,17 @@ check('real mouse clicks and spaced presses still work',()=>{
   assert.equal(f.find('diagnosis-record-1').attributes['aria-pressed'],'true');
   f.clock.now+=1000;f.find('diagnosis-record-1').click();f.defaultClick();   // a later OK press deselects once
   assert.equal(f.find('diagnosis-record-1').attributes['aria-pressed'],'false');
+});
+check('selecting the second record moves focus to Compare',()=>{
+  const f=fixture([long(3),long(2),long(1)]);f.c.DiagnosticView.history();
+  pick(f,0);
+  assert.equal(f.focus(),'diagnosis-record-0','one record: focus stays on the list');
+  f.clock.now+=1000;pick(f,2);
+  assert.equal(f.focus(),'diagnosisCompare','two records: the next step is Compare');
+  f.clock.now+=1000;
+  f.find('diagnosis-record-2').click();                     // deselecting goes back to one record
+  assert.equal(f.focus(),'diagnosis-record-2','after deselecting, focus stays on that record');
+  assert.equal(f.find('diagnosisCompare'),undefined,'Compare is disabled with one record');
 });
 if(failures)process.exitCode=1;
 else console.log('diagnostic_view_test: saved configuration, A/B values, return focus, legacy and offline consultation, local suggestions PASS');

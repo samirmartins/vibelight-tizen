@@ -77,7 +77,7 @@ var DiagnosticView=(function() {
       var index=ids.indexOf(r.id),label=(index<0 ? '□' : index===0 ? 'A' : 'B')+' · '+context(r);
       var b=button('diagnosis-record-'+i,label,function(){
         if(!chosen.toggle(r.id)){snackbarLogLong('Deselect a record before choosing another.');return;}
-        historyFocus=b.id;history();
+        historyFocus=chosen.ids().length===2 ? 'diagnosisCompare' : b.id;history();
       });
       b.textContent='';
       [index<0 ? '□' : index===0 ? 'A' : 'B',date(r),r.game || tr('Previous report'),r.config.stream || r.legacyConfig || tr('No data'),duration(r.recordedMs)].forEach(function(value){b.appendChild(node('span',value));});
