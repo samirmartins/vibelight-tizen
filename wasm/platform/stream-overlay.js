@@ -611,8 +611,31 @@ var StreamOverlay = (function() {
     close();
   }
 
+  // The shortcuts form a grid (two columns, see #streamOverlayShortcutGrid) with Back below it:
+  // up and down move one row and keep the column; Back remembers the column it was reached from.
+  var SHORTCUT_COLUMNS = 2, shortcutColumn = 0;
+  function stepShortcutRow(down) {
+    var count = shortcutButtons.length, current = FocusManager.index();
+    if (!count) return;
+    if (current < count) shortcutColumn = current % SHORTCUT_COLUMNS;
+    var rows = Math.ceil(count / SHORTCUT_COLUMNS), target;
+    if (current >= count) {            // on Back
+      target = down ? shortcutColumn : (rows - 1) * SHORTCUT_COLUMNS + shortcutColumn;
+    } else {
+      var row = Math.floor(current / SHORTCUT_COLUMNS);
+      if (down) target = row + 1 < rows ? current + SHORTCUT_COLUMNS : count;
+      else target = row > 0 ? current - SHORTCUT_COLUMNS : count;
+    }
+    if (target > count) target = count - 1;    // a short last row: stay on the last shortcut
+    FocusManager.select(target);
+  }
+
   function step(direction) {
     if (busy) return;
+    if (shortcutsOpen && (direction === 'up' || direction === 'down')) {
+      stepShortcutRow(direction === 'down');
+      return;
+    }
     if (confirm || shortcutsOpen || textOpen) {
       FocusManager.move(direction === 'up' || direction === 'left' ? -1 : 1);
       return;

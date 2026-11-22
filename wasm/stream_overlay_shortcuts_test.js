@@ -45,13 +45,31 @@ function opened(options = {}) {
   assert.strictEqual(f.text('streamOverlayShortcutTitle'), 'Enviar um atalho ao PC');
   assert.strictEqual(f.text('streamOverlayShortcut-alt-tab'), 'Alt+Tab');
   assert.strictEqual(f.text('streamOverlayShortcutBack'), 'Voltar');
-  // Down and right move forward, up and left backward, ending on Back.
-  for (let i = 0; i < 6; i++) { f.press({13: true}); f.release(); }
-  assert.strictEqual(f.c.FocusManager.index(), 6, 'Back is the last item');
-  f.press({12: true}); f.release();
-  assert.strictEqual(f.c.FocusManager.index(), 5);
-  f.press({15: true}); f.release();
-  assert.strictEqual(f.c.FocusManager.index(), 6);
+  // The shortcuts are a grid of two columns (Esc Alt+Tab / Win Win+D / Alt+Enter Enter) and Back below.
+  // Right and left step one item; down and up move one row, keeping the column.
+  const at = () => f.c.FocusManager.index();
+  const tap = pad => { f.press({[pad]: true}); f.release(); };
+  tap(15); assert.strictEqual(at(), 1, 'right: next item in the row');
+  tap(14); assert.strictEqual(at(), 0, 'left: previous item');
+  tap(13); assert.strictEqual(at(), 2, 'down: the item below, not the next one');
+  tap(13); assert.strictEqual(at(), 4);
+  tap(13); assert.strictEqual(at(), 6, 'down from the last row reaches Back');
+  tap(12); assert.strictEqual(at(), 4, 'up from Back returns to the column it left');
+  tap(12); assert.strictEqual(at(), 2);
+  tap(12); assert.strictEqual(at(), 0);
+  tap(12); assert.strictEqual(at(), 6, 'up from the first row wraps to Back');
+  tap(13); assert.strictEqual(at(), 0, 'down from Back wraps to the first row, same column');
+  // The second column behaves the same way.
+  tap(15); tap(13); assert.strictEqual(at(), 3, 'Alt+Tab, down: Win+D');
+  tap(13); tap(13); assert.strictEqual(at(), 6);
+  tap(12); assert.strictEqual(at(), 5, 'Back, up: Enter (second column)');
+  tap(12); assert.strictEqual(at(), 3);
+  tap(12); assert.strictEqual(at(), 1);
+  tap(12); assert.strictEqual(at(), 6);
+  tap(13); assert.strictEqual(at(), 1, 'the column is remembered through Back');
+  tap(14); tap(13); tap(13); tap(13); assert.strictEqual(at(), 6);
+  tap(14); assert.strictEqual(at(), 5, 'left from Back is the previous item');
+  tap(15); assert.strictEqual(at(), 6);
   // B/Back and the Back button return to the entry on the list.
   f.press({1: true}); f.release();
   assert.strictEqual(node('streamOverlayActions').hidden, false);
@@ -66,7 +84,7 @@ function opened(options = {}) {
   const {f, keys} = t;
   t.select(t.shortcutsIndex());
   f.press({0: true}); f.release();
-  for (let i = 0; i < 3; i++) { f.press({13: true}); f.release(); }   // Win+D
+  f.press({13: true}); f.release(); f.press({15: true}); f.release();   // down to Win, right to Win+D
   assert.strictEqual(f.c.FocusManager.index(), 3);
   f.press({0: true}); f.release();
   assert.deepStrictEqual(keys, [[91, DOWN, 0], [68, DOWN, 0]]);
@@ -110,7 +128,7 @@ for (const leave of ['force', 'hide', 'visibility']) {
   const {f, keys} = t;
   t.select(t.shortcutsIndex());
   f.press({0: true}); f.release();
-  for (let i = 0; i < 1; i++) { f.press({13: true}); f.release(); }   // Alt+Tab
+  for (let i = 0; i < 1; i++) { f.press({15: true}); f.release(); }   // right to Alt+Tab
   f.press({0: true}); f.release();
   assert.deepStrictEqual(keys, [[18, DOWN, ALT], [9, DOWN, ALT]]);
   if (leave === 'force') f.c.StreamOverlay.close(true);
