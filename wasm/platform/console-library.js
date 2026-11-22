@@ -416,7 +416,7 @@ var ConsoleLibrary = (function() {
       if (!reached && !closing) host.online = false;
       // No response cannot distinguish a powered-off PC from a slow Sunshine,
       // firewall or network failure. Do not claim to have measured its power.
-      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then refresh the library.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Refresh the library.');
+      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? (error && error.tried ? 'PC unavailable (addresses tried: ' + error.tried + '). Turn it on or use Wake PC, then refresh the library.' : 'PC unavailable. Turn it on or use Wake PC, then refresh the library.') : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Refresh the library.');
       return cached;
     }).then(function() {
       if (!valid(token)) return;
