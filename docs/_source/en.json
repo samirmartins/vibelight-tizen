@@ -323,6 +323,14 @@
           "text": [
             "Refresh library asks the PC for the game list again. It does not restart VibeLight. To reopen the whole app, use General & about → Restart app."
           ]
+        },
+        {
+          "id": "library-navigation",
+          "title": "Move through the library with the remote",
+          "text": [
+            "Up and down move between the rows of the library: the top buttons, the PC actions (Wake PC, Play, Favorite, Profile), the filters and the games. Left and right move along a row and stop at its ends. From the first row of games, up goes to the filter nearest to that game."
+          ],
+          "keywords": "library navigation remote focus arrows rows"
         }
       ]
     },

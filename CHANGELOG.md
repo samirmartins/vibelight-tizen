@@ -7,6 +7,22 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## v4.0.6
+
+Released 2026-11-22. Changes since v4.0.5. See the
+[release notes](RELEASE_NOTES.md) for the concise summary.
+
+### Changed
+
+- Moves through the library by rows with the remote: up and down go to the nearest
+  control of the row above or below, left and right stay in their row, and up from
+  the first row of games reaches the nearest filter. Markup and style are unchanged.
+
+### Fixed
+
+- Selects two history records when they are clicked quickly with a mouse; the
+  browser's repeated click after the OK key is still dropped.
+
 ## v4.0.5
 
 Released 2026-11-22. Changes since v4.0.4. See the

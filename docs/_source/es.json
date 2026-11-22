@@ -323,6 +323,14 @@
           "text": [
             "Actualizar biblioteca vuelve a consultar la lista de juegos del PC. No reinicia VibeLight. Para reabrir el app completo, usa General y acerca de → Reiniciar aplicación."
           ]
+        },
+        {
+          "id": "library-navigation",
+          "title": "Recorre la biblioteca con el mando",
+          "text": [
+            "Arriba y abajo se mueven entre las filas de la biblioteca: los botones superiores, las acciones del PC (Wake PC, Jugar, Favorito, Perfil), los filtros y los juegos. Izquierda y derecha se mueven por la fila y se detienen en los extremos. Desde la primera fila de juegos, arriba va al filtro más cercano a ese juego."
+          ],
+          "keywords": "navegacion biblioteca mando foco flechas filas"
         }
       ]
     },

@@ -1,16 +1,10 @@
-# Moonlight Tizen v4.0.5
+# Moonlight Tizen v4.0.6
 
 ## What's new
 
-- Streaming profiles per PC and per game: resolution, frame rate, bitrate, codec,
-  HDR and sound. The game profile wins, then the PC profile, then Settings.
-- In-game menu: Shortcuts (Esc, Alt+Tab, Win, Win+D, Alt+Enter, Enter) and Type
-  text, typed on the TV keyboard and sent to the PC.
-- Local suggestions in Last diagnosis and in the A/B comparison, based only on
-  records saved on the TV.
-- Default bitrate for each resolution, from 4 / 6 Mbps at 480p to 60 / 80 Mbps at 4K.
-- TV remote: OK now acts once in Guide and help, General, About and diagnosis
-  screens, and selecting two history records to compare works.
+- The library follows the remote by rows: up and down change row, left and right stay
+  in the row.
+- Two quick mouse clicks now select two diagnosis history records.
 
 ## Downloads
 

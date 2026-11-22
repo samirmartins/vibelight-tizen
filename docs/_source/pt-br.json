@@ -323,6 +323,14 @@
           "text": [
             "Atualizar biblioteca consulta novamente a lista de jogos no PC. Isso não reinicia VibeLight. Para reabrir o app inteiro, use Geral e sobre → Reiniciar aplicativo."
           ]
+        },
+        {
+          "id": "library-navigation",
+          "title": "Navegue pela biblioteca com o controle",
+          "text": [
+            "Cima e baixo andam entre as linhas da biblioteca: os botões do topo, as ações do PC (Wake PC, Jogar, Favorito, Perfil), os filtros e os jogos. Esquerda e direita andam ao longo da linha e param nas pontas. Da primeira linha de jogos, cima vai ao filtro mais próximo daquele jogo."
+          ],
+          "keywords": "navegacao biblioteca controle foco setas linhas"
         }
       ]
     },
