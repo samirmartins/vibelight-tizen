@@ -189,6 +189,59 @@ var ConsoleLibrary = (function() {
     el(names[navIndex]).classList.add('hovered');
     focusElement(names[navIndex]);
   }
+  // Screen position of every visible control, or null when the page cannot be measured (then the old
+  // linear order is used).
+  function stops() {
+    var items = controls().map(function(name) {
+      var node = el(name), r = node && typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
+      return r && r.width > 0 && r.height > 0 ? { name: name, cx: r.left + r.width / 2, cy: r.top + r.height / 2, h: r.height } : null;
+    });
+    return items.length && items.every(Boolean) ? items : null;
+  }
+  // Remote directions in the bar: up/down go to the nearest control of the row above/below (down from
+  // the last row enters the grid), left/right stay in the row.
+  function navMove(direction) {
+    var names = controls();
+    if (!names.length) return;
+    var items = stops();
+    if (!items) {
+      if (direction === 'down') Navigation.change(Views.Apps);
+      else focusNav(direction === 'right' ? 1 : -1);
+      return;
+    }
+    var current = names[Math.max(0, Math.min(navIndex, names.length - 1))];
+    var here = items.filter(function(item) { return item.name === current; })[0] || items[0];
+    var tolerance = here.h / 2, target = null;
+    function closer(item) { return !target || Math.abs(item.cx - here.cx) < Math.abs(target.cx - here.cx); }
+    if (direction === 'left' || direction === 'right') {
+      items.forEach(function(item) {
+        var d = item.cx - here.cx;
+        if (Math.abs(item.cy - here.cy) <= tolerance && (direction === 'right' ? d > 0 : d < 0) && closer(item)) target = item;
+      });
+    } else {
+      var sign = direction === 'down' ? 1 : -1, rowDistance = null;
+      items.forEach(function(item) {
+        var dy = (item.cy - here.cy) * sign;
+        if (dy > tolerance && (rowDistance === null || dy < rowDistance)) rowDistance = dy;
+      });
+      if (rowDistance === null) { if (direction === 'down') Navigation.change(Views.Apps); return; }
+      items.forEach(function(item) {
+        if (Math.abs((item.cy - here.cy) * sign - rowDistance) <= tolerance && closer(item)) target = item;
+      });
+    }
+    if (target) focusNav(0, target.name);
+  }
+  // Up from the first row of the grid: the control row just above it, at the card's horizontal position.
+  function navFromGrid(card) {
+    Navigation.change(Views.AppsNav);
+    var items = stops(), r = card && typeof card.getBoundingClientRect === 'function' ? card.getBoundingClientRect() : null;
+    if (!items || !r || !r.width) { navIndex = controls().indexOf('libraryPlay'); focusNav(0); return; }
+    var bottom = Math.max.apply(null, items.map(function(item) { return item.cy; })), x = r.left + r.width / 2, target = null;
+    items.forEach(function(item) {
+      if (bottom - item.cy <= item.h / 2 && (!target || Math.abs(item.cx - x) < Math.abs(target.cx - x))) target = item;
+    });
+    focusNav(0, target.name);
+  }
   function picked() { return apps.find(function(app) { return app.id === selected; }); }
   function hostReady() { return host.online && (!host.ppkstr || host._authenticatedOnline === true); }
   function updateSelection() {
@@ -369,7 +422,7 @@ var ConsoleLibrary = (function() {
     var cards = Array.from(el('game-grid').children), index = cards.findIndex(function(node) { return Number(node.dataset.appId) === selected; });
     if (index < 0) { Navigation.change(Views.AppsNav); focusNav(0); return; }
     var columns = getComputedStyle(el('game-grid')).gridTemplateColumns.split(' ').filter(Boolean).length || 6;
-    if (dy < 0 && index < columns) { Navigation.change(Views.AppsNav); navIndex = controls().indexOf('libraryPlay'); focusNav(0); return; }
+    if (dy < 0 && index < columns) { navFromGrid(cards[index]); return; }
     var target = dy ? Math.max(0,Math.min(cards.length-1,index+dy*columns)) : Math.max(Math.floor(index/columns)*columns,Math.min(cards.length-1,Math.floor(index/columns)*columns+columns-1,index+dx));
     select(cards[target].dataset.appId); focusCards();
   }
@@ -482,7 +535,7 @@ var ConsoleLibrary = (function() {
     invalidateCovers: invalidateCovers,
     pause: pause, resume: resume,
     open: open, ready: ready, hide: hide, suspend: suspend, visible: function() { return active; },
-    move: move, focusCards: focusCards, focusNav: focusNav,
+    move: move, focusCards: focusCards, focusNav: focusNav, navMove: navMove,
     acceptNav: function() { var names = controls(); if (names.length) el(names[Math.max(0,Math.min(navIndex,names.length-1))]).click(); },
     accept: function() { play(selected); }, favorite: favorite,
     showHomeButton: function() { if (preferred()) { bind(); el('libraryHomeBtn').style.display = 'inline-flex'; } },
