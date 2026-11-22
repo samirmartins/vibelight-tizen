@@ -275,7 +275,7 @@
           "id": "game-menu",
           "title": "Open the in-game menu",
           "text": [
-            "Press Guide/Home on the gamepad. From this menu you can return to the game, adjust volume, show statistics, disconnect or close the game on the PC."
+            "Press Guide/Home on the gamepad. From this menu you can return to the game, adjust volume, show statistics, send shortcuts or typed text to the PC, disconnect or close the game on the PC."
           ],
           "image": {
             "name": "menu",
@@ -288,6 +288,24 @@
             "Disconnect keeps the game on the PC; End game on PC requests closure and asks for confirmation."
           ],
           "callout": "Closing the game may lose unsaved progress. Leaving through Smart Hub disconnects locally; reopen VibeLight and Resume to reconnect."
+        },
+        {
+          "id": "game-shortcuts",
+          "title": "Send shortcuts to the PC",
+          "text": [
+            "In the in-game menu choose Shortcuts. Esc, Alt+Tab, Win, Win+D, Alt+Enter and Enter are sent to the PC and the menu closes so you see the result at once.",
+            "Up and down move one row, left and right move one item, and Back returns to the menu. No key stays pressed after sending."
+          ],
+          "keywords": "shortcut atalho esc alt tab win desktop keyboard"
+        },
+        {
+          "id": "type-text",
+          "title": "Type text on the PC",
+          "text": [
+            "In the in-game menu choose Type text. Press OK on the field to open the TV keyboard, type, then choose Send. Accents, symbols and emoji arrive as text on the PC, up to 256 characters at a time.",
+            "Up and down switch between the field and the Send and Back buttons; left and right switch between Send and Back. The text is forgotten when you leave. It never uses the game keyboard."
+          ],
+          "keywords": "type text keyboard accent send password note"
         },
         {
           "id": "refresh-library",
@@ -319,6 +337,26 @@
             "caption": "Picture settings in the current source. Values are illustrative.",
             "alt": "Picture settings in the current source. Values are illustrative."
           }
+        },
+        {
+          "id": "stream-profiles",
+          "title": "Profiles for a PC or a game",
+          "text": [
+            "A profile changes only the fields it contains: resolution, frame rate, bitrate, codec, HDR and sound. Everything else follows Settings. Priority is the game profile, then the PC profile, then Settings, field by field.",
+            "For a game, open the library, choose the game and press Profile. For a PC, open the PC card menu and choose Profile. Fields left on Default keep following Settings. Save applies from the next stream; Remove profile goes back to Settings.",
+            "HDR needs HEVC or AV1: saving HDR with H.264 is refused, and a session that would start HDR with H.264 starts in SDR and says so. The start message shows the origin, such as Game profile: 720p · 25 Mbps.",
+            "Settings → PCs & library → Remove all profiles removes every PC and game profile. Settings and PC pairings are kept."
+          ],
+          "keywords": "profile perfil per game per pc resolution bitrate hdr codec override"
+        },
+        {
+          "id": "bitrate-defaults",
+          "title": "Default bitrate for each resolution",
+          "text": [
+            "Choosing a resolution also sets a bitrate for 30 and 60 FPS. At 30 FPS: 480p 4, 720p 10, 1080p 20, 1440p 40, 4K 60 Mbps. At 60 FPS: 480p 6, 720p 15, 1080p 30, 1440p 50, 4K 80 Mbps.",
+            "Restore defaults selects 1080p, 60 FPS and 30 Mbps. You can change the bitrate afterwards in steps of 0.5 Mbps; changing resolution later suggests the table value again."
+          ],
+          "keywords": "bitrate mbps default resolution table 1080p 4k"
         },
         {
           "id": "video-latency",
@@ -467,6 +505,15 @@
             "Event rates use the time actually measured; counts and denominators remain visible.",
             "There is no automatic winner. Missing data is unavailable, never a healthy zero."
           ]
+        },
+        {
+          "id": "diagnosis-hints",
+          "title": "Suggestions after a session",
+          "text": [
+            "When you open Last diagnosis, a saved session of at least two minutes can show suggestions: frame gaps, network latency variation, audio underruns, discarded frames or slow host processing, each with what often helps and what it costs.",
+            "The rules are fixed and use only the records already saved on this TV. Nothing is sent, collected or changed automatically, and nothing runs during a stream. With two sessions of the same game, Compare can also point to bitrate when only the higher one had gaps. Wording says what often helps, never a certain cause."
+          ],
+          "keywords": "diagnosis hints suggestions loss jitter audio dica sugestao"
         },
         {
           "id": "metrics",

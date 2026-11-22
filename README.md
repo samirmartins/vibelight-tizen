@@ -35,8 +35,8 @@ Illustrated setup, controller mapping and searchable answers. Settings →
 General & about → Guide and help opens a QR code for your phone and an offline
 controls reference on the TV.
 
-**Latest release: [v4.0.4](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.4)** ·
-[Changelog](CHANGELOG.md#v404) · [Release notes](RELEASE_NOTES.md).
+**Latest release: [v4.0.5](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.5)** ·
+[Changelog](CHANGELOG.md#v405) · [Release notes](RELEASE_NOTES.md).
 
 ## Interface
 

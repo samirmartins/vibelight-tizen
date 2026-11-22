@@ -275,7 +275,7 @@
           "id": "game-menu",
           "title": "Abre el menú durante el juego",
           "text": [
-            "Pulsa Guide/Home en el mando. El menú permite volver a la partida, ajustar el volumen, mostrar estadísticas, desconectarte o cerrar el juego en el PC."
+            "Pulsa Guide/Home en el mando. El menú permite volver a la partida, ajustar el volumen, mostrar estadísticas, enviar atajos o texto escrito al PC, desconectar o cerrar el juego en el PC."
           ],
           "image": {
             "name": "menu",
@@ -288,6 +288,24 @@
             "Desconectar deja el juego en el PC; Cerrar juego en el PC solicita el cierre y pide confirmación."
           ],
           "callout": "Cerrar el juego puede perder el progreso no guardado. Salir por Smart Hub desconecta localmente; abre VibeLight y usa Reanudar para reconectar."
+        },
+        {
+          "id": "game-shortcuts",
+          "title": "Enviar atajos al PC",
+          "text": [
+            "En el menú durante el juego elige Atajos. Esc, Alt+Tab, Win, Win+D, Alt+Enter y Enter se envían al PC y el menú se cierra para que veas el resultado al instante.",
+            "Arriba y abajo se mueven una fila, izquierda y derecha un elemento, y Volver regresa al menú. Ninguna tecla queda pulsada después del envío."
+          ],
+          "keywords": "atajo shortcut esc alt tab win escritorio teclado"
+        },
+        {
+          "id": "type-text",
+          "title": "Escribir texto en el PC",
+          "text": [
+            "En el menú durante el juego elige Escribir texto. Pulsa OK en el campo para abrir el teclado del televisor, escribe y elige Enviar. Acentos, símbolos y emojis llegan como texto al PC, hasta 256 caracteres por vez.",
+            "Arriba y abajo alternan entre el campo y los botones Enviar y Volver; izquierda y derecha alternan entre Enviar y Volver. El texto se olvida al salir. Nunca usa el teclado del juego."
+          ],
+          "keywords": "escribir texto teclado acento enviar contrasena nota"
         },
         {
           "id": "refresh-library",
@@ -319,6 +337,26 @@
             "caption": "Ajustes de imagen del código actual. Valores ilustrativos.",
             "alt": "Ajustes de imagen del código actual. Valores ilustrativos."
           }
+        },
+        {
+          "id": "stream-profiles",
+          "title": "Perfiles para un PC o un juego",
+          "text": [
+            "Un perfil cambia solo los campos que contiene: resolución, tasa de fotogramas, tasa de bits, códec, HDR y sonido. Lo demás sigue los Ajustes. La prioridad es el perfil del juego, luego el del PC y luego los Ajustes, campo por campo.",
+            "Para un juego, abre la biblioteca, elige el juego y pulsa Perfil. Para un PC, abre el menú de la tarjeta del PC y elige Perfil. Los campos en Predeterminado siguen los Ajustes. Guardar se aplica desde la próxima transmisión; Eliminar perfil vuelve a los Ajustes.",
+            "El HDR requiere HEVC o AV1: guardar HDR con H.264 se rechaza, y una sesión que empezaría en HDR con H.264 empieza en SDR y lo avisa. El mensaje de inicio muestra el origen, como Perfil del juego: 720p · 25 Mbps.",
+            "Ajustes → PC y biblioteca → Eliminar todos los perfiles borra todos los perfiles de PC y de juego. Los ajustes y los emparejamientos se conservan."
+          ],
+          "keywords": "perfil profile por juego por pc resolucion tasa de bits hdr codec"
+        },
+        {
+          "id": "bitrate-defaults",
+          "title": "Tasa de bits predeterminada por resolución",
+          "text": [
+            "Elegir una resolución también define una tasa de bits para 30 y 60 FPS. A 30 FPS: 480p 4, 720p 10, 1080p 20, 1440p 40, 4K 60 Mbps. A 60 FPS: 480p 6, 720p 15, 1080p 30, 1440p 50, 4K 80 Mbps.",
+            "Restaurar valores selecciona 1080p, 60 FPS y 30 Mbps. Después puedes ajustar la tasa de bits en pasos de 0,5 Mbps; cambiar la resolución más tarde vuelve a sugerir el valor de la tabla."
+          ],
+          "keywords": "tasa de bits bitrate mbps predeterminada resolucion tabla 1080p 4k"
         },
         {
           "id": "video-latency",
@@ -467,6 +505,15 @@
             "Las tasas usan el tiempo realmente medido; los recuentos y denominadores siguen visibles.",
             "No hay ganador automático. La ausencia de datos no equivale a un cero saludable."
           ]
+        },
+        {
+          "id": "diagnosis-hints",
+          "title": "Sugerencias después de una sesión",
+          "text": [
+            "Al abrir el Último diagnóstico, una sesión guardada de al menos dos minutos puede mostrar sugerencias: huecos de fotogramas, variación de la latencia de red, fallos de audio, fotogramas descartados o procesamiento lento en el PC, cada una con lo que suele ayudar y lo que cuesta.",
+            "Las reglas son fijas y usan solo los registros ya guardados en este televisor. No se envía, recopila ni cambia nada automáticamente, y nada se ejecuta durante la transmisión. Con dos sesiones del mismo juego, Comparar también puede señalar la tasa de bits cuando solo la mayor tuvo huecos. El texto dice lo que suele ayudar, nunca una causa segura."
+          ],
+          "keywords": "diagnostico sugerencias perdida jitter audio hints"
         },
         {
           "id": "metrics",

@@ -275,7 +275,7 @@
           "id": "game-menu",
           "title": "Abra o menu durante o jogo",
           "text": [
-            "Pressione Guide/Home no gamepad. O menu permite voltar à partida, ajustar volume, mostrar estatísticas, desconectar ou fechar o jogo no PC."
+            "Pressione Guide/Home no gamepad. O menu permite voltar à partida, ajustar volume, mostrar estatísticas, enviar atalhos ou texto digitado ao PC, desconectar ou fechar o jogo no PC."
           ],
           "image": {
             "name": "menu",
@@ -288,6 +288,24 @@
             "Desconectar mantém o jogo no PC; Fechar jogo no PC solicita o encerramento e pede confirmação."
           ],
           "callout": "Fechar o jogo pode perder o progresso não salvo. Sair pelo Smart Hub desconecta localmente; reabra VibeLight e use Retomar para reconectar."
+        },
+        {
+          "id": "game-shortcuts",
+          "title": "Enviar atalhos ao PC",
+          "text": [
+            "No menu durante o jogo escolha Atalhos. Esc, Alt+Tab, Win, Win+D, Alt+Enter e Enter são enviados ao PC e o menu fecha para você ver o resultado na hora.",
+            "Cima e baixo andam uma linha, esquerda e direita andam um item, e Voltar retorna ao menu. Nenhuma tecla fica presa depois do envio."
+          ],
+          "keywords": "atalho shortcut esc alt tab win desktop teclado"
+        },
+        {
+          "id": "type-text",
+          "title": "Digitar texto no PC",
+          "text": [
+            "No menu durante o jogo escolha Digitar texto. Aperte OK no campo para abrir o teclado da TV, digite e escolha Enviar. Acentos, símbolos e emoji chegam como texto no PC, até 256 caracteres por vez.",
+            "Cima e baixo alternam entre o campo e os botões Enviar e Voltar; esquerda e direita alternam entre Enviar e Voltar. O texto é esquecido ao sair. Ele nunca usa o teclado do jogo."
+          ],
+          "keywords": "digitar texto teclado acento enviar senha nota"
         },
         {
           "id": "refresh-library",
@@ -319,6 +337,26 @@
             "caption": "Configurações de imagem do código atual. Valores ilustrativos.",
             "alt": "Configurações de imagem do código atual. Valores ilustrativos."
           }
+        },
+        {
+          "id": "stream-profiles",
+          "title": "Perfis para um PC ou um jogo",
+          "text": [
+            "Um perfil altera apenas os campos que contém: resolução, taxa de quadros, bitrate, codec, HDR e som. O resto segue as Configurações. A prioridade é o perfil do jogo, depois o do PC, depois as Configurações, campo a campo.",
+            "Para um jogo, abra a biblioteca, escolha o jogo e pressione Perfil. Para um PC, abra o menu do cartão do PC e escolha Perfil. Campos em Padrão continuam seguindo as Configurações. Salvar vale a partir do próximo streaming; Remover perfil volta às Configurações.",
+            "O HDR exige HEVC ou AV1: salvar HDR com H.264 é recusado, e uma sessão que começaria em HDR com H.264 começa em SDR e avisa. A mensagem de início mostra a origem, como Perfil do jogo: 720p · 25 Mbps.",
+            "Configurações → PCs e biblioteca → Remover todos os perfis apaga todos os perfis de PC e de jogo. Configurações e pareamentos são mantidos."
+          ],
+          "keywords": "perfil profile por jogo por pc resolucao bitrate hdr codec"
+        },
+        {
+          "id": "bitrate-defaults",
+          "title": "Bitrate padrão para cada resolução",
+          "text": [
+            "Escolher uma resolução também define um bitrate para 30 e 60 FPS. A 30 FPS: 480p 4, 720p 10, 1080p 20, 1440p 40, 4K 60 Mbps. A 60 FPS: 480p 6, 720p 15, 1080p 30, 1440p 50, 4K 80 Mbps.",
+            "Restaurar padrões seleciona 1080p, 60 FPS e 30 Mbps. Depois você pode ajustar o bitrate em passos de 0,5 Mbps; mudar a resolução mais tarde sugere de novo o valor da tabela."
+          ],
+          "keywords": "bitrate mbps padrao resolucao tabela 1080p 4k"
         },
         {
           "id": "video-latency",
@@ -467,6 +505,15 @@
             "Taxas de eventos usam o tempo efetivamente medido; contagens e denominadores ficam visíveis.",
             "Não há vencedor automático. Ausência de dados não equivale a zero saudável."
           ]
+        },
+        {
+          "id": "diagnosis-hints",
+          "title": "Sugestões depois de uma sessão",
+          "text": [
+            "Ao abrir o Último diagnóstico, uma sessão salva de pelo menos dois minutos pode mostrar sugestões: lacunas de quadros, variação da latência de rede, falhas de áudio, quadros descartados ou processamento lento no PC, cada uma com o que costuma ajudar e o que isso custa.",
+            "As regras são fixas e usam só os registros já salvos nesta TV. Nada é enviado, coletado nem alterado automaticamente, e nada roda durante o streaming. Com duas sessões do mesmo jogo, Comparar também pode apontar o bitrate quando só a sessão maior teve lacunas. O texto diz o que costuma ajudar, nunca uma causa certa."
+          ],
+          "keywords": "diagnostico dicas sugestoes perda jitter audio hints"
         },
         {
           "id": "metrics",

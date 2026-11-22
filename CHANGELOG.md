@@ -11,6 +11,48 @@ that reason: the two lines are separate and should never be read as one.
 
 No changes yet.
 
+## v4.0.5
+
+Released 2026-11-22. Changes since v4.0.4. See the
+[release notes](RELEASE_NOTES.md) for the concise summary.
+
+### Added
+
+- Adds optional streaming profiles per PC and per game: resolution, frame rate,
+  bitrate, codec, HDR and sound. A game profile wins over the PC profile, which
+  wins over Settings, field by field. The start message shows the origin. A
+  profile is edited from the library (Profile) or the PC card menu, and all
+  profiles can be removed from PCs & library. HDR with H.264 is refused when
+  saving and starts in SDR with a notice. Without a profile a stream starts
+  exactly as in v4.0.4.
+- Adds Shortcuts to the in-game menu: Esc, Alt+Tab, Win, Win+D, Alt+Enter and
+  Enter are sent to the PC and released afterwards.
+- Adds Type text to the in-game menu: text typed on the TV keyboard is sent to
+  the PC as UTF-8 text events of at most 32 bytes that never split a character,
+  up to 256 characters, never through the game keyboard.
+- Adds local suggestions to Last diagnosis and to the A/B comparison, from fixed
+  rules over the records already saved on the TV. Nothing is collected, sent or
+  changed automatically and nothing runs during a stream.
+
+### Changed
+
+- Sets a default bitrate per resolution and frame rate (30 / 60 FPS: 480p 4 / 6,
+  720p 10 / 15, 1080p 20 / 30, 1440p 40 / 50, 4K 60 / 80 Mbps). Restore defaults
+  selects 1080p, 60 FPS and 30 Mbps, and bitrate edits use steps of 0.5 Mbps.
+- Moves one row with up and down in the Shortcuts grid and between the field and
+  the button row in Type text. The diagnosis history moves focus to Compare once
+  two records are selected.
+
+### Fixed
+
+- Cancels the browser's default click after the TV remote OK key has been handled
+  by the app. The extra click reopened or closed dialogs and moved focus in
+  Guide and help, General and About buttons, the diagnosis menu and Last diagnosis.
+  Text fields keep their default behavior.
+- Allows selecting two records in the diagnosis history and comparing them, and
+  keeps the profile popup from opening on its own or reopening after Save,
+  Remove or Cancel.
+
 ## v4.0.4
 
 Released 2026-11-14. Changes since v4.0.3.

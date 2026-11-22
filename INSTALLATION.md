@@ -6,7 +6,7 @@ This is the Markdown installation reference. The illustrated guide is online in
 [English](https://samirmartins.github.io/vibelight-tizen/?lang=en#install),
 [Português (Brasil)](https://samirmartins.github.io/vibelight-tizen/pt-br/?lang=pt-br#install)
 and [Español](https://samirmartins.github.io/vibelight-tizen/es/?lang=es#install).
-It covers [v4.0.4](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.4).
+It covers [v4.0.5](https://github.com/samirmartins/vibelight-tizen/releases/tag/v4.0.5).
 
 ## Apps2Samsung (recommended)
 

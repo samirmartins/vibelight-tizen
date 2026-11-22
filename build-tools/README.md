@@ -372,8 +372,8 @@ The static documentation is in `docs/` (GitHub Pages, no build or remote service
 It describes current source; publishing it and new WGTs are separate actions.
 Browser/fixture results are not Samsung SDK compilation or physical TV evidence.
 
-[CHANGELOG.md](../CHANGELOG.md#v404) and [RELEASE_NOTES.md](../RELEASE_NOTES.md)
-describe v4.0.4. The online [visual guide](https://samirmartins.github.io/vibelight-tizen/)
+[CHANGELOG.md](../CHANGELOG.md#v405) and [RELEASE_NOTES.md](../RELEASE_NOTES.md)
+describe v4.0.5. The online [visual guide](https://samirmartins.github.io/vibelight-tizen/)
 covers this release. Keep published changelog sections intact; record future
 changes separately and update the guide metadata when releasing them.
 `metadata.published` in `build-docs.cjs` is the single published version:
