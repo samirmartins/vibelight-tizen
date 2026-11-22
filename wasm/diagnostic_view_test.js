@@ -3,20 +3,30 @@ const assert=require('assert'),fs=require('fs'),vm=require('vm');
 function fixture(records){
   let active=null;const roots={};
   class Element{
-    constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.attributes={};this.value='';}
+    constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.attributes={};this.value='';this.listeners={};}
+    addEventListener(name,fn){(this.listeners[name]=this.listeners[name]||[]).push(fn);}
     set textContent(value){this.value=String(value);this.children=[];}
     get textContent(){return this.value+this.children.map(n=>n.textContent).join('');}
     appendChild(node){this.children.push(node);return node;}
     setAttribute(key,value){this.attributes[key]=value;}
     focus(){active=this;}
-    click(){if(!this.disabled && this.onclick)this.onclick();}
+    // The app's own activation is a synthetic click; the browser's extra click after the OK key is trusted.
+    // Capture listeners of the dialog run first, as in a real page.
+    click(trusted=false){
+      if(this.disabled)return;
+      const event={type:'click',isTrusted:!!trusted,target:this,stopped:false,stopImmediatePropagation(){this.stopped=true;},preventDefault(){}};
+      if(this!==roots.diagnosisDialog)for(const fn of roots.diagnosisDialog.listeners.click||[])fn(event);
+      if(event.stopped)return;
+      if(this.onclick)this.onclick(event);
+    }
     querySelectorAll(){const found=[];function walk(n){if(n.tagName==='BUTTON'&&!n.disabled)found.push(n);n.children.forEach(walk);}this.children.forEach(walk);return found;}
   }
   for(const id of ['diagnosisDialog','diagnosisTitle','diagnosisConfig','diagnosisDevice','diagnosisRows','diagnosisList','diagnosisPrivacy','diagnosisFinding','diagnosisHints','diagnosisPeak','diagnosisFoot','diagnosisActions'])roots[id]=new Element();
   roots.diagnosisDialog.children=Object.values(roots).filter(n=>n!==roots.diagnosisDialog);
   const find=id=>roots[id] || roots.diagnosisDialog.querySelectorAll().find(n=>n.id===id);
   const storage=new Map(),calls=[];
-  const c={isInGame:false,isDialogOpen:false,document:{getElementById:find,createElement:tag=>new Element(tag)},
+  const clock={now:1000};
+  const c={isInGame:false,isDialogOpen:false,performance:{now:()=>clock.now},document:{getElementById:find,createElement:tag=>new Element(tag)},
     localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
     Views:{UtilityDialog:{controls:[],view:{index:0}}},
     snackbarLogLong:text=>calls.push(text),
@@ -27,7 +37,8 @@ function fixture(records){
   vm.createContext(c);
   for(const name of ['diagnostic-history','diagnostic-hints','diagnostic-view'])vm.runInContext(fs.readFileSync('wasm/platform/'+name+'.js','utf8'),c);
   storage.set(c.DiagnosticHistory.key,JSON.stringify({version:2,records}));
-  return {c,find,roots,calls,focus:()=>active&&active.id};
+  // What the browser does after the app handled the OK key: click the element that is focused now.
+  return {c,find,roots,calls,clock,focus:()=>active&&active.id,defaultClick:()=>active&&active.click(true)};
 }
 const record=(id,config={})=>({version:2,id:String(id),createdAt:1700000000000+id,durationMs:120000,recordedMs:60000,
   game:'Artificial game '+id,device:'Synthetic TV · Tizen 9',
@@ -111,6 +122,36 @@ check('the view stays offline and inert',()=>{
   // The fixture throws on fetch, XMLHttpRequest, setTimeout and native collection.
   const f=fixture([long(1,{lossPercent:2}),long(2,{lossPercent:0.1},{bitrate:20})]);
   f.c.DiagnosticView.history();f.find('diagnosis-record-0').click();f.find('diagnosis-record-1').click();f.find('diagnosisCompare').click();
+});
+// The TV remote's OK is handled by the app and then clicked again by the browser on the element that is focused
+// by then (the re-rendered one). That second click must neither undo a selection nor press the next button.
+const pick=(f,index)=>{f.find('diagnosis-record-'+index).click();f.defaultClick();};
+check('one OK press selects one record',()=>{
+  const f=fixture([long(2),long(1)]);f.c.DiagnosticView.history();
+  pick(f,0);
+  assert.equal(f.find('diagnosis-record-0').attributes['aria-pressed'],'true','the record stays selected');
+  assert.match(f.roots.diagnosisFinding.textContent,/^1 \/ 2/);
+  pick(f,1);
+  assert.match(f.roots.diagnosisFinding.textContent,/^2 \/ 2/,'two records can be selected with OK');
+});
+check('OK on Compare opens the comparison and stays there',()=>{
+  const f=fixture([long(2),long(1)]);f.c.DiagnosticView.history();pick(f,0);pick(f,1);
+  f.find('diagnosisCompare').click();f.defaultClick();
+  assert.equal(f.roots.diagnosisTitle.textContent,'Compare diagnoses','Back must not be pressed by the browser click');
+});
+check('OK on View selected stays on the record',()=>{
+  const f=fixture([long(2),long(1)]);f.c.DiagnosticView.history();pick(f,0);
+  f.find('diagnosisViewSelected').click();f.defaultClick();
+  assert.equal(f.roots.diagnosisTitle.textContent,'Last diagnosis','Technical details must not open by itself');
+});
+check('real mouse clicks and spaced presses still work',()=>{
+  const f=fixture([long(2),long(1)]);f.c.DiagnosticView.history();
+  f.find('diagnosis-record-0').click(true);                        // a mouse click, nothing before it
+  assert.equal(f.find('diagnosis-record-0').attributes['aria-pressed'],'true');
+  f.clock.now+=1000;f.find('diagnosis-record-1').click(true);
+  assert.equal(f.find('diagnosis-record-1').attributes['aria-pressed'],'true');
+  f.clock.now+=1000;f.find('diagnosis-record-1').click();f.defaultClick();   // a later OK press deselects once
+  assert.equal(f.find('diagnosis-record-1').attributes['aria-pressed'],'false');
 });
 if(failures)process.exitCode=1;
 else console.log('diagnostic_view_test: saved configuration, A/B values, return focus, legacy and offline consultation, local suggestions PASS');

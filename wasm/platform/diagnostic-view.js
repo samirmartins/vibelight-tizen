@@ -29,7 +29,23 @@ var DiagnosticView=(function() {
     }).join(' · ');
   }
   function button(id,label,fn,disabled){var b=node('button',tr(label),'diagnosis-button');b.type='button';b.id=id;b.disabled=!!disabled;b.onclick=fn;return b;}
+  // The TV remote's OK key is handled by the app and then clicked again by the browser on whatever is
+  // focused once the screen was redrawn: that undid selections and pressed the next button by itself.
+  // A trusted click right after a click this dialog just handled is that second click and is dropped;
+  // the app's own clicks are synthetic and real mouse clicks stay available.
+  var lastClick=-Infinity;
+  function guardActivation(){
+    var dialog=el('diagnosisDialog');
+    if(!dialog || dialog.activationGuard)return;
+    dialog.activationGuard=true;
+    dialog.addEventListener('click',function(event){
+      var now=performance.now();
+      if(event.isTrusted && now-lastClick<350){event.stopImmediatePropagation();event.preventDefault();return;}
+      lastClick=now;
+    },true);
+  }
   function open(){
+    guardActivation();
     var ids=Array.prototype.map.call(el('diagnosisDialog').querySelectorAll('button:not(:disabled)'),function(b){return b.id;});
     if(el('diagnosisDialog').open){
       Views.UtilityDialog.controls=ids;Views.UtilityDialog.closeId='diagnosisClose';Views.UtilityDialog.view.index=Math.max(0,ids.indexOf(returnId));
