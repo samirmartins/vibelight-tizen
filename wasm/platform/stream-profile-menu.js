@@ -115,6 +115,9 @@ var StreamProfileMenu = (function() {
   var CONTROLS = ['sp-resolution', 'sp-frameRate', 'sp-bitrate', 'sp-codec', 'sp-hdr', 'sp-audio', 'sp-save', 'sp-remove', 'sp-cancel'];
   var ROW_COUNT = 6, ACTIONS = ['sp-save', 'sp-remove', 'sp-cancel'];
   var root = null, dialog = null, editor = null, request = null, existing = false, focused = 'sp-resolution';
+  // The browser clicks the focused element after the OK key was handled; once the popup closes that element
+  // is the opener, so an immediate second open is that extra click and is ignored.
+  var closedAt = -Infinity, REOPEN_GUARD_MS = 400;
 
   function el(id) { return document.getElementById(id); }
   function translate(text) {
@@ -182,6 +185,7 @@ var StreamProfileMenu = (function() {
   function close() {
     if (!dialog || !dialog.open) return;
     document.removeEventListener('visibilitychange', hidden);
+    closedAt = performance.now();
     closeUtilityDialog('streamProfileDialog');
     root.style.display = 'none';
     var opener = request && request.opener;
@@ -252,6 +256,7 @@ var StreamProfileMenu = (function() {
   // request: {scope: 'game'|'host', uid, appId, title, settings, limits, opener}
   function open(options) {
     if (isInGame || isDialogOpen || document.hidden) return false;
+    if (performance.now() - closedAt < REOPEN_GUARD_MS) return false;
     ensure();
     request = options;
     var prefix = options.scope === 'host' ? 'PC profile' : 'Game profile';

@@ -65,6 +65,7 @@ const stored = e => JSON.parse(e.store.get(KEY) || '{"hosts":{}}');
   assert.strictEqual(e.document.listenerCount('visibilitychange'), 0);
   assert.strictEqual(e.nav.pops, 1);
   // Reopening reuses the same dialog element.
+  e.clock.now += 1000;
   e.menu.open(request());
   assert.strictEqual(e.document.body.children.length, 1);
 }
@@ -104,6 +105,30 @@ const stored = e => JSON.parse(e.store.get(KEY) || '{"hosts":{}}');
   e.menu.view.accept();                       // OK on the Resolution row
   e.document.activeElement.click();           // and its default activation
   assert.strictEqual(rowText(e, 'resolution')[1], '◀ 480p ▶', 'one OK press is one step, not two');
+}
+
+// OK on Save/Remove/Cancel closes the popup and the focus returns to the opener; the browser's extra click
+// then lands on the opener and must not open the popup again. A later, real press still opens it.
+for (const how of ['save', 'remove', 'cancel']) {
+  const e = env(how === 'remove' ? {stored: JSON.stringify({version: 1, hosts: {'pc-a': {games: {7: {bitrate: 20}}}}})} : {});
+  const opener = e.document.createElement('button');
+  opener.setAttribute('id', 'libraryProfile');
+  opener.onclick = () => e.menu.open(request());
+  e.document.body.appendChild(opener);
+  opener.click();                                           // OK on the Profile button
+  const dialog = e.document.getElementById('streamProfileDialog');
+  assert(dialog.open, how + ': opened');
+  const view = e.menu.view;
+  if (how === 'save') { view.right(); for (let i = 0; i < 6; i++) view.down(); }
+  else if (how === 'remove') { for (let i = 0; i < 6; i++) view.down(); view.right(); }
+  else { for (let i = 0; i < 6; i++) view.down(); view.right(); view.right(); }
+  view.accept();                                            // OK on the action
+  assert(!dialog.open, how + ': closed');
+  e.document.activeElement.click(true);                     // the browser's second click, now on the opener
+  assert(!dialog.open, how + ': the extra click does not reopen it');
+  e.clock.now += 1000;
+  opener.click(true);
+  assert(dialog.open, how + ': a later press opens it again');
 }
 
 // Bitrate steps of 0.5 Mbps; holding accelerates.
