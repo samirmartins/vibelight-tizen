@@ -1961,6 +1961,14 @@ function startGame(host, appID, audioPrepared) {
         audioConfig = streamProfile.values.audio;
         profileSuffix = streamProfileSuffix(streamProfile);
       }
+      // Experimental 120 FPS reaches the stream only on a panel measured near 120 Hz; anywhere else
+      // it becomes 60 and the user is told. A 120 FPS start is guarded until it connects.
+      if (typeof HighRefresh !== 'undefined') {
+        var wantedRate = String(frameRate);
+        frameRate = HighRefresh.effective(frameRate, typeof window !== 'undefined' ? window._mlDisplayRefreshX100 : 0);
+        if (frameRate !== wantedRate) snackbarLogLong('120 FPS needs a display that reports 120 Hz. Starting at 60 FPS.');
+        if (frameRate === HighRefresh.RATE) HighRefresh.arm(localStorage);
+      }
       var rikey = generateRemoteInputKey();
       var rikeyid = generateRemoteInputKeyId();
       var gamepadMask = getConnectedGamepadMask();
