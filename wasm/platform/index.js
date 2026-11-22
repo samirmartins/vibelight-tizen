@@ -2306,8 +2306,8 @@ function applyHighRefresh(x100) {
     value: function() { return String($('#selectFramerate').data('value')); },
     choose: function(rate) { $('#selectFramerate').data('value', rate); highRefreshStored = undefined; },
     onReset: function() {
-      storeData('frameRate', '60', null);
-      standardBitratePresets();
+      // Show 60 for now but keep the saved 120: a later measurement near 120 Hz brings it back.
+      highRefreshStored = HighRefresh.RATE;
       snackbarLogLong('120 FPS is not available on this display. Using 60 FPS.');
     }
   });

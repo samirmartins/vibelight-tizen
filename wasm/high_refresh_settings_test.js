@@ -112,7 +112,8 @@ for (const rate of ['30', '60']) {
   assert.strictEqual(p.value(), '60', 'the stored 120 is gone: not brought back by the measurement');
 }
 
-// A 120 choice on a panel later measured as not supporting it returns to 60 (and says so).
+// A 120 choice on a panel later measured as not supporting it shows 60 (and says so) but keeps the saved
+// 120, so a later good measurement brings it back and one odd measurement never erases the user's choice.
 {
   const p = page();
   p.context.applyHighRefresh(12000);
@@ -120,9 +121,15 @@ for (const rate of ['30', '60']) {
   p.stored.length = 0; p.notices.length = 0; p.calls.presets = 0;
   p.context.applyHighRefresh(6000);
   assert.strictEqual(p.value(), '60');
-  assert.deepStrictEqual(p.stored, [['frameRate', '60']]);
-  assert.strictEqual(p.calls.presets, 1);
+  assert.deepStrictEqual(p.stored, [], 'the saved choice is not overwritten');
+  assert.strictEqual(p.calls.presets, 0, 'the saved bitrate is not touched');
   assert.strictEqual(p.notices.length, 1);
   assert.deepStrictEqual(p.rates(), ['30', '60']);
+  assert.strictEqual(p.context.highRefreshStored, '120');
+  p.context.applyHighRefresh(6000);
+  assert.strictEqual(p.notices.length, 1, 'told once');
+  p.context.applyHighRefresh(12000);
+  assert.strictEqual(p.value(), '120', 'the panel is measured at 120 Hz again: the choice returns');
+  assert.deepStrictEqual(p.stored, []);
 }
 console.log('high_refresh_settings_test: stored 120 waits for the measurement, pick shows the badge and warns, interrupted start returns to 60 PASS');
