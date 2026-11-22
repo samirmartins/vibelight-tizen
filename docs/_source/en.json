@@ -357,6 +357,15 @@
           }
         },
         {
+          "id": "high-refresh",
+          "title": "Experimental 120 FPS",
+          "text": [
+            "Settings → Picture offers 120 FPS, marked Experimental, only when the TV display is measured near 120 Hz. It is never offered or used on a 60 Hz display, and a saved 120 starts at 60 there. If a 120 FPS start does not finish, the next launch of the app goes back to 60 FPS once.",
+            "The measurement happens when the app opens, so the option may appear a few seconds later. Whether the picture really runs at 120 depends on the TV and the PC."
+          ],
+          "keywords": "120 fps frame rate experimental high refresh 120hz"
+        },
+        {
           "id": "stream-profiles",
           "title": "Profiles for a PC or a game",
           "text": [

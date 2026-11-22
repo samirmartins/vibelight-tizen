@@ -2,6 +2,9 @@
 
 ## What's new
 
+- Experimental 120 FPS, offered only on a display measured near 120 Hz.
+- H.264 4K and rates above 60 FPS declare the level the picture needs, with the old one as fallback.
+- A PC that is alive but slow to answer is now found instead of shown as unavailable.
 - The library follows the remote by rows: up and down change row, left and right stay
   in the row.
 - Two quick mouse clicks now select two diagnosis history records.

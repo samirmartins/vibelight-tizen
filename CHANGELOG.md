@@ -12,14 +12,28 @@ that reason: the two lines are separate and should never be read as one.
 Released 2026-11-22. Changes since v4.0.5. See the
 [release notes](RELEASE_NOTES.md) for the concise summary.
 
+### Added
+
+- Adds an experimental 120 FPS option, marked Experimental like the surround audio options.
+  It is listed only when the display is measured near 120 Hz, is never used on another display
+  (a saved 120 starts at 60 with a notice) and a 120 FPS start that did not finish returns to
+  60 FPS once at the next launch. 30 and 60 FPS start exactly as before.
+
 ### Changed
 
 - Moves through the library by rows with the remote: up and down go to the nearest
   control of the row above or below, left and right stay in their row, and up from
   the first row of games reaches the nearest filter. Markup and style are unchanged.
+- Declares the H.264 level the picture needs: 4K (30 and 60 FPS) and anything above 60 FPS
+  now try Level 5.1 or 5.2 first, with the Level 4.2 declaration used until now as the
+  fallback, and HEVC and AV1 declare 5.2 where 5.1 falls short. 1080p up to 64 FPS and 1440p
+  up to 60 FPS are unchanged.
 
 ### Fixed
 
+- Finds a PC that is alive but slow to answer: its addresses are probed with a short stagger under
+  one shared deadline instead of one after another at 4.5 s each, and when none answers the status
+  says how many addresses were tried.
 - Selects two history records when they are clicked quickly with a mouse; the
   browser's repeated click after the OK key is still dropped.
 - Makes the library follow a control focused with the pointer (Magic Remote or mouse):
