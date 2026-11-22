@@ -31,8 +31,8 @@ var DiagnosticView=(function() {
   function button(id,label,fn,disabled){var b=node('button',tr(label),'diagnosis-button');b.type='button';b.id=id;b.disabled=!!disabled;b.onclick=fn;return b;}
   // The TV remote's OK key is handled by the app and then clicked again by the browser on whatever is
   // focused once the screen was redrawn: that undid selections and pressed the next button by itself.
-  // A trusted click right after a click the app itself made (synthetic) is the browser's second click
-  // and is dropped. Real clicks never count as an echo of each other, however fast they come.
+  // A trusted click right after a click this dialog just handled is that second click and is dropped;
+  // the app's own clicks are synthetic and real mouse clicks stay available.
   var lastClick=-Infinity;
   function guardActivation(){
     var dialog=el('diagnosisDialog');
@@ -40,10 +40,7 @@ var DiagnosticView=(function() {
     dialog.activationGuard=true;
     dialog.addEventListener('click',function(event){
       var now=performance.now();
-      if(event.isTrusted){
-        if(now-lastClick<350){event.stopImmediatePropagation();event.preventDefault();}
-        return;
-      }
+      if(event.isTrusted && now-lastClick<350){event.stopImmediatePropagation();event.preventDefault();return;}
       lastClick=now;
     },true);
   }
