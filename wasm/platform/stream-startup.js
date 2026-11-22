@@ -57,6 +57,7 @@ var StreamStartup=(function() {
   }
   function cancelCurrent(){
     if(!attempt)return;
+    if(typeof HighRefresh!=='undefined' && typeof localStorage!=='undefined')HighRefresh.disarm(localStorage);   // the user stopped it: not a freeze
     var current=attempt;finish();current.cancel();
     if(current.native){
       if(typeof Module!=='undefined' && typeof Module.stopStream==='function')Module.stopStream();

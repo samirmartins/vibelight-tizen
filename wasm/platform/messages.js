@@ -174,6 +174,8 @@ function handleMessage(msg) {
     if (typeof AppLifecycle !== 'undefined' && (!isInGame || document.hidden)) return;
     if (typeof StreamSession !== 'undefined') StreamSession.reset();
     SessionDiagnostics.connected();
+    // The start finished: nothing to recover from at the next launch (see HighRefresh).
+    if (typeof HighRefresh !== 'undefined') HighRefresh.disarm(localStorage);
     if(typeof StreamStartup !== 'undefined') StreamStartup.finish();
     // Prepare the screen for video stream
     $('#loadingSpinner').css('display', 'none');
