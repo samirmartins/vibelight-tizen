@@ -20,6 +20,9 @@ var ML_AUD_RESET_AT = 15;
 var ML_AUD_RESET_ACK = 16;
 var ML_AUD_GATE = 17;
 
+var ML_DECAY_BASE_S = 10;
+var ML_DECAY_MAX_S = 60;
+
 function mlClamp(value, minimum, maximum) {
   return value < minimum ? minimum : (value > maximum ? maximum : value);
 }
@@ -40,6 +43,8 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
     this.epoch = 0;
     this.started = false;
     this.stableOutputFrames = 0;
+    // Seconds of stable playback before the raised target steps down; stretched by underruns.
+    this.decayWaitS = ML_DECAY_BASE_S;
     this.statsCountdown = 0;
     this.noteDepth = this.ignoreDepth;
 
@@ -73,6 +78,7 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
         this.phase = 0.0;
         this.started = false;
         this.stableOutputFrames = 0;
+        this.decayWaitS = ML_DECAY_BASE_S;
         this.setTelemetry(data.telemetry);
         this.ready = true;
       } catch (e) {
@@ -127,6 +133,7 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
       var step = Math.max(1, Math.round(this.sourceRate * 0.005));
       Atomics.store(this.control, ML_AUD_TARGET,
         Math.min(maximum, target + step) | 0);
+      this.decayWaitS = Math.min(ML_DECAY_MAX_S, this.decayWaitS * 2);
     }
     this.started = false;
     this.stableOutputFrames = 0;
@@ -235,9 +242,10 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
     Atomics.add(this.control, ML_AUD_CONSUMED, consumedThisQuantum | 0);
     this.stableOutputFrames += outputFrames;
 
-    // An underrun temporarily raises the target. After one stable minute, walk
-    // it back towards the low-latency initial target in small 2.5 ms steps.
-    if (this.stableOutputFrames >= sampleRate * 60) {
+    // An underrun temporarily raises the target. After a stable stretch (10 s, doubled by
+    // each underrun up to a minute, halved by each step), walk it back towards the
+    // low-latency initial target in small 2.5 ms steps.
+    if (this.stableOutputFrames >= sampleRate * this.decayWaitS) {
       this.stableOutputFrames = 0;
       var currentTarget = Atomics.load(this.control, ML_AUD_TARGET) >>> 0;
       var initialTarget = Atomics.load(this.control, ML_AUD_INITIAL_TARGET) >>> 0;
@@ -245,6 +253,9 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
         var reduce = Math.max(1, Math.round(this.sourceRate * 0.0025));
         Atomics.store(this.control, ML_AUD_TARGET,
           Math.max(initialTarget, currentTarget - reduce) | 0);
+        this.decayWaitS = Math.max(ML_DECAY_BASE_S, this.decayWaitS / 2);
+      } else {
+        this.decayWaitS = ML_DECAY_BASE_S;
       }
     }
 
