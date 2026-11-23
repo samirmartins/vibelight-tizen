@@ -1,10 +1,13 @@
 'use strict';
-// Compare real render/servo code with the published baseline, sample for sample.
+// Compare real render/servo code with the published baselines, sample for sample: v3.4.3 (the long-term
+// anchor) and v4.0.6 (the version last verified on the TV).
 const assert=require('assert'),fs=require('fs'),vm=require('vm'),cp=require('child_process');
-const baseline=file=>cp.execFileSync('git',['show','v3.4.3:'+file],{encoding:'utf8'});
+const baseline=(tag,file)=>cp.execFileSync('git',['show',tag+file],{encoding:'utf8'});
+// [reference, clock loads one servo step took in that version]
+const baselines=[['v3.4.3:',23],['v4.0.6:',3]];
 const audio='wasm/platform/audio.js',worklet='wasm/platform/audio-worklet.js';
-const currentAudio=fs.readFileSync(audio,'utf8'),oldAudio=baseline(audio);
-const currentWorklet=fs.readFileSync(worklet,'utf8'),oldWorklet=baseline(worklet);
+const currentAudio=fs.readFileSync(audio,'utf8');
+const currentWorklet=fs.readFileSync(worklet,'utf8');
 function trackedAtomics() {
   const calls={depth:0,loads:0};
   const api={};
@@ -44,6 +47,18 @@ function prepare(a,b,q) {
     c[2]=q===451?8:7;
   }
 }
+function scheduler(source,channels=2) {
+  const r=ring(channels,2),tracked=trackedAtomics();
+  const c={console,window:{},Module:{HEAP32:new Int32Array(r.memory),HEAP16:new Int16Array(r.memory)},
+    performance:{now:()=>1000},Atomics:tracked.api};
+  vm.createContext(c);vm.runInContext(source,c);
+  c._audControl=r.control;c._audPcm=r.pcm;c._audCapacityFrames=r.capacity;
+  c._audGeneration=7;c._audChannels=channels;c._audSourceRate=48000;
+  c._audFallbackReadFrame=r.control[0]>>>0;c._audResetStats();
+  return {...r,c,calls:tracked.calls};
+}
+for(const [reference,expectedOldLoads] of baselines) {
+const oldAudio=baseline(reference,audio),oldWorklet=baseline(reference,worklet);
 for(const rate of [44100,48000,96000])for(const channels of [1,2,6,8])for(const alwaysOn of [false,true]) {
   const old=processor(oldWorklet,rate,channels,true),now=processor(currentWorklet,rate,channels,alwaysOn);
   let enabled=alwaysOn;
@@ -70,16 +85,7 @@ for(const rate of [44100,48000,96000])for(const channels of [1,2,6,8])for(const 
   const read=now.control[0];now.out.forEach(channel=>channel.fill(1));now.p.process([], [now.out]);
   assert(now.out.every(channel=>channel.every(value=>value===0)));assert.strictEqual(now.control[0],read);
 }
-function scheduler(source,channels=2) {
-  const r=ring(channels,2),tracked=trackedAtomics();
-  const c={console,window:{},Module:{HEAP32:new Int32Array(r.memory),HEAP16:new Int16Array(r.memory)},
-    performance:{now:()=>1000},Atomics:tracked.api};
-  vm.createContext(c);vm.runInContext(source,c);
-  c._audControl=r.control;c._audPcm=r.pcm;c._audCapacityFrames=r.capacity;
-  c._audGeneration=7;c._audChannels=channels;c._audSourceRate=48000;
-  c._audFallbackReadFrame=r.control[0]>>>0;c._audResetStats();
-  return {...r,c,calls:tracked.calls};
-}
+
 for(const rate of [44100,48000,96000])for(const channels of [1,2,6,8]) {
   const old=scheduler(oldAudio,channels),now=scheduler(currentAudio,channels);
   const a=Array.from({length:channels+1},()=>new Float32Array(1024)),b=a.map(()=>new Float32Array(1024));
@@ -114,7 +120,8 @@ for(const rate of [44100,48000,96000])for(const channels of [1,2,6,8]) {
   for(const s of [a,b]){s.control[9]=48000;s.control[11]=1;s.c._audDriftEpochInitialized=true;}
   let prior=a.calls.loads;a.c.publishPipelinePosition(1000);const oldLoads=a.calls.loads-prior;
   prior=b.calls.loads;b.c.publishPipelinePosition(1000);const newLoads=b.calls.loads-prior;
-  assert.strictEqual(oldLoads,23);assert.strictEqual(newLoads,3);
+  assert.strictEqual(oldLoads,expectedOldLoads);assert.strictEqual(newLoads,3);
+}
 }
 // Real consumer lifecycle hooks, including both consumers and unsupported rVFC.
 {
@@ -138,4 +145,4 @@ for(const rate of [44100,48000,96000])for(const channels of [1,2,6,8]) {
   c._audWorkletNode.port.postMessage=()=>{throw Error('Fixture port closed');};
   assert.doesNotThrow(()=>c.setAudioTelemetryEnabled('overlay',true),'optional port failure must not break sound');
 }
-console.log('audio_telemetry_test: 24 worklet/12 fallback sample-exact cases, OFF min/max idle, ON stats, mixed/stale consumer transitions, unchanged drift/overlay and 23 -> 3 clock loads OK');
+console.log('audio_telemetry_test: 24 worklet/12 fallback sample-exact cases, OFF min/max idle, ON stats, mixed/stale consumer transitions, unchanged drift/overlay and 23 -> 3 clock loads, each against v3.4.3 and v4.0.6 OK');

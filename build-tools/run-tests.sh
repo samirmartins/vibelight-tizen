@@ -12,7 +12,7 @@ git rev-parse --git-dir >/dev/null 2>&1 || {
 }
 # Earlier releases and checkpoints compared by behavioral tests (kept in sync by
 # test_runner_test.js).
-for reference in v3.3.10 v3.4.3 v3.4.4 v3.4.7 v3.4.8 v3.4.9 v4.0.4 0b77114 6fe39d2 7b08c77 97c158e a434117 daca400 df6eb63; do
+for reference in v3.3.10 v3.4.3 v3.4.4 v3.4.7 v3.4.8 v3.4.9 v4.0.4 v4.0.6 0b77114 6fe39d2 7b08c77 97c158e a434117 daca400 df6eb63; do
   git rev-parse --verify "$reference^{commit}" >/dev/null 2>&1 || {
     echo "Missing history reference $reference. Fetch the full history and tags." >&2; exit 1;
   }
