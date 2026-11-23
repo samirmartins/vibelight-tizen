@@ -32,8 +32,11 @@ Released 2026-11-22. Changes since v4.0.5. See the
 ### Fixed
 
 - Finds a PC that is alive but slow to answer: its addresses are probed with a short stagger under
-  one shared deadline instead of one after another at 4.5 s each, and when none answers the status
-  says how many addresses were tried.
+  one shared deadline instead of one after another at 4.5 s each, so reopening the app while a game
+  is running no longer shows the PC as unavailable.
+- Translates texts that stayed in English in Portuguese and Spanish: the Language label in General and
+  About, the hint of the add-PC address field, the screen-reader labels and four error messages. A test
+  now checks the page and the app's messages for any text without a translation.
 - Selects two history records when they are clicked quickly with a mouse; the
   browser's repeated click after the OK key is still dropped.
 - Makes the library follow a control focused with the pointer (Magic Remote or mouse):
