@@ -730,6 +730,8 @@ const Views = {
       focusElement(this.view.current());
     },
     enter: function() {
+      // Confirmations that delete or discard something always open on Cancel.
+      this.view.index = 1;
       mark(this.view.current());
       setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
@@ -1365,6 +1367,8 @@ const Views = {
       focusElement(this.view.current());
     },
     enter: function() {
+      // Confirmations that delete or discard something always open on Cancel.
+      this.view.index = 1;
       mark(this.view.current());
       setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
@@ -1426,6 +1430,8 @@ const Views = {
       focusElement(this.view.current());
     },
     enter: function() {
+      // Confirmations that delete or discard something always open on Cancel.
+      this.view.index = 1;
       mark(this.view.current());
       setTimeout(() => { if (Navigation.isCurrent(this)) focusElement(this.view.current()); }, 100);
     },
