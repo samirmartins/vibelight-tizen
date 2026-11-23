@@ -21,9 +21,6 @@ Released 2026-11-23. Changes since v4.0.6. See the
   is off, chooses Ask (the default), Wake and play, or Try to play anyway, which starts the game as
   before. Wake-on-LAN only works if the PC is set up for it.
 
-- Adds a library search: a Search button on the filter row opens a field below it, and the list narrows
-  on every letter inside the current filter, ignoring case and accents. Clear and Back close it.
-
 ### Changed
 
 - The library button Refresh library is now Refresh PC and library, because it checks the PC as well as the

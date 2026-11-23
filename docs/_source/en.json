@@ -339,14 +339,6 @@
             "Press Play on a PC that is off and VibeLight offers to turn it on: Wake PC and play sends the wake signal, shows the steps and the clock (up to 120 seconds) and starts the game when the PC answers; Try to play anyway starts as before. Choose what Play does under Settings → Host Settings → When the PC is off (Ask, Wake and play or Try to play anyway). It only works if the PC is set up for Wake-on-LAN, as described in Wake the PC."
           ],
           "keywords": "wake on lan play off ask setting library"
-        },
-        {
-          "id": "library-search",
-          "title": "Search the library",
-          "text": [
-            "On the filter row, choose Search and type part of a game’s name. The list narrows with every letter, ignoring capital letters and accents, and only looks inside the filter you are in (All games, Favorites or Recent). Clear, or Back, empties the search and closes it; a new visit to the library starts without a search."
-          ],
-          "keywords": "library search find game name filter keyboard"
         }
       ]
     },
