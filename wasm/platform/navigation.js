@@ -561,8 +561,9 @@ const Views = {
       if (ipAddressFieldModeSwitch.checked && currentItem.startsWith('ipAddressField')) {
         // Decrease the value of the current IP address numeric field
         changeIpNumericFieldValue.call(this, -1);
-      } else {
-        // Go to the second item in the list (continueAddHost)
+      } else if (currentItem !== 'continueAddHost' && currentItem !== 'cancelAddHost') {
+        // From the address box, go to the second item in the list (continueAddHost).
+        // Down on Continue or Cancel stays where it is.
         this.view.index = 1;
         focusElement(this.view.current());
       }
