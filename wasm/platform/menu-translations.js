@@ -751,4 +751,9 @@ var MenuTranslations = [
   ["What Play does when the PC is off. Waking it needs Wake-on-LAN set up on the PC.", "O que o Jogar faz com o PC desligado. Ligá-lo exige o Wake-on-LAN configurado no PC.", "Qué hace Jugar con el PC apagado. Encenderlo requiere Wake-on-LAN configurado en el PC."],
   ["Ask", "Perguntar", "Preguntar"],
   ["Wake and play", "Ligar e jogar", "Encender y jugar"],
+  ["Resume after a connection drop", "Retomar após queda de conexão", "Reanudar tras una caída de conexión"],
+  ["If the network or video fails, VibeLight resumes the same game on its own, up to 3 times in a row.", "Se a rede ou o vídeo falhar, o VibeLight retoma o mesmo jogo sozinho, até 3 vezes seguidas.", "Si falla la red o el vídeo, VibeLight reanuda el mismo juego por sí solo, hasta 3 veces seguidas."],
+  ["Resume the game automatically when the connection drops", "Retomar o jogo automaticamente quando a conexão cair", "Reanudar el juego automáticamente cuando se caiga la conexión"],
+  ["Connection lost. Resuming the game…", "Conexão perdida. Retomando o jogo…", "Conexión perdida. Reanudando el juego…"],
+  ["The game could not be resumed. Check the PC and try again.", "Não foi possível retomar o jogo. Confira o PC e tente de novo.", "No se pudo reanudar el juego. Comprueba el PC e inténtalo de nuevo."],
 ];
