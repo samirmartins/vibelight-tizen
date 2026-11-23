@@ -635,8 +635,9 @@ const Views = {
     view: new ListView(() => [
       'cancelPairing'
     ]),
+    // One button: Up and Down keep it focused.
     up: function() {
-      blurElement('cancelPairing');
+      focusElement('cancelPairing');
     },
     down: function() {
       focusElement('cancelPairing');
@@ -753,8 +754,9 @@ const Views = {
     view: new ListView(() => [
       'closeHostDetails'
     ]),
+    // One button: Up and Down keep it focused.
     up: function() {
-      blurElement('closeHostDetails');
+      focusElement('closeHostDetails');
     },
     down: function() {
       focusElement('closeHostDetails');
@@ -1460,8 +1462,9 @@ const Views = {
     view: new ListView(() => [
       'closeWarning'
     ]),
+    // One button: Up and Down keep it focused.
     up: function() {
-      blurElement('closeWarning');
+      focusElement('closeWarning');
     },
     down: function() {
       focusElement('closeWarning');
