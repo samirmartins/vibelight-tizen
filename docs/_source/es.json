@@ -336,7 +336,7 @@
           "id": "wake-and-play",
           "title": "Enciende el PC y juega",
           "text": [
-            "Pulsa Jugar con el PC apagado y VibeLight te ofrece encenderlo: Encender y jugar envía la señal, muestra los pasos y el reloj (hasta 120 segundos) e inicia el juego cuando el PC responda; Intentar jugar de todos modos inicia como antes. Elige qué hace Jugar en Ajustes → Configuración del PC → Cuando el PC esté apagado (Preguntar, Encender y jugar o Intentar jugar de todos modos). Solo funciona si el PC está configurado para Wake-on-LAN, como se explica en Despierta el PC."
+            "Pulsa Jugar con el PC apagado y VibeLight te ofrece encenderlo: Encender y jugar envía la señal, muestra los pasos y el reloj (hasta 120 segundos) e inicia el juego cuando el PC responda; Intentar jugar de todos modos inicia como antes. Elige qué hace Jugar en Ajustes → PC y biblioteca → Cuando el PC esté apagado (Preguntar, Encender y jugar o Intentar jugar de todos modos). Solo funciona si el PC está configurado para Wake-on-LAN, como se explica en Despierta el PC."
           ],
           "keywords": "wake on lan jugar apagado preguntar ajuste biblioteca encender"
         }

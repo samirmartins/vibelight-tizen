@@ -56,6 +56,7 @@ Artificial PC, game and session data · [Image credits and licenses](docs/images
   and technical details. **No statistics are uploaded.** Partial coverage is identified.
 - Defaults: H.264, 1080p, 60 FPS, 30 Mbps; frame pacing ON, rumble ON, mouse mode OFF.
   The adaptive audio buffer has a default 100 ms ceiling, not fixed 100 ms latency.
+- Experimental 120 FPS on TVs that support it.
 - Ultra-low video latency is separate from ForceGM and may be unstable on some
   TVs/system versions. It remains OFF by default, including with ForceGM.
 

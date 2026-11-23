@@ -336,7 +336,7 @@
           "id": "wake-and-play",
           "title": "Turn the PC on and play",
           "text": [
-            "Press Play on a PC that is off and VibeLight offers to turn it on: Wake PC and play sends the wake signal, shows the steps and the clock (up to 120 seconds) and starts the game when the PC answers; Try to play anyway starts as before. Choose what Play does under Settings → Host Settings → When the PC is off (Ask, Wake and play or Try to play anyway). It only works if the PC is set up for Wake-on-LAN, as described in Wake the PC."
+            "Press Play on a PC that is off and VibeLight offers to turn it on: Wake PC and play sends the wake signal, shows the steps and the clock (up to 120 seconds) and starts the game when the PC answers; Try to play anyway starts as before. Choose what Play does under Settings → PCs and library → When the PC is off (Ask, Wake and play or Try to play anyway). It only works if the PC is set up for Wake-on-LAN, as described in Wake the PC."
           ],
           "keywords": "wake on lan play off ask setting library"
         }

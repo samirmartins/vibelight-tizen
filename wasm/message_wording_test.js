@@ -64,4 +64,12 @@ for (const [locale, bad, good] of [['pt-br', 'Acorde o PC', 'Ligue o PC'], ['es'
   assert(!guide.includes(`"title": "${bad}"`), locale + ': old title gone');
   assert(guide.includes(`"title": "${good}"`), locale + ': new title');
 }
+// The guide gives the real path of the setting: the category is PCs and library (not Host Settings).
+for (const [locale, good, bad] of [['en', 'Settings → PCs and library → When the PC is off', 'Host Settings'],
+  ['pt-br', 'Configurações → PCs e biblioteca → Quando o PC estiver desligado', 'Configurações do PC'],
+  ['es', 'Ajustes → PC y biblioteca → Cuando el PC esté apagado', 'Configuración del PC']]) {
+  const guide = fs.readFileSync(`docs/_source/${locale}.json`, 'utf8');
+  assert(guide.includes(good), locale + ': the guide names the real category');
+  assert(!guide.includes(bad + ' → When') && !guide.includes(bad + ' → Quando') && !guide.includes(bad + ' → Cuando'), locale + ': no ' + bad + ' in the path');
+}
 console.log('message_wording_test: buttons named as labelled, one wake word, games not applications, one ellipsis style PASS');
