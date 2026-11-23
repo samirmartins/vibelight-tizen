@@ -802,7 +802,10 @@ const Views = {
       }
     },
     left: function() {},
-    right: function() {},
+    // Right opens the focused category, like OK; Left inside a page returns here.
+    right: function() {
+      clickElement(this.view.current());
+    },
     accept: function() {
       clickElement(this.view.current());
     },
