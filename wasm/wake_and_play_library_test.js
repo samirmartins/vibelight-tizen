@@ -186,7 +186,7 @@ const text = (f, name) => f.node(name).textContent;
   f = await setup(); f.wakeGate = deferred();
   f.node('libraryPlay').click(); await f.flush(); f.node('wakePlayWake').click(); f.wakeGate.reject(Error('synthetic')); await f.flush();
   assert.strictEqual(f.launches.length, 0); assert.strictEqual(f.released, 1);
-  assert(f.messages.some(m => /Could not send Wake-on-LAN/.test(m)));
+  assert(f.messages.some(m => /Could not send the wake signal/.test(m)));
 
   // Play pressed again while waiting does nothing more (one wait, one packet, one start).
   f = await setup();

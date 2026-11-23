@@ -8,9 +8,9 @@ var StreamStartup=(function() {
     var reason=typeof error==='string' ? error : error && error.message;
     if(reason==='Audio cleanup did not complete safely. Restart VibeLight.')return text(reason);
     if(error && error.clientStreamStopping)return text('Previous stream is still closing. Retry shortly.');
-    var stages={pc:'Checking PC…',app:'Loading game information…',quit:'Closing the game on the PC…',host:'Starting the game on the PC…',player:'Starting video and audio…'};
+    var stages={pc:'Checking PC...',app:'Loading game information...',quit:'Closing the game on the PC...',host:'Starting the game on the PC...',player:'Starting video and audio...'};
     var advice={pc:'Could not reach the PC. Check the host, network and firewall, then try Play again.',
-      app:'This game is unavailable. Refresh the library and try again.',
+      app:'This game is unavailable. Use Refresh PC and library and try again.',
       quit:'Could not close the running game. Check the PC before trying again.',
       host:'The PC could not start or resume the game. Check the host and game on the PC, then try Play again.',
       player:'Could not start video and audio. Review the stream settings and try again.'};
@@ -52,7 +52,7 @@ var StreamStartup=(function() {
     var panel=el('streamStartupPanel'),button=el('streamStartupCancel');
     if(panel)panel.hidden=false;if(button){button.onclick=cancelCurrent;button.focus();}
     if(document.addEventListener)document.addEventListener('keydown',key,true);
-    stage('Checking PC…');
+    stage('Checking PC...');
     return serial;
   }
   function cancelCurrent(){

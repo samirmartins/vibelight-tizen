@@ -24,7 +24,7 @@ const startup=c.StreamStartup;
  startup.begin(host,()=>calls.push('cancel'));startup.finish();startup.cancel();assert.equal(calls.length,4);
  const failure=startup.failure('host',new Error('private address or certificate'));
  assert(failure.includes('Stage:'));assert(failure.includes('PC'));assert(!failure.includes('private address'));
- assert(startup.failure('app',new Error('Unknown app')).includes('Refresh the library'));
+ assert(startup.failure('app',new Error('Unknown app')).includes('Refresh PC and library'));
  assert(startup.failure('pc',new Error('PC did not respond')).includes('in time'));
  assert(startup.failure('player',new Error('Audio cleanup did not complete safely. Restart VibeLight.')).includes('Restart VibeLight'));
  console.log('stream_startup_test: single progress owner, dialog priority, stages, cancellation and stale updates PASS');

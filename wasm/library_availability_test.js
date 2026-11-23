@@ -42,7 +42,7 @@ function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve
   f.suspend();assert.strictEqual(f.timers.size,0);
   // App-list failure after authenticated contact never becomes PC offline.
   f=fixture();f.host.getAppListWithCacheFlush=()=>Promise.reject(Error('slow app list'));
-  await f.open();assert.strictEqual(f.host.online,true);assert.strictEqual(f.node('libraryStatus').textContent,'Games unavailable · Refresh the library.');
+  await f.open();assert.strictEqual(f.host.online,true);assert.strictEqual(f.node('libraryStatus').textContent,'Games unavailable · Use Refresh PC and library.');
   f.suspend();
   f=fixture();f.host.paired=false;await f.open();
   assert.strictEqual(f.node('libraryStatus').textContent,'Pairing required · Open PCs.');

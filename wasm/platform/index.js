@@ -956,10 +956,10 @@ function hostMenuActions(host) {
     {
       id: 'refreshApps-' + host.hostname,
       class: 'host-menu-button',
-      text: 'Refresh apps',
+      text: 'Refresh games',
       action: function() {
         // Refresh the list of apps for the target host
-        snackbarLogLong('Refreshing the list of ' + host.hostname + ' applications...');
+        snackbarLogLong('Refreshing the list of games from ' + host.hostname + '...');
         host.clearBoxArt();
         host.getAppListWithCacheFlush();
       }
@@ -1926,7 +1926,7 @@ function startGame(host, appID, audioPrepared) {
     return launchScope.request(function() { return host.refreshServerInfo(launchScope); }, 10000);
   }).then(function() {
     if (!launchCurrent()) return;
-    if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Loading game information…');
+    if(typeof StreamStartup !== 'undefined') StreamStartup.stage('Loading game information...');
     launchStep = 'app';
     return launchScope.request(function() { return host.getAppById(appID); }, 10000);
   }).then(function(appToStart) {
@@ -2016,7 +2016,7 @@ function startGame(host, appID, audioPrepared) {
         var code = $root.attr('status_code');
         if (String(code) !== '200') throw new Error('Host rejected the stream');
         if (!$root.find('sessionUrl0').text().trim()) throw new Error('Missing stream URL');
-        if(typeof StreamStartup !== 'undefined'){StreamStartup.stage('Starting video and audio…');StreamStartup.native();}
+        if(typeof StreamStartup !== 'undefined'){StreamStartup.stage('Starting video and audio...');StreamStartup.native();}
         launchStep = 'player';
         return sendMessage('startRequest', [
             host.address, host.httpPort, streamWidth, streamHeight, frameRate, bitrate.toString(), rikey, rikeyid.toString(),

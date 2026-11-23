@@ -26,7 +26,7 @@ const from = (start, end) => {
   const host = {hostname: 'Fixture PC', serverUid: 'pc-a', clearBoxArt() {}, getAppListWithCacheFlush() {}};
   const actions = context.hostMenuActions(host);
   assert.deepStrictEqual(plain(actions.map(a => [a.id, a.text])), [
-    ['refreshApps-Fixture PC', 'Refresh apps'], ['wakeHost-Fixture PC', 'Wake PC (Wake-on-LAN)'],
+    ['refreshApps-Fixture PC', 'Refresh games'], ['wakeHost-Fixture PC', 'Wake PC (Wake-on-LAN)'],
     ['streamProfile-Fixture PC', 'Stream profile'], ['deleteHost-Fixture PC', 'Delete PC'], ['viewDetails-Fixture PC', 'View Details']]);
   actions.find(a => a.id.startsWith('streamProfile-')).action();
   assert.strictEqual(context.opened.length, 1);

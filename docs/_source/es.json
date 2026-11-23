@@ -237,7 +237,7 @@
         },
         {
           "id": "wake-pc",
-          "title": "Despierta el PC",
+          "title": "Enciende el PC",
           "text": [
             "Wake-on-LAN envía un paquete para despertar el PC por la red local. Configúralo una vez con el PC encendido; confirmar el envío significa que el paquete salió de la TV, no que el PC haya terminado de despertar."
           ],

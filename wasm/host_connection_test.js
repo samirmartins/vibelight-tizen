@@ -99,7 +99,7 @@ const flush=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
   host.sendWOL=()=>Promise.resolve();host._authenticatedOnline=false;
   let wakeChecks=0;host.connect=()=>{wakeChecks++;return Promise.resolve();};
   c.WakeHost.open(host);element('wakeSend').onclick();await flush();
-  assert.match(element('wakeStatus').textContent,/Wake packet sent/);
+  assert.match(element('wakeStatus').textContent,/Wake signal sent/);
   assert.strictEqual(wakeChecks,0);assert.strictEqual(host._authenticatedOnline,false);
   element('wakeClose').onclick();assert.strictEqual(wakeChecks,0);assert.strictEqual(timers.size,0);
   c.webapis={network:{getIp:()=> '192.0.2.4',getSubnetMask:()=> '255.255.255.0'}};

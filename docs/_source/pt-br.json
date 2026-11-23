@@ -237,7 +237,7 @@
         },
         {
           "id": "wake-pc",
-          "title": "Acorde o PC",
+          "title": "Ligue o PC",
           "text": [
             "O Wake-on-LAN envia um pacote para acordar o PC pela rede local. Configure uma vez com o PC ligado; a confirmação de envio indica que o pacote saiu da TV, não que o PC já terminou de acordar."
           ],

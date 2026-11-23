@@ -23,6 +23,10 @@ Released 2026-11-23. Changes since v4.0.6. See the
 
 ### Changed
 
+- Message wording: messages name the buttons as they are labelled (no more Reload VibeLight or Refresh the
+  library, and Ligar PC instead of Acordar PC), the wake signal has one name and one failure message, the refresh
+  messages talk about games, every message uses three dots, and the guide titles Ligue o PC and Enciende el PC
+  match the buttons.
 - The library button Refresh library is now Refresh PC and library, because it checks the PC as well as the
   game list. The PC unavailable message names the
   Wake PC and Refresh PC and library buttons exactly as they are labelled (in Portuguese it said Acordar PC for

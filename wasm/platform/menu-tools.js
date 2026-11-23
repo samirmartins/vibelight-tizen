@@ -117,15 +117,15 @@ var WakeHost = (function() {
     var current = scope;
     var valid = function() { return opened && current.active && scope === current && !isInGame && !document.hidden; };
     document.getElementById('wakeSend').disabled = true;
-    status('Sending Wake-on-LAN...');
+    status('Sending the wake signal...');
     current.request(function() { return host.sendWOL(); }, 8000).then(function() {
       if (!valid()) return;
       cancel();
-      status('Wake packet sent. Press Play when the PC is ready.');
+      status('Wake signal sent. Press Play when the PC is ready.');
     }, function() {
       if (!valid()) return;
       cancel();
-      status('Could not send the wake packet. Check the saved MAC and local network.');
+      status('Could not send the wake signal. Check the saved MAC and the local network.');
     });
   }
   return {

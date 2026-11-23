@@ -51,7 +51,7 @@ async function played() {
   let f = await played();
   f.state = 'off'; f.exit(); f.finish(); await f.flush();
   assert.notStrictEqual(f.status(), UNAVAILABLE, 'not unavailable yet: one more check is coming');
-  assert.strictEqual(f.status(), 'Checking PC…');
+  assert.strictEqual(f.status(), 'Checking PC...');
   assert.strictEqual(f.retryTimers(), 1, 'one retry is scheduled');
   f.state = 'on'; await f.fire(4000);
   assert.match(f.status(), /PC online/); assert(f.host.online && f.host._authenticatedOnline);

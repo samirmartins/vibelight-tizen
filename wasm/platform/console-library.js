@@ -356,7 +356,7 @@ var ConsoleLibrary = (function() {
     }
     renderedHost = host;
     el('libraryEmpty').hidden = items.length !== 0;
-    el('libraryEmpty').textContent = apps.length ? 'No games in this section. Choose All games.' : 'Start the PC and Sunshine, then use Reload VibeLight.';
+    el('libraryEmpty').textContent = apps.length ? 'No games in this section. Choose All games.' : 'Start the PC and Sunshine, then use Refresh PC and library.';
     ['All','Favorites','Recent'].forEach(function(name) {
       el('library'+name).setAttribute('aria-pressed', filter === name.toLowerCase());
     });
@@ -394,7 +394,7 @@ var ConsoleLibrary = (function() {
     var current = scope, token = epoch, reached = false;
     refreshCovers = forceCovers === true;
     checking = true; reachState = 'unknown';
-    status('Checking PC…'); updateSelection();
+    status('Checking PC...'); updateSelection();
     // Disk-only artwork is independent of network discovery, including a cold
     // menu/offline PC. Never queue downloads in front of the status request.
     var cached = render(false, true);
@@ -406,7 +406,7 @@ var ConsoleLibrary = (function() {
         if (!hostReady()) throw new Error('Sunshine is still starting.');
         if (!host.paired) throw new Error('Pair this PC from PCs to access its library.');
         checking = false;
-        status('PC online · Loading games…'); updateSelection();
+        status('PC online · Loading games...'); updateSelection();
         return host.getAppListWithCacheFlush(current);
     }).then(function(value) {
       if (!valid(token)) return;
@@ -428,12 +428,12 @@ var ConsoleLibrary = (function() {
         // The first check after a stream: the host may still be closing the session. Check once more
         // in a few seconds before saying the PC is unavailable.
         afterStream = false;
-        status('Checking PC…');
+        status('Checking PC...');
         clearTimeout(retryTimer);
         retryTimer = setTimeout(function() { retryTimer = 0; if (active && !isInGame && valid(token)) refresh(false); }, 4000);
         return cached;
       }
-      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then use Refresh PC and library.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Refresh the library.');
+      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then use Refresh PC and library.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Use Refresh PC and library.');
       return cached;
     }).then(function() {
       if (!valid(token)) return;
@@ -547,7 +547,7 @@ var ConsoleLibrary = (function() {
       status('The PC did not respond in 2 minutes. Check that it is on the network by cable and that Wake-on-LAN is enabled.');
       snackbarLog('The PC did not respond in 2 minutes. Check that it is on the network by cable and that Wake-on-LAN is enabled.');
     } else if (result === 'send-failed') {
-      snackbarLog('Could not send Wake-on-LAN. Check the saved MAC and PC settings.');
+      snackbarLog('Could not send the wake signal. Check the saved MAC and the local network.');
     }
     updateSelection();
   }
@@ -608,11 +608,11 @@ var ConsoleLibrary = (function() {
     wakeScope = current; updateSelection();
     current.request(function() { return host.sendWOL(); },8000).then(function() {
       if (valid(token) && wakeScope === current) {
-        status('Wake packet sent. Press Play when the PC is ready.');
-        snackbarLog('Wake packet sent. This does not confirm the PC is awake.');
+        status('Wake signal sent. Press Play when the PC is ready.');
+        snackbarLog('Wake signal sent. This does not confirm the PC is awake.');
       }
     },function() {
-      if (valid(token) && wakeScope === current) snackbarLog('Could not send Wake-on-LAN. Check the saved MAC and PC settings.');
+      if (valid(token) && wakeScope === current) snackbarLog('Could not send the wake signal. Check the saved MAC and the local network.');
     }).then(function() {
       if (wakeScope !== current) return;
       current.cancel(); wakeScope = null;
@@ -668,7 +668,7 @@ var ConsoleLibrary = (function() {
     showAppsMode(); decorate();
     el('game-grid').style.display = 'grid'; $('#wasmSpinner').hide();
     // refresh() owns the single initial render/cache pass and its cancellation.
-    status('Checking PC…');
+    status('Checking PC...');
     var opening = refresh();
     Navigation.change(Views.Apps); Navigation.start(); focusCards();
     checkRelease();
