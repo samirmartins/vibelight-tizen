@@ -140,6 +140,20 @@ const text = (f, name) => f.node(name).textContent;
   assert.deepStrictEqual(f.closed, ['wakePlayDialog']);
   assert.strictEqual(f.timers.size, [...f.timers].filter(([, t]) => t.ms === 2000).length, 'no wake timer left running');
 
+  // The seconds count one by one, and the screen shows the longest wait, whatever the checks are doing.
+  f = await setup(); f.probeGate = deferred(); // a slow check must not slow the counter
+  let clock = 1000000; f.c.Date = {now: () => clock};
+  f.node('libraryPlay').click(); await f.flush(); f.node('wakePlayWake').click(); await f.flush();
+  assert.strictEqual(text(f, 'wakePlayElapsed'), 'Waiting 0 s of a maximum of 120 s');
+  for (let n = 1; n <= 5; n++) {
+    clock += 1000; await fire(f, 1000);
+    assert.strictEqual(text(f, 'wakePlayElapsed'), 'Waiting ' + n + ' s of a maximum of 120 s', 'second ' + n);
+  }
+  clock += 61000; await fire(f, 1000);
+  assert.strictEqual(text(f, 'wakePlayElapsed'), 'Waiting 66 s of a maximum of 120 s', 'follows the real time');
+  f.node('wakePlayCancel').click(); await f.flush();
+  assert.strictEqual([...f.timers].filter(([, t]) => t.ms === 1000).length, 0, 'the counter stops with the wait');
+
   // The PC never comes up: after 120 s the wait ends, the audio is released, the user is told.
   f = await setup();
   f.node('libraryPlay').click(); await f.flush(); f.node('wakePlayWake').click(); await f.flush();

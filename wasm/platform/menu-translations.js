@@ -761,4 +761,5 @@ var MenuTranslations = [
   ["Search games", "Buscar jogos", "Buscar juegos"],
   ["Type to search games", "Digite para buscar jogos", "Escribe para buscar juegos"],
   ["No games found.", "Nenhum jogo encontrado.", "No se encontró ningún juego."],
+  ["Waiting {0} s of a maximum of {1} s", "Aguardando {0} s de no máximo {1} s", "Esperando {0} s de un máximo de {1} s"],
 ];

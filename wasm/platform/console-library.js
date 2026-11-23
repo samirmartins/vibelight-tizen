@@ -600,6 +600,7 @@ var ConsoleLibrary = (function() {
   function endWakePlay(result, current) {
     if (wakePlay !== current) return;
     wakePlay = null;
+    clearTimeout(current.tick);
     current.scope.cancel();
     closeUtilityDialog('wakePlayDialog');
     if (result === 'ready') { reachState = lastReach = 'online'; lastReachHost = host; launch(current.appId, true); return; }
@@ -614,12 +615,20 @@ var ConsoleLibrary = (function() {
     updateSelection();
   }
   function startWakePlay(appId, openDialog) {
-    var current = { appId: appId, scope: createMenuRequestScope(), handle: null };
+    var current = { appId: appId, scope: createMenuRequestScope(), handle: null, tick: 0 };
     wakePlay = current;
     el('wakePlayTitle').textContent = 'Waking the PC';
     el('wakePlayStatus').textContent = 'Waiting for the PC to start…';
     el('wakePlayNote').textContent = 'The game starts when the PC is ready.';
-    el('wakePlayElapsed').textContent = '0 s';
+    // The seconds count one by one, from the real time, and the screen shows the longest wait.
+    var started = Date.now(), longest = Math.round(WakeAndPlay.LIMIT_MS / 1000);
+    function showElapsed() {
+      el('wakePlayElapsed').textContent = 'Waiting ' + Math.max(0, Math.floor((Date.now() - started) / 1000)) +
+        ' s of a maximum of ' + longest + ' s';
+    }
+    function tick() { showElapsed(); current.tick = setTimeout(tick, 1000); }
+    showElapsed();
+    current.tick = setTimeout(tick, 1000);
     ['wakePlayWake','wakePlayTry','wakePlayRememberRow'].forEach(function(name) { el(name).style.display = 'none'; });
     el('wakePlayCancel').onclick = function() { if (current.handle) current.handle.cancel(); };
     if (openDialog) {
@@ -639,8 +648,7 @@ var ConsoleLibrary = (function() {
       },
       setTimeout: function(fn, ms) { return setTimeout(fn, ms); },
       clearTimeout: function(id) { clearTimeout(id); },
-      now: function() { return Date.now(); },
-      onProgress: function(ms) { el('wakePlayElapsed').textContent = Math.floor(ms / 1000) + ' s'; }
+      now: function() { return Date.now(); }
     });
     current.handle.promise.then(function(outcome) { endWakePlay(outcome.result, current); });
   }
