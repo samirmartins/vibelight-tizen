@@ -640,7 +640,7 @@ var MenuTranslations = [
   ["TV / JS", "TV / JS", "TV / JS"],
   ["Observations", "Observações", "Observaciones"],
   ["Trend", "Tendência", "Tendencia"],
-  ["Refresh library", "Atualizar biblioteca", "Actualizar biblioteca"],
+  ["Refresh PC and library", "Atualizar PC e biblioteca", "Actualizar PC y biblioteca"],
   ["PC unavailable. Turn it on or use Wake PC, then refresh the library.", "PC indisponível. Ligue-o ou use Acordar PC e atualize a biblioteca.", "PC no disponible. Enciéndelo o usa Despertar PC y actualiza la biblioteca."],
   ["Games unavailable · Refresh the library.", "Jogos indisponíveis · Atualize a biblioteca.", "Juegos no disponibles · Actualiza la biblioteca."],
   ["Loading game information…", "Carregando informações do jogo…", "Cargando información del juego…"],

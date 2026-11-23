@@ -321,7 +321,7 @@
           "id": "refresh-library",
           "title": "New game missing?",
           "text": [
-            "Refresh library asks the PC for the game list again. It does not restart VibeLight. To reopen the whole app, use General & about → Restart app."
+            "Refresh PC and library checks the PC again and asks it for the game list. It does not restart VibeLight. To reopen the whole app, use General & about → Restart app."
           ]
         },
         {

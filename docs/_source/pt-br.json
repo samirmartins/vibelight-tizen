@@ -321,7 +321,7 @@
           "id": "refresh-library",
           "title": "O jogo novo não apareceu?",
           "text": [
-            "Atualizar biblioteca consulta novamente a lista de jogos no PC. Isso não reinicia VibeLight. Para reabrir o app inteiro, use Geral e sobre → Reiniciar aplicativo."
+            "Atualizar PC e biblioteca verifica o PC de novo e consulta a lista de jogos. Isso não reinicia VibeLight. Para reabrir o app inteiro, use Geral e sobre → Reiniciar aplicativo."
           ]
         },
         {

@@ -48,7 +48,7 @@ Artificial PC, game and session data · [Image credits and licenses](docs/images
 
 - Six settings categories: Picture, Sound, Controls, PCs and library, Diagnosis,
   General and about. English, Brazilian Portuguese and Spanish menus.
-- Refresh library updates the game list; Restart app is a separate maintenance action.
+- Refresh PC and library checks the PC and updates the game list; Restart app is a separate maintenance action.
 - Statistics start only after explicit in-game activation. Hiding the overlay
   keeps recording until that session ends. Every new session starts inactive.
 - Only the **last 10 session summaries**, stored **on the TV**, with A/B comparison
