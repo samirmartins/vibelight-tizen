@@ -586,9 +586,9 @@ var ConsoleLibrary = (function() {
       if (kind === 'try') launch(appId,false);
     }
     el('wakePlayTitle').textContent = 'The PC is off';
-    el('wakePlayStatus').textContent = 'Send Wake-on-LAN and start the game when the PC is ready?';
-    el('wakePlayNote').textContent = 'Wake-on-LAN only works if the PC is set up for it.';
-    el('wakePlayElapsed').textContent = '';
+    el('wakePlayStatus').textContent = 'Turn the PC on and start the game?';
+    el('wakePlayNote').textContent = 'It only works if the PC is set up to turn on over the network (Wake-on-LAN).';
+    el('wakePlayStatus').hidden = false; el('wakePlayNote').hidden = false; el('wakePlaySteps').hidden = true;
     ['wakePlayWake','wakePlayTry'].forEach(function(name) { el(name).style.display = ''; });
     el('wakePlayRememberRow').style.display = '';
     el('wakePlayRemember').checked = false;
@@ -607,8 +607,9 @@ var ConsoleLibrary = (function() {
     // Nothing starts: give the prepared audio back.
     if (typeof stopAudioScheduler === 'function') stopAudioScheduler(true);
     if (result === 'timeout') {
-      status('The PC did not respond in time. Check that Wake-on-LAN is enabled on it, then try again.');
-      snackbarLog('The PC did not respond in time. Check that Wake-on-LAN is enabled on it.');
+      // The wait is WakeAndPlay.LIMIT_MS (120 s), told here as 2 minutes.
+      status('The PC did not respond in 2 minutes. Check that it is on the network by cable and that Wake-on-LAN is enabled.');
+      snackbarLog('The PC did not respond in 2 minutes. Check that it is on the network by cable and that Wake-on-LAN is enabled.');
     } else if (result === 'send-failed') {
       snackbarLog('Could not send Wake-on-LAN. Check the saved MAC and PC settings.');
     }
@@ -618,13 +619,15 @@ var ConsoleLibrary = (function() {
     var current = { appId: appId, scope: createMenuRequestScope(), handle: null, tick: 0 };
     wakePlay = current;
     el('wakePlayTitle').textContent = 'Waking the PC';
-    el('wakePlayStatus').textContent = 'Waiting for the PC to start…';
-    el('wakePlayNote').textContent = 'The game starts when the PC is ready.';
+    // The steps of the wait: what is done, what is being waited for (with the clock) and what comes next.
+    el('wakePlayStatus').hidden = true; el('wakePlayNote').hidden = true; el('wakePlaySteps').hidden = false;
+    el('wakePlayStepSent').textContent = '… Sending the wake signal';
+    el('wakePlayStepStart').textContent = '○ Start the game';
     // The seconds count one by one, from the real time, and the screen shows the longest wait.
     var started = Date.now(), longest = Math.round(WakeAndPlay.LIMIT_MS / 1000);
     function showElapsed() {
-      el('wakePlayElapsed').textContent = 'Waiting ' + Math.max(0, Math.floor((Date.now() - started) / 1000)) +
-        ' s of a maximum of ' + longest + ' s';
+      el('wakePlayStepWait').textContent = '… Waiting for the PC to answer: ' +
+        Math.max(0, Math.floor((Date.now() - started) / 1000)) + ' s of a maximum of ' + longest + ' s';
     }
     function tick() { showElapsed(); current.tick = setTimeout(tick, 1000); }
     showElapsed();
@@ -638,7 +641,12 @@ var ConsoleLibrary = (function() {
     }
     focusElement('wakePlayCancel');
     current.handle = WakeAndPlay.wait({
-      send: function() { return current.scope.request(function() { return host.sendWOL(); }, 8000); },
+      send: function() {
+        return current.scope.request(function() { return host.sendWOL(); }, 8000).then(function(value) {
+          if (wakePlay === current) el('wakePlayStepSent').textContent = '✔ Wake signal sent';
+          return value;
+        });
+      },
       // The PC counts as ready once Sunshine answers and the saved pairing is accepted.
       probe: function() {
         var check = createMenuRequestScope();

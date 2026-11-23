@@ -336,7 +336,7 @@
           "id": "wake-and-play",
           "title": "Ligue o PC e jogue",
           "text": [
-            "Aperte Jogar com o PC desligado e o VibeLight oferece ligá-lo: Ligar o PC e jogar envia o pacote e inicia o jogo quando o PC responder; Só tentar jogar inicia como antes. Escolha o que o Jogar faz em Configurações → Configurações do PC → Quando o PC estiver desligado (Perguntar, Ligar e jogar ou Só tentar jogar). Só funciona se o PC estiver configurado para o Wake-on-LAN, como em Acorde o PC."
+            "Aperte Jogar com o PC desligado e o VibeLight oferece ligá-lo: Ligar e jogar envia o sinal, mostra as etapas e o relógio (até 120 segundos) e inicia o jogo quando o PC responder; Tentar jogar mesmo assim inicia como antes. Escolha o que o Jogar faz em Configurações → Configurações do PC → Quando o PC estiver desligado (Perguntar, Ligar e jogar ou Tentar jogar mesmo assim). Só funciona se o PC estiver configurado para o Wake-on-LAN, como em Acorde o PC."
           ],
           "keywords": "wake on lan jogar desligado perguntar configuracao biblioteca ligar"
         },

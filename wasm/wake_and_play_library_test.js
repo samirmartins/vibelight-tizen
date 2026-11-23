@@ -107,6 +107,9 @@ const text = (f, name) => f.node(name).textContent;
   assert.strictEqual(f.node('wakePlayRemember').checked, false, 'unchecked by default');
   assert.strictEqual(f.launches.length, 0); assert.strictEqual(f.wakes, 0); assert.strictEqual(f.audio, 0);
   assert(/Wake-on-LAN/.test(text(f, 'wakePlayNote')), 'a short note that the PC must be set up for Wake-on-LAN');
+  assert.strictEqual(text(f, 'wakePlayStatus'), 'Turn the PC on and start the game?');
+  assert.strictEqual(f.node('wakePlaySteps').hidden, true, 'no steps in the question');
+  assert.strictEqual(f.node('wakePlayStatus').hidden, false);
   assert.strictEqual(f.openers[0], 'game-container-1', 'focus returns to the chosen game card, not the Play button');
   // Cancel: nothing sent, nothing started, nothing remembered.
   f.node('wakePlayCancel').click(); await f.flush();
@@ -144,13 +147,16 @@ const text = (f, name) => f.node(name).textContent;
   f = await setup(); f.probeGate = deferred(); // a slow check must not slow the counter
   let clock = 1000000; f.c.Date = {now: () => clock};
   f.node('libraryPlay').click(); await f.flush(); f.node('wakePlayWake').click(); await f.flush();
-  assert.strictEqual(text(f, 'wakePlayElapsed'), 'Waiting 0 s of a maximum of 120 s');
+  assert.strictEqual(f.node('wakePlaySteps').hidden, false, 'the steps are shown while waiting');
+  assert.strictEqual(text(f, 'wakePlayStepSent'), '✔ Wake signal sent', 'step 1 is done once the signal left');
+  assert.strictEqual(text(f, 'wakePlayStepStart'), '○ Start the game');
+  assert.strictEqual(text(f, 'wakePlayStepWait'), '… Waiting for the PC to answer: 0 s of a maximum of 120 s');
   for (let n = 1; n <= 5; n++) {
     clock += 1000; await fire(f, 1000);
-    assert.strictEqual(text(f, 'wakePlayElapsed'), 'Waiting ' + n + ' s of a maximum of 120 s', 'second ' + n);
+    assert.strictEqual(text(f, 'wakePlayStepWait'), '… Waiting for the PC to answer: ' + n + ' s of a maximum of 120 s', 'second ' + n);
   }
   clock += 61000; await fire(f, 1000);
-  assert.strictEqual(text(f, 'wakePlayElapsed'), 'Waiting 66 s of a maximum of 120 s', 'follows the real time');
+  assert.strictEqual(text(f, 'wakePlayStepWait'), '… Waiting for the PC to answer: 66 s of a maximum of 120 s', 'follows the real time');
   f.node('wakePlayCancel').click(); await f.flush();
   assert.strictEqual([...f.timers].filter(([, t]) => t.ms === 1000).length, 0, 'the counter stops with the wait');
 
@@ -161,7 +167,7 @@ const text = (f, name) => f.node(name).textContent;
   await fire(f, 120000);
   assert.strictEqual(f.launches.length, 0); assert.strictEqual(f.released, 1, 'prepared audio released');
   assert.deepStrictEqual(f.closed, ['wakePlayDialog']);
-  assert(f.messages.some(m => /did not respond/.test(m)) || /did not respond/.test(text(f, 'libraryStatus')));
+  assert(f.messages.some(m => /The PC did not respond in 2 minutes\. Check that it is on the network by cable and that Wake-on-LAN is enabled\./.test(m)), 'says what to check');
   assert(/Wake-on-LAN/.test(text(f, 'libraryStatus')) || f.messages.some(m => /Wake-on-LAN/.test(m)), 'points at the PC setup');
   assert.strictEqual([...f.timers].filter(([, t]) => t.ms === 4000).length, 0);
   const probes1 = f.probes; f.pcUp = true; await f.flush(); assert.strictEqual(f.probes, probes1, 'no check after the end');

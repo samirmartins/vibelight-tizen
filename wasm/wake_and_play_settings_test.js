@@ -14,19 +14,19 @@ const store = (initial = {}, broken = false) => {
 // Labels for each choice.
 assert.strictEqual(api.choiceLabel('ask'), 'Ask');
 assert.strictEqual(api.choiceLabel('wake'), 'Wake and play');
-assert.strictEqual(api.choiceLabel('never'), 'Just try to play');
+assert.strictEqual(api.choiceLabel('never'), 'Try to play anyway');
 assert.strictEqual(api.choiceLabel('bogus'), 'Ask');
 
 // Shown on load from what is stored (Ask when nothing valid).
 let button = {textContent: ''}, storage = store();
 api.show(button, storage); assert.strictEqual(button.textContent, 'Ask');
-api.show(button, store({[api.KEY]: 'never'})); assert.strictEqual(button.textContent, 'Just try to play');
+api.show(button, store({[api.KEY]: 'never'})); assert.strictEqual(button.textContent, 'Try to play anyway');
 api.show(button, store({[api.KEY]: 'junk'})); assert.strictEqual(button.textContent, 'Ask');
 
 // Each press moves to the next choice, saves it and shows it.
 api.show(button, storage);
 api.cycle(button, storage); assert.strictEqual(button.textContent, 'Wake and play'); assert.strictEqual(storage.data[api.KEY], 'wake');
-api.cycle(button, storage); assert.strictEqual(button.textContent, 'Just try to play'); assert.strictEqual(storage.data[api.KEY], 'never');
+api.cycle(button, storage); assert.strictEqual(button.textContent, 'Try to play anyway'); assert.strictEqual(storage.data[api.KEY], 'never');
 api.cycle(button, storage); assert.strictEqual(button.textContent, 'Ask'); assert.strictEqual(storage.data[api.KEY], 'ask');
 
 // Restoring defaults goes back to Ask.

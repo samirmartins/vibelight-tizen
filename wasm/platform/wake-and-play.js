@@ -42,7 +42,7 @@ var WakeAndPlay = (function() {
   }
 
   // The settings button: one press moves to the next choice, saves it and shows it.
-  var LABELS = { ask: 'Ask', wake: 'Wake and play', never: 'Just try to play' };
+  var LABELS = { ask: 'Ask', wake: 'Wake and play', never: 'Try to play anyway' };
   function choiceLabel(value) { return LABELS[valid(value) ? value : DEFAULT]; }
   function show(button, storage) {
     if (button) button.textContent = choiceLabel(policy(storage));

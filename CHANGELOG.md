@@ -16,8 +16,9 @@ Released 2026-11-23. Changes since v4.0.6. See the
 
 - Adds wake and play. When the PC was checked and found off and a MAC address is known, Play
   offers to send Wake-on-LAN, waits for the PC (a check every 4 seconds for up to 2 minutes, with
-  a cancel button) and starts the game once Sunshine answers. A new library setting, When the PC
-  is off, chooses Ask (the default), Wake and play, or Just try to play, which starts the game as
+  a cancel button) and starts the game once Sunshine answers. The wait shows its steps and a clock that
+  counts every second against the longest wait (120 seconds). A new library setting, When the PC
+  is off, chooses Ask (the default), Wake and play, or Try to play anyway, which starts the game as
   before. Wake-on-LAN only works if the PC is set up for it.
 
 - Adds resume after a connection drop. When the network or the video fails during a game, the same

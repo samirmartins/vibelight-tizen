@@ -491,11 +491,15 @@
       <div class="mdl-dialog__content">
         <p id="wakePlayStatus" role="status"></p>
         <p id="wakePlayNote"></p>
-        <p id="wakePlayElapsed"></p>
+        <ul id="wakePlaySteps" class="wake-steps" hidden>
+          <li id="wakePlayStepSent"></li>
+          <li id="wakePlayStepWait"></li>
+          <li id="wakePlayStepStart"></li>
+        </ul>
       </div>
       <div class="utility-actions">
         <button id="wakePlayWake" type="button" class="mdl-button mdl-js-button mdl-button--raised">Wake PC and play</button>
-        <button id="wakePlayTry" type="button" class="mdl-button mdl-js-button mdl-button--raised">Just try to play</button>
+        <button id="wakePlayTry" type="button" class="mdl-button mdl-js-button mdl-button--raised">Try to play anyway</button>
         <button id="wakePlayCancel" type="button" class="mdl-button mdl-js-button mdl-button--raised">Cancel</button>
       </div>
       <div id="wakePlayRememberRow" class="wake-remember">

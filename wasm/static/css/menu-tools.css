@@ -17,6 +17,9 @@
 .utility-actions button, #diagnosticsReportBtn { color: #edf1f8; background: #414d64; margin: 6px; }
 .utility-dialog button:focus, .utility-dialog .hovered, #diagnosticsReportBtn:focus { outline: 3px solid #87cfff; }
 .utility-dialog button:disabled { opacity: .5; }
+/* Wake and play: the steps of the wait. */
+.wake-steps { list-style: none; margin: 8px 0; padding: 0; font-size: 20px; line-height: 32px; }
+.wake-steps[hidden] { display: none; }
 /* Wake and play: "Remember my choice" is a checkbox below the buttons, aligned right. */
 .wake-remember { text-align: right; padding: 4px 6px 0; }
 .wake-remember label { display: inline-flex; align-items: center; cursor: pointer; }

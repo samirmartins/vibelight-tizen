@@ -9,7 +9,7 @@ assert.strictEqual(html.split(tag('wake-and-play')).length - 1, 1, 'index.html l
 assert(html.indexOf(tag('wake-and-play')) < html.indexOf(tag('console-library')), 'loaded before the library');
 
 const used = new Set([...library.matchAll(/el\('(wakePlay\w+)'\)/g)].map(m => m[1]));
-for (const id of ['wakePlayTitle', 'wakePlayStatus', 'wakePlayNote', 'wakePlayElapsed', 'wakePlayWake', 'wakePlayTry', 'wakePlayRemember', 'wakePlayRememberRow', 'wakePlayCancel']) {
+for (const id of ['wakePlayTitle', 'wakePlayStatus', 'wakePlayNote', 'wakePlaySteps', 'wakePlayStepSent', 'wakePlayStepWait', 'wakePlayStepStart', 'wakePlayWake', 'wakePlayTry', 'wakePlayRemember', 'wakePlayRememberRow', 'wakePlayCancel']) {
   assert(used.has(id), 'the library uses ' + id);
 }
 for (const id of [...used, 'wakePlayDialog', 'wakePlayDialogOverlay']) {
