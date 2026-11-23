@@ -34,12 +34,6 @@ Released 2026-11-23. Changes since v4.0.6. See the
 - Add PC: in the numeric IP-field mode, Down on Continue or Cancel no longer jumps to the second field.
 - The pairing, host details and warning dialogs keep their only button focused on Up and Down
   instead of dropping and returning the focus.
-- Fixes audio that started behind: PCM that piled up before the audio output began is dropped
-  down to the target instead of playing as a fixed delay, and a lead that stays more than 40 ms
-  over the target for a full second is cut down to 10 ms above it.
-- Brings a raised audio target back faster after underruns: it steps down after 10 seconds of
-  stable playback instead of a minute, and the wait grows (up to a minute) only while underruns
-  keep coming.
 
 ## v4.0.6
 
