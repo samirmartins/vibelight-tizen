@@ -756,4 +756,9 @@ var MenuTranslations = [
   ["Resume the game automatically when the connection drops", "Retomar o jogo automaticamente quando a conexão cair", "Reanudar el juego automáticamente cuando se caiga la conexión"],
   ["Connection lost. Resuming the game…", "Conexão perdida. Retomando o jogo…", "Conexión perdida. Reanudando el juego…"],
   ["The game could not be resumed. Check the PC and try again.", "Não foi possível retomar o jogo. Confira o PC e tente de novo.", "No se pudo reanudar el juego. Comprueba el PC e inténtalo de nuevo."],
+  ["Search", "Buscar", "Buscar"],
+  ["Clear", "Limpar", "Borrar"],
+  ["Search games", "Buscar jogos", "Buscar juegos"],
+  ["Type to search games", "Digite para buscar jogos", "Escribe para buscar juegos"],
+  ["No games found.", "Nenhum jogo encontrado.", "No se encontró ningún juego."],
 ];

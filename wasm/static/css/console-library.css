@@ -18,6 +18,10 @@
 .console-filters .console-button { padding: 10px 20px; }
 .console-filters [aria-pressed="true"] { background: #405571; border-color: #91b5e0; }
 #libraryRefresh { margin-left: auto; }
+.console-search { display: flex; gap: 12px; align-items: center; margin: 0 0 16px; }
+.console-search-input { flex: 1; min-width: 0; color: #fff; background: #2b3344; border: 1px solid #56617a; border-radius: 8px; padding: 10px 16px; font: inherit; font-size: 20px; }
+.console-search-input:focus, .console-search-input.hovered { outline: 3px solid #63e3f4; outline-offset: 3px; }
+.console-search[hidden], .console-search-input[hidden] { display: none; }
 #libraryEmpty { color: #c4ccdb; padding: 22px 0; font-size: 22px; }
 .console-library #game-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 22px; margin: 0 4vw 36px; width: auto; padding: 0; }
 .console-library .console-card { position: relative; display: flex; flex-direction: column; min-width: 0; width: 100%; height: auto; margin: 0; padding: 0; overflow: hidden; border: 2px solid #465169; border-radius: 10px; background: #222b3b; color: #fff; box-shadow: none; cursor: pointer; text-align: left; font-family: inherit; }

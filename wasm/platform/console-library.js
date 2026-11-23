@@ -7,6 +7,7 @@ var ConsoleLibrary = (function() {
   var settingsReturn = false, wakeScope = null;
   // What the last finished check found: 'online', 'offline' or 'unknown' (not checked, or checking).
   var reachState = 'unknown', wakePlay = null, pendingResume = null;
+  var searchOpen = false, searchQuery = '';
   var runtimeReady = false, hostsReady = false, started = false, bound = false;
   var navIndex = 0, currentRecord = null;
   var launchPending = false, launchTimer = 0;
@@ -180,7 +181,7 @@ var ConsoleLibrary = (function() {
     return values.length === 1 ? values[0] : null;
   }
   function controls() {
-    return ['libraryPCsBtn','languageBtn','settingsBtn','quitRunningAppBtn','libraryWake','libraryPlay','libraryFavorite','libraryProfile','libraryAll','libraryFavorites','libraryRecent','libraryRefresh'].filter(function(name) {
+    return ['libraryPCsBtn','languageBtn','settingsBtn','quitRunningAppBtn','libraryWake','libraryPlay','libraryFavorite','libraryProfile','libraryAll','libraryFavorites','libraryRecent','librarySearch','libraryRefresh','librarySearchInput','librarySearchClear'].filter(function(name) {
       var node = el(name); return node && !node.disabled && node.style.display !== 'none' && !node.hidden;
     });
   }
@@ -207,6 +208,9 @@ var ConsoleLibrary = (function() {
   function navMove(direction) {
     var names = controls();
     if (!names.length) return;
+    // While typing in the search field, Left and Right belong to the text cursor.
+    var typing = el('librarySearchInput');
+    if ((direction === 'left' || direction === 'right') && searchOpen && document.activeElement === typing && !typing.readOnly) return;
     var items = stops();
     if (!items) {
       if (direction === 'down') Navigation.change(Views.Apps);
@@ -296,6 +300,8 @@ var ConsoleLibrary = (function() {
     var result = apps.filter(function(app) {
       return filter === 'all' || (filter === 'favorites' ? r.favorites : r.recent).indexOf(app.id) !== -1;
     });
+    // The search works inside the current filter.
+    if (searchQuery && typeof LibrarySearch !== 'undefined') result = LibrarySearch.filter(result, searchQuery);
     return result.sort(function(a,b) {
       if (filter === 'recent') return r.recent.indexOf(a.id) - r.recent.indexOf(b.id);
       var ar = Number(host.currentGame) === a.id ? 0 : r.favorites.indexOf(a.id) !== -1 ? 1 : 2;
@@ -352,7 +358,7 @@ var ConsoleLibrary = (function() {
     }
     renderedHost = host;
     el('libraryEmpty').hidden = items.length !== 0;
-    el('libraryEmpty').textContent = apps.length ? 'No games in this section. Choose All games.' : 'Start the PC and Sunshine, then use Reload VibeLight.';
+    el('libraryEmpty').textContent = searchQuery ? 'No games found.' : apps.length ? 'No games in this section. Choose All games.' : 'Start the PC and Sunshine, then use Reload VibeLight.';
     ['All','Favorites','Recent'].forEach(function(name) {
       el('library'+name).setAttribute('aria-pressed', filter === name.toLowerCase());
     });
@@ -475,6 +481,40 @@ var ConsoleLibrary = (function() {
     if (mode === 'ask') { askWakePlay(appId); return; }
     if (mode === 'wake') { prepareStreamAudio(); startWakePlay(appId, true); return; }
     launch(appId,false);
+  }
+  // Search (see LibrarySearch). The field is read-only until the user starts typing, so moving the focus
+  // onto it with the arrows does not open the TV keyboard.
+  function showSearch(open) {
+    ['librarySearchBar', 'librarySearchInput', 'librarySearchClear'].forEach(function(name) { el(name).hidden = !open; });
+    searchOpen = open;
+  }
+  function startTyping() {
+    var input = el('librarySearchInput');
+    input.readOnly = false;
+    if (typeof input.focus === 'function') input.focus();
+  }
+  function openSearch() {
+    showSearch(true);
+    focusNav(0, 'librarySearchInput');
+    startTyping();
+  }
+  // Silent reset for a new visit to the library (the caller renders).
+  function resetSearch() {
+    var input = el('librarySearchInput');
+    input.value = ''; input.readOnly = true;
+    searchQuery = '';
+    showSearch(false);
+  }
+  function closeSearch() {
+    var input = el('librarySearchInput');
+    resetSearch();
+    if (typeof input.blur === 'function') input.blur();
+    render();
+    focusNav(0, 'librarySearch');
+  }
+  function backAction() {
+    if (searchOpen) { closeSearch(); return; }
+    exitAppDialog();
   }
   // Resume after a drop (see ResumeOnDrop). The stream-end handler keeps its AudioContext and asks for the
   // resume; it starts once the PC confirms the game is still running, and ends with a short message and the
@@ -631,6 +671,11 @@ var ConsoleLibrary = (function() {
       if (app && !busy && typeof openStreamProfileEditor === 'function') openStreamProfileEditor('game', host, app);
     };
     el('libraryRefresh').onclick = function(){return refresh(false);};
+    el('librarySearch').onclick = openSearch;
+    el('librarySearchClear').onclick = closeSearch;
+    el('librarySearchInput').oninput = function() { searchQuery = el('librarySearchInput').value; render(); };
+    el('librarySearchInput').onclick = function() { if (el('librarySearchInput').readOnly) startTyping(); };
+    el('librarySearchInput').onblur = function() { el('librarySearchInput').readOnly = true; };
     el('libraryPCsBtn').onclick = showHosts;
     el('libraryHomeBtn').onclick = function() { var pc = preferred(); if (pc) showApps(pc); };
     ['All','Favorites','Recent'].forEach(function(name) {
@@ -660,6 +705,7 @@ var ConsoleLibrary = (function() {
   function open(pc) {
     if (!pc || isDialogOpen || document.hidden) return Promise.resolve();
     cancel(); stopPollingHosts(); stopSubnetScanner();
+    resetSearch(); // a new visit to the library starts without a search
     clearTimeout(launchTimer); launchTimer = 0; launchPending = false;
     host = pc; api = pc; active = true; busy = checking = false;
     prefs.preferred = String(pc.serverUid); filter = 'all';
@@ -692,7 +738,7 @@ var ConsoleLibrary = (function() {
     accept: function() { play(selected); }, favorite: favorite,
     showHomeButton: function() { if (preferred()) { bind(); el('libraryHomeBtn').style.display = 'inline-flex'; } },
     settings: function() { settingsReturn = active; hide(); },
-    backAction: function() { exitAppDialog(); },
+    backAction: backAction,
     back: function() { if (!settingsReturn) return false; settingsReturn = false; var pc = preferred(); if (!pc) return false; Navigation.pop(); open(pc); return true; }
   };
 })();

@@ -7,7 +7,7 @@ const {fixture} = require('./fixtures/console-library.cjs');
 const BOXES = {
   libraryPCsBtn: [0, 0, 100, 40], languageBtn: [110, 0, 100, 40], settingsBtn: [220, 0, 100, 40],
   libraryWake: [800, 100, 100, 40], libraryPlay: [910, 100, 100, 40], libraryFavorite: [1020, 100, 100, 40], libraryProfile: [1130, 100, 100, 40],
-  libraryAll: [0, 200, 100, 40], libraryFavorites: [110, 200, 100, 40], libraryRecent: [220, 200, 100, 40], libraryRefresh: [1100, 200, 100, 40]
+  libraryAll: [0, 200, 100, 40], libraryFavorites: [110, 200, 100, 40], libraryRecent: [220, 200, 100, 40], librarySearch: [330, 200, 100, 40], libraryRefresh: [1100, 200, 100, 40]
 };
 const rect = ([left, top, width, height]) => ({left, top, width, height, right: left + width, bottom: top + height});
 
@@ -101,7 +101,7 @@ async function setup(options = {}) {
     t.lib.navMove('down');
     assert.strictEqual(t.focused[t.focused.length - 1], 'libraryRefresh');
     t.lib.navMove('left'); t.lib.navMove('left');
-    assert.strictEqual(t.focused[t.focused.length - 1], 'libraryFavorites');
+    assert.strictEqual(t.focused[t.focused.length - 1], 'libraryRecent', 'Refresh, then Search, then Recent');
     assert(t.changes.length <= 1, 'no view ping-pong: ' + t.changes.join(','));
   }
   // Without the listener API or a view check the library still starts and works.

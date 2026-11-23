@@ -382,7 +382,12 @@
           <button type="button" id="libraryAll" class="console-button" aria-pressed="true">All games</button>
           <button type="button" id="libraryFavorites" class="console-button" aria-pressed="false">Favorites</button>
           <button type="button" id="libraryRecent" class="console-button" aria-pressed="false">Recent</button>
+          <button type="button" id="librarySearch" class="console-button">Search</button>
           <button type="button" id="libraryRefresh" class="console-button">Refresh library</button>
+        </div>
+        <div id="librarySearchBar" class="console-search" hidden>
+          <input id="librarySearchInput" type="text" class="console-search-input" readonly hidden maxlength="64" spellcheck="false" autocomplete="off" aria-label="Search games" placeholder="Type to search games">
+          <button type="button" id="librarySearchClear" class="console-button" hidden>Clear</button>
         </div>
         <p id="libraryEmpty" hidden></p>
       </section>
@@ -422,6 +427,7 @@
   <script type="text/javascript" src="platform/release-update.js"></script>
   <script type="text/javascript" src="platform/wake-and-play.js"></script>
   <script type="text/javascript" src="platform/resume-on-drop.js"></script>
+  <script type="text/javascript" src="platform/library-search.js"></script>
   <script type="text/javascript" src="platform/console-library.js"></script>
   <script type="text/javascript" src="platform/diagnostic-history.js"></script>
   <script type="text/javascript" src="platform/diagnostic-hints.js"></script>
