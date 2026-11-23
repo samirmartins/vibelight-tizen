@@ -59,10 +59,6 @@ var _audFallbackPhase = 0.0;
 var _audFallbackEpoch = 0;
 var _audFallbackStarted = false;
 var _audFallbackStableFrames = 0;
-// Same stable-stretch rule as the worklet: 10 s, doubled by underruns up to 60 s, halved per step.
-var _AUD_DECAY_BASE_S = 10;
-var _AUD_DECAY_MAX_S = 60;
-var _audFallbackDecayWaitS = _AUD_DECAY_BASE_S;
 var _audFallbackStatsCountdown = 0;
 var _audFallbackOutputData = [];
 
@@ -343,7 +339,6 @@ function _audFallbackUnderrun(outputBuffer, from) {
     var step = Math.max(1, Math.round(_audSourceRate * 0.005));
     Atomics.store(_audControl, _AUD_CTL_TARGET,
       Math.min(maximum, target + step) | 0);
-    _audFallbackDecayWaitS = Math.min(_AUD_DECAY_MAX_S, _audFallbackDecayWaitS * 2);
   }
   _audFallbackStarted = false;
   _audFallbackStableFrames = 0;
@@ -456,7 +451,7 @@ function _audRenderFallback(event) {
   Atomics.store(_audControl, _AUD_CTL_READ, _audFallbackReadFrame | 0);
   Atomics.add(_audControl, _AUD_CTL_CONSUMED, consumed | 0);
   _audFallbackStableFrames += outputFrames;
-  if (_audFallbackStableFrames >= outputRate * _audFallbackDecayWaitS) {
+  if (_audFallbackStableFrames >= outputRate * 60) {
     _audFallbackStableFrames = 0;
     var currentTarget = Atomics.load(_audControl, _AUD_CTL_TARGET) >>> 0;
     var initialTarget = Atomics.load(_audControl, _AUD_CTL_INITIAL_TARGET) >>> 0;
@@ -464,9 +459,6 @@ function _audRenderFallback(event) {
       var reduce = Math.max(1, Math.round(_audSourceRate * 0.0025));
       Atomics.store(_audControl, _AUD_CTL_TARGET,
         Math.max(initialTarget, currentTarget - reduce) | 0);
-      _audFallbackDecayWaitS = Math.max(_AUD_DECAY_BASE_S, _audFallbackDecayWaitS / 2);
-    } else {
-      _audFallbackDecayWaitS = _AUD_DECAY_BASE_S;
     }
   }
 }
@@ -499,7 +491,6 @@ function _audActivateFallback(ctx, token) {
     _audFallbackPhase = 0.0;
     _audFallbackStarted = false;
     _audFallbackStableFrames = 0;
-    _audFallbackDecayWaitS = _AUD_DECAY_BASE_S;
     var backendControl = _audControl, backendGeneration = _audGeneration;
     node.onaudioprocess = function(event) {
       if (token !== _audConfigToken || backendControl !== _audControl || backendGeneration !== _audGeneration) {
