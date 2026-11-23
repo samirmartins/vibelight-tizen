@@ -486,12 +486,11 @@ var ConsoleLibrary = (function() {
   }
   function askWakePlay(appId) {
     if (isDialogOpen) return;
-    var remember = false, answered = false;
-    function showRemember() { el('wakePlayRemember').textContent = 'Remember my choice: ' + (remember ? 'On' : 'Off'); }
+    var answered = false;
     function answer(kind) {
       if (answered) return;
       answered = true;
-      var saved = WakeAndPlay.remembered(kind, remember);
+      var saved = WakeAndPlay.remembered(kind, el('wakePlayRemember').checked === true);
       if (saved) WakeAndPlay.setPolicy(localStorage, saved);
       if (kind === 'wake') {
         // This click is the user gesture that lets the audio start later.
@@ -504,13 +503,13 @@ var ConsoleLibrary = (function() {
     el('wakePlayStatus').textContent = 'Send Wake-on-LAN and start the game when the PC is ready?';
     el('wakePlayNote').textContent = 'Wake-on-LAN only works if the PC is set up for it.';
     el('wakePlayElapsed').textContent = '';
-    ['wakePlayWake','wakePlayTry','wakePlayRemember'].forEach(function(name) { el(name).style.display = ''; });
-    showRemember();
-    el('wakePlayRemember').onclick = function() { remember = !remember; showRemember(); };
+    ['wakePlayWake','wakePlayTry'].forEach(function(name) { el(name).style.display = ''; });
+    el('wakePlayRememberRow').style.display = '';
+    el('wakePlayRemember').checked = false;
     el('wakePlayWake').onclick = function() { answer('wake'); };
     el('wakePlayTry').onclick = function() { answer('try'); };
     el('wakePlayCancel').onclick = function() { answer('cancel'); };
-    openUtilityDialog('wakePlayDialog', ['wakePlayWake','wakePlayTry','wakePlayRemember','wakePlayCancel'], 'wakePlayCancel', wakeOpener(appId));
+    openUtilityDialog('wakePlayDialog', ['wakePlayWake','wakePlayTry','wakePlayCancel','wakePlayRemember'], 'wakePlayCancel', wakeOpener(appId));
   }
   function endWakePlay(result, current) {
     if (wakePlay !== current) return;
@@ -535,7 +534,7 @@ var ConsoleLibrary = (function() {
     el('wakePlayStatus').textContent = 'Waiting for the PC to start…';
     el('wakePlayNote').textContent = 'The game starts when the PC is ready.';
     el('wakePlayElapsed').textContent = '0 s';
-    ['wakePlayWake','wakePlayTry','wakePlayRemember'].forEach(function(name) { el(name).style.display = 'none'; });
+    ['wakePlayWake','wakePlayTry','wakePlayRememberRow'].forEach(function(name) { el(name).style.display = 'none'; });
     el('wakePlayCancel').onclick = function() { if (current.handle) current.handle.cancel(); };
     if (openDialog) {
       openUtilityDialog('wakePlayDialog', ['wakePlayCancel'], 'wakePlayCancel', wakeOpener(appId));

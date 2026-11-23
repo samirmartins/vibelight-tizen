@@ -17,6 +17,12 @@
 .utility-actions button, #diagnosticsReportBtn { color: #edf1f8; background: #414d64; margin: 6px; }
 .utility-dialog button:focus, .utility-dialog .hovered, #diagnosticsReportBtn:focus { outline: 3px solid #87cfff; }
 .utility-dialog button:disabled { opacity: .5; }
+/* Wake and play: "Remember my choice" is a checkbox below the buttons, aligned right. */
+.wake-remember { text-align: right; padding: 4px 6px 0; }
+.wake-remember label { display: inline-flex; align-items: center; cursor: pointer; }
+.wake-remember input { width: 24px; height: 24px; margin: 0 10px 0 0; accent-color: #87cfff; }
+.wake-remember span { padding: 3px 8px; border-radius: 4px; font-size: 17px; }
+.wake-remember input:focus + span { outline: 3px solid #87cfff; }
 /* Keep the report action compact; diagnosticsBtn uses the shared toggle CSS. */
 .settings-options #diagnosticsReportBtn { display: block; clear: both; margin: 20px 0 6px; }
 #wakeStatus { min-height: 64px; font-size: 20px; line-height: 28px; }

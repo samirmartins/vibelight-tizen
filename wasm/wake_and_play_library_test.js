@@ -72,7 +72,9 @@ const text = (f, name) => f.node(name).textContent;
   f = await setup();
   f.node('libraryPlay').click(); await f.flush();
   assert.deepStrictEqual(f.opened, ['wakePlayDialog']);
-  assert.deepStrictEqual(Array.from(f.c.Views.UtilityDialog.controls), ['wakePlayWake', 'wakePlayTry', 'wakePlayRemember', 'wakePlayCancel']);
+  assert.deepStrictEqual(Array.from(f.c.Views.UtilityDialog.controls), ['wakePlayWake', 'wakePlayTry', 'wakePlayCancel', 'wakePlayRemember'], 'buttons first, the checkbox below them');
+  assert.strictEqual(f.node('wakePlayRememberRow').style.display, '', 'the checkbox is shown with the question');
+  assert.strictEqual(f.node('wakePlayRemember').checked, false, 'unchecked by default');
   assert.strictEqual(f.launches.length, 0); assert.strictEqual(f.wakes, 0); assert.strictEqual(f.audio, 0);
   assert(/Wake-on-LAN/.test(text(f, 'wakePlayNote')), 'a short note that the PC must be set up for Wake-on-LAN');
   assert.strictEqual(f.openers[0], 'game-container-1', 'focus returns to the chosen game card, not the Play button');
@@ -96,6 +98,7 @@ const text = (f, name) => f.node(name).textContent;
   assert.strictEqual(f.audio, 1, 'audio prepared inside the confirming click');
   assert.strictEqual(f.wakes, 1);
   assert.deepStrictEqual(Array.from(f.c.Views.UtilityDialog.controls), ['wakePlayCancel'], 'only Cancel while waiting');
+  assert.strictEqual(f.node('wakePlayRememberRow').style.display, 'none', 'no checkbox while waiting');
   assert.strictEqual(f.launches.length, 0);
   const probes0 = f.probes;
   await fire(f, 4000); assert.strictEqual(f.probes, probes0 + 1); assert.strictEqual(f.launches.length, 0, 'PC still off');
@@ -155,10 +158,8 @@ const text = (f, name) => f.node(name).textContent;
   // next Play skips the question (audio prepared in that Play click, packet sent, waiting).
   f = await setup();
   f.node('libraryPlay').click(); await f.flush();
-  assert.strictEqual(text(f, 'wakePlayRemember'), 'Remember my choice: Off');
-  f.node('wakePlayRemember').click(); assert.strictEqual(text(f, 'wakePlayRemember'), 'Remember my choice: On');
-  f.node('wakePlayRemember').click(); assert.strictEqual(text(f, 'wakePlayRemember'), 'Remember my choice: Off');
-  f.node('wakePlayRemember').click();
+  assert.strictEqual(f.node('wakePlayRemember').checked, false);
+  f.node('wakePlayRemember').checked = true; // the user ticks the box
   f.node('wakePlayWake').click(); await f.flush();
   assert.strictEqual(f.storage.get(POLICY) || f.writes.filter(w => w.key === POLICY).pop().value, 'wake');
   f.node('wakePlayCancel').click(); await f.flush();
@@ -173,11 +174,11 @@ const text = (f, name) => f.node(name).textContent;
 
   // Remember with "Just try": the choice becomes "never"; Cancel never remembers.
   f = await setup();
-  f.node('libraryPlay').click(); await f.flush(); f.node('wakePlayRemember').click(); f.node('wakePlayCancel').click(); await f.flush();
+  f.node('libraryPlay').click(); await f.flush(); f.node('wakePlayRemember').checked = true; f.node('wakePlayCancel').click(); await f.flush();
   assert(!f.writes.some(w => w.key === POLICY), 'cancel remembers nothing');
   f.node('libraryPlay').click(); await f.flush();
-  assert.strictEqual(text(f, 'wakePlayRemember'), 'Remember my choice: Off', 'the toggle starts Off each time');
-  f.node('wakePlayRemember').click(); f.node('wakePlayTry').click(); await f.flush();
+  assert.strictEqual(f.node('wakePlayRemember').checked, false, 'the box starts unchecked each time');
+  f.node('wakePlayRemember').checked = true; f.node('wakePlayTry').click(); await f.flush();
   assert.strictEqual(f.writes.filter(w => w.key === POLICY).pop().value, 'never');
 
   console.log('wake_and_play_library_test: OK');
