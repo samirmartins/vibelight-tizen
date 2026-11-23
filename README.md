@@ -46,6 +46,7 @@ Artificial PC, game and session data · [Image credits and licenses](docs/images
 
 ## Features
 
+- **Wake and play:** with the PC off, Play offers to turn it on over the network (Wake-on-LAN, if the PC is set up for it) and starts the game when it answers. Choose Ask, Wake and play, or Try to play anyway in Settings → PCs and library.
 - Six settings categories: Picture, Sound, Controls, PCs and library, Diagnosis,
   General and about. English, Brazilian Portuguese and Spanish menus.
 - Refresh PC and library checks the PC and updates the game list; Restart app is a separate maintenance action.
