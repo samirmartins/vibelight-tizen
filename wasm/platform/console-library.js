@@ -433,7 +433,7 @@ var ConsoleLibrary = (function() {
         retryTimer = setTimeout(function() { retryTimer = 0; if (active && !isInGame && valid(token)) refresh(false); }, 4000);
         return cached;
       }
-      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then refresh the library.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Refresh the library.');
+      status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then use Refresh PC and library.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Refresh the library.');
       return cached;
     }).then(function() {
       if (!valid(token)) return;

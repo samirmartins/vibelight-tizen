@@ -8,7 +8,7 @@ const native = fs.readFileSync('wasm/main.cpp', 'utf8');
 const afterStop = native.slice(native.indexOf('  // Last instance access:'));
 const bridge = afterStop.match(/m_StopComplete\.store\(true[^;]+;\s*MAIN_THREAD_ASYNC_EM_ASM\(\{([\s\S]*?)\n  \}, generation\);/);
 assert(bridge, 'native completion bridge');
-const UNAVAILABLE = 'PC unavailable. Turn it on or use Wake PC, then refresh the library.';
+const UNAVAILABLE = 'PC unavailable. Turn it on or use Wake PC, then use Refresh PC and library.';
 
 function fixture() {
   const f = setup(), c = f.c, events = {};

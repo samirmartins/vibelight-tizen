@@ -24,7 +24,9 @@ Released 2026-11-23. Changes since v4.0.6. See the
 ### Changed
 
 - The library button Refresh library is now Refresh PC and library, because it checks the PC as well as the
-  game list.
+  game list. The PC unavailable message names the
+  Wake PC and Refresh PC and library buttons exactly as they are labelled (in Portuguese it said Acordar PC for
+  the button Ligar PC).
 - Settings: Left on a page returns to the category list, like Back, and Right on a category opens its
   page, like OK. The bitrate and jitter popups keep Left and Right for the value, and typing in a text
   field keeps Left for the cursor.

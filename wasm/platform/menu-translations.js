@@ -641,7 +641,7 @@ var MenuTranslations = [
   ["Observations", "Observações", "Observaciones"],
   ["Trend", "Tendência", "Tendencia"],
   ["Refresh PC and library", "Atualizar PC e biblioteca", "Actualizar PC y biblioteca"],
-  ["PC unavailable. Turn it on or use Wake PC, then refresh the library.", "PC indisponível. Ligue-o ou use Acordar PC e atualize a biblioteca.", "PC no disponible. Enciéndelo o usa Despertar PC y actualiza la biblioteca."],
+  ["PC unavailable. Turn it on or use Wake PC, then use Refresh PC and library.", "PC indisponível. Ligue-o ou use Ligar PC e depois Atualizar PC e biblioteca.", "PC no disponible. Enciéndelo o usa Encender PC y luego Actualizar PC y biblioteca."],
   ["Games unavailable · Refresh the library.", "Jogos indisponíveis · Atualize a biblioteca.", "Juegos no disponibles · Actualiza la biblioteca."],
   ["Loading game information…", "Carregando informações do jogo…", "Cargando información del juego…"],
   ["Starting the game on the PC…", "Iniciando o jogo no PC…", "Iniciando el juego en el PC…"],

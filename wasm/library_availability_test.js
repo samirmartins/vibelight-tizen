@@ -23,7 +23,7 @@ function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve
   opening=f.c.ConsoleLibrary.open(f.host);await f.flush();
   const timeout=[...f.timers].find(([,t])=>t.ms===26000);assert(timeout);
   f.timers.delete(timeout[0]);timeout[1].fn();await opening;
-  assert.strictEqual(f.node('libraryStatus').textContent,'PC unavailable. Turn it on or use Wake PC, then refresh the library.');
+  assert.strictEqual(f.node('libraryStatus').textContent,'PC unavailable. Turn it on or use Wake PC, then use Refresh PC and library.');
   assert(!f.node('libraryRefresh').disabled);f.suspend();assert.strictEqual(f.timers.size,0);
   // Slow disk decoding never schedules another check in the old document.
   f=fixture();f.host.delay=[];f.host.connect=()=>Promise.reject(Error('timeout'));
