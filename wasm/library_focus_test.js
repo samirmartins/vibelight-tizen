@@ -8,7 +8,7 @@ const {fixture} = require('./fixtures/console-library.cjs');
 const BOXES = {   // [left, top, width, height]
   libraryPCsBtn: [0, 0, 100, 40], languageBtn: [110, 0, 100, 40], settingsBtn: [220, 0, 100, 40], quitRunningAppBtn: [330, 0, 100, 40],
   libraryWake: [800, 100, 100, 40], libraryPlay: [910, 100, 100, 40], libraryFavorite: [1020, 100, 100, 40], libraryProfile: [1130, 100, 100, 40],
-  libraryAll: [0, 200, 100, 40], libraryFavorites: [110, 200, 100, 40], libraryRecent: [220, 200, 100, 40], librarySearch: [330, 200, 100, 40], libraryRefresh: [1100, 200, 100, 40]
+  libraryAll: [0, 200, 100, 40], libraryFavorites: [110, 200, 100, 40], libraryRecent: [220, 200, 100, 40], libraryRefresh: [1100, 200, 100, 40]
 };
 const rect = ([left, top, width, height]) => ({left, top, width, height, right: left + width, bottom: top + height});
 
@@ -57,10 +57,8 @@ async function setup(options = {}) {
   // Left and right stay inside their row, with no jump to the next or previous row.
   {
     const t = await setup();
-    t.at('libraryRecent'); t.lib.navMove('right'); assert.strictEqual(t.last(), 'librarySearch');
-    t.lib.navMove('right'); assert.strictEqual(t.last(), 'libraryRefresh');
+    t.at('libraryRecent'); t.lib.navMove('right'); assert.strictEqual(t.last(), 'libraryRefresh');
     t.lib.navMove('right'); assert.strictEqual(t.last(), 'libraryRefresh', 'the row ends here');
-    t.lib.navMove('left'); assert.strictEqual(t.last(), 'librarySearch');
     t.lib.navMove('left'); assert.strictEqual(t.last(), 'libraryRecent');
     t.at('libraryAll'); t.lib.navMove('left'); assert.strictEqual(t.last(), 'libraryAll', 'the row starts here');
     t.at('quitRunningAppBtn'); t.lib.navMove('right'); assert.strictEqual(t.last(), 'quitRunningAppBtn', 'not Wake PC, which is another row');
@@ -96,7 +94,7 @@ async function setup(options = {}) {
     second.lib.move(1, 0);
     second.focused.length = 0;
     second.lib.move(0, -1);
-    assert.strictEqual(second.last(), 'librarySearch', 'card in the right column: nearest control of the filter row (Search sits after Recent)');
+    assert.strictEqual(second.last(), 'libraryRecent', 'card in the right column: nearest filter');
     // Down from the filters comes back to the selected card.
     second.lib.navMove('down');
     assert.deepStrictEqual(second.changes.slice(-1), ['grid']);
