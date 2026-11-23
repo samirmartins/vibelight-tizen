@@ -36,6 +36,11 @@ async function setup(options = {}) {
   c.openUtilityDialog = (id, controls, closeId, opener) => { f.opened.push(id); f.openers.push(opener); c.Views.UtilityDialog.controls = controls; c.isDialogOpen = true; };
   c.closeUtilityDialog = (id) => { f.closed.push(id); c.isDialogOpen = false; };
   if (options.policy) c.localStorage.setItem(POLICY, options.policy);
+  if (options.hangFirst) { // the very first check never finishes
+    f.infoGate = deferred(); h.connect = () => f.infoGate.promise;
+    f.opening = f.c.ConsoleLibrary.open(h); await f.flush();
+    return f;
+  }
   await f.open();
   assert.strictEqual(f.host.online, false, 'the check found the PC off');
   return f;
@@ -61,12 +66,37 @@ const text = (f, name) => f.node(name).textContent;
   f.node('libraryPlay').click(); await f.flush();
   assert.strictEqual(f.launches.length, 1); assert.deepStrictEqual(f.opened, []); assert.strictEqual(f.wakes, 0);
 
-  // A check still running is not proof the PC is off: Play starts as before.
+  // The very first check is still running: nothing proves the PC is off, so Play starts as before.
+  f = await setup({hangFirst: true});
+  f.node('libraryPlay').click(); f.infoGate.reject(Error('late')); await f.opening; await f.flush();
+  assert.strictEqual(f.launches.length, 1); assert.deepStrictEqual(f.opened, []);
+
+  // The PC was found off and the library checks again (coming back from Settings, a refresh): while the
+  // new check runs, the last answer still counts, so the setting is honoured and Play asks. Before, the
+  // new check made Play start the game anyway, as if "Ask" were not set.
   f = await setup();
   f.infoGate = deferred(); f.host.connect = () => f.infoGate.promise;
   const reopening = f.c.ConsoleLibrary.open(f.host); await f.flush();
-  f.node('libraryPlay').click(); f.infoGate.reject(Error('late')); await reopening; await f.flush();
-  assert.strictEqual(f.launches.length, 1); assert.deepStrictEqual(f.opened, []);
+  f.node('libraryPlay').click(); await f.flush();
+  assert.deepStrictEqual(f.opened, ['wakePlayDialog'], 'asks while the new check runs');
+  assert.strictEqual(f.launches.length, 0);
+  f.node('wakePlayCancel').click(); f.infoGate.reject(Error('late')); await reopening; await f.flush();
+
+  // The PC answered the last check: Play starts directly even while a new check runs.
+  f = await setup(); f.pcUp = true;
+  await f.c.ConsoleLibrary.open(f.host); await f.flush();
+  assert.strictEqual(f.host.online, true);
+  f.infoGate = deferred(); f.host.connect = () => f.infoGate.promise;
+  const again = f.c.ConsoleLibrary.open(f.host); await f.flush();
+  f.node('libraryPlay').click(); f.infoGate.reject(Error('late')); await again; await f.flush();
+  assert.strictEqual(f.launches.length, 1); assert.deepStrictEqual(f.opened, [], 'a PC found on is not asked about');
+
+  // Changing the setting takes effect at once: Never starts the game, Ask asks again, with the same last answer.
+  f = await setup({policy: 'never'});
+  f.infoGate = deferred(); f.host.connect = () => f.infoGate.promise;
+  const settingTest = f.c.ConsoleLibrary.open(f.host); await f.flush();
+  f.node('libraryPlay').click(); await f.flush();
+  assert.strictEqual(f.launches.length, 1, 'Just try to play starts the game'); f.infoGate.reject(Error('x')); await settingTest;
 
   // PC off, MAC known, default policy: Play asks. Nothing is sent, started or prepared yet.
   f = await setup();

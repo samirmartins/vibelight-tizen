@@ -7,6 +7,8 @@ var ConsoleLibrary = (function() {
   var settingsReturn = false, wakeScope = null;
   // What the last finished check found: 'online', 'offline' or 'unknown' (not checked, or checking).
   var reachState = 'unknown', wakePlay = null, pendingResume = null;
+  // The last finished answer for a PC, kept while a new check runs (reachState is 'unknown' meanwhile).
+  var lastReach = 'unknown', lastReachHost = null;
   var searchOpen = false, searchQuery = '';
   var runtimeReady = false, hostsReady = false, started = false, bound = false;
   var navIndex = 0, currentRecord = null;
@@ -404,7 +406,7 @@ var ConsoleLibrary = (function() {
     refreshPending = current.request(function() {
       return connect(current,token);
     }, 26000).then(function() {
-        reached = true; reachState = 'online';
+        reached = true; reachState = lastReach = 'online'; lastReachHost = host;
         if (!hostReady()) throw new Error('Sunshine is still starting.');
         if (!host.paired) throw new Error('Pair this PC from PCs to access its library.');
         checking = false;
@@ -424,7 +426,7 @@ var ConsoleLibrary = (function() {
       current.cancel();
       // A reachable unpaired PC is different from an offline PC.
       var closing = error && error.clientStreamStopping;
-      if (!reached && !closing) { host.online = false; reachState = 'offline'; }
+      if (!reached && !closing) { host.online = false; reachState = lastReach = 'offline'; lastReachHost = host; }
       // No response cannot distinguish a powered-off PC from a slow Sunshine,
       // firewall or network failure. Do not claim to have measured its power.
       failResume();
@@ -557,7 +559,9 @@ var ConsoleLibrary = (function() {
   // Play does; everything else starts the game exactly as before. This runs before a stream.
   function wakeMode() {
     if (typeof WakeAndPlay === 'undefined') return 'play';
-    return WakeAndPlay.decide({ policy: WakeAndPlay.policy(localStorage), state: reachState,
+    // While a new check runs, the last finished answer for this PC still counts.
+    var state = reachState === 'unknown' && lastReachHost === host ? lastReach : reachState;
+    return WakeAndPlay.decide({ policy: WakeAndPlay.policy(localStorage), state: state,
       mac: normalizeWakeMac(host.wakeMacOverride || host.macAddress) });
   }
   // Where the focus returns when the wake dialog closes: the chosen game's card, or Play when the
@@ -598,7 +602,7 @@ var ConsoleLibrary = (function() {
     wakePlay = null;
     current.scope.cancel();
     closeUtilityDialog('wakePlayDialog');
-    if (result === 'ready') { reachState = 'online'; launch(current.appId, true); return; }
+    if (result === 'ready') { reachState = lastReach = 'online'; lastReachHost = host; launch(current.appId, true); return; }
     // Nothing starts: give the prepared audio back.
     if (typeof stopAudioScheduler === 'function') stopAudioScheduler(true);
     if (result === 'timeout') {
