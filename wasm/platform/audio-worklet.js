@@ -22,6 +22,10 @@ var ML_AUD_GATE = 17;
 
 var ML_DECAY_BASE_S = 10;
 var ML_DECAY_MAX_S = 60;
+// Lead over the target that stays for a whole second is dropped down to this much above it.
+var ML_LEAD_NONE = 0x7fffffff;
+var ML_LEAD_LIMIT_S = 0.04;
+var ML_LEAD_KEEP_S = 0.01;
 
 function mlClamp(value, minimum, maximum) {
   return value < minimum ? minimum : (value > maximum ? maximum : value);
@@ -45,6 +49,8 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
     this.stableOutputFrames = 0;
     // Seconds of stable playback before the raised target steps down; stretched by underruns.
     this.decayWaitS = ML_DECAY_BASE_S;
+    this.leadMin = ML_LEAD_NONE;
+    this.leadFrames = 0;
     this.statsCountdown = 0;
     this.noteDepth = this.ignoreDepth;
 
@@ -79,6 +85,8 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
         this.started = false;
         this.stableOutputFrames = 0;
         this.decayWaitS = ML_DECAY_BASE_S;
+        this.leadMin = ML_LEAD_NONE;
+        this.leadFrames = 0;
         this.setTelemetry(data.telemetry);
         this.ready = true;
       } catch (e) {
@@ -137,6 +145,8 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
     }
     this.started = false;
     this.stableOutputFrames = 0;
+    this.leadMin = ML_LEAD_NONE;
+    this.leadFrames = 0;
     Atomics.store(this.control, ML_AUD_STARTED, 0);
   }
 
@@ -200,6 +210,22 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
     }
 
     var outputFrames = outputs[0].length;
+    // Audio that never came close to the target for a whole second is delay nobody needs:
+    // drop it, keeping a little above the target. Dropped frames are not counted as played.
+    var lead = depth - target;
+    if (lead < this.leadMin) this.leadMin = lead;
+    this.leadFrames += outputFrames;
+    if (this.leadFrames >= sampleRate) {
+      var leadFloor = this.leadMin;
+      this.leadMin = ML_LEAD_NONE;
+      this.leadFrames = 0;
+      if (leadFloor > Math.round(this.sourceRate * ML_LEAD_LIMIT_S)) {
+        var drop = leadFloor - Math.round(this.sourceRate * ML_LEAD_KEEP_S);
+        this.readFrame = (this.readFrame + drop) >>> 0;
+        Atomics.store(this.control, ML_AUD_READ, this.readFrame | 0);
+        depth -= drop;
+      }
+    }
     var driftPpm = Atomics.load(this.control, ML_AUD_DRIFT_PPM) | 0;
     var error = target > 0 ? (depth - target) / target : 0;
     var bufferPpm = mlClamp(Math.round(error * 10000), -3000, 7500);
