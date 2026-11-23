@@ -1251,6 +1251,7 @@ const Views = {
   AdvancedSettings: {
     view: new ListView(() => [
       'disableWarningsBtn',
+      'resumeOnDropBtn',
       'diagnosticsReportBtn',
       'diagnosticsHistoryBtn'
     ]),

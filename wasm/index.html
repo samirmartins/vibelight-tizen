@@ -302,6 +302,16 @@
                   <span class="mdl-switch__label">Disable on-screen connection warning messages while streaming</span>
                 </label>
               </div>
+            </div>
+<div class="setting-option">
+              <label>Resume after a connection drop</label>
+              <span class="mdl-list__item-text-body">If the network or video fails, VibeLight resumes the same game on its own, up to 3 times in a row.</span>
+              <div id="resumeOnDropMenu">
+                <label id="resumeOnDropBtn" class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="resumeOnDropSwitch">
+                  <input type="checkbox" id="resumeOnDropSwitch" class="mdl-switch__input" checked>
+                  <span class="mdl-switch__label">Resume the game automatically when the connection drops</span>
+                </label>
+              </div>
             </div><h2 class="settings-section-title">After the game</h2>
 <div class="setting-option"><label>Last diagnosis</label><span class="mdl-list__item-text-body">Open the most recent saved session.</span><button id="diagnosticsReportBtn" type="button" class="mdl-button mdl-js-button">View diagnosis</button></div>
 <div class="setting-option"><label>History and comparison</label><span class="mdl-list__item-text-body">Last 10 records. Choose two to compare.</span><button id="diagnosticsHistoryBtn" type="button" class="mdl-button mdl-js-button">Open history</button></div><p class="settings-privacy">Statistics stay on this TV. Nothing is sent. Last 10 session records. Without enabling in the game menu, nothing is recorded.</p></div>
@@ -411,6 +421,7 @@
   <script type="text/javascript" src="platform/menu-tools.js"></script>
   <script type="text/javascript" src="platform/release-update.js"></script>
   <script type="text/javascript" src="platform/wake-and-play.js"></script>
+  <script type="text/javascript" src="platform/resume-on-drop.js"></script>
   <script type="text/javascript" src="platform/console-library.js"></script>
   <script type="text/javascript" src="platform/diagnostic-history.js"></script>
   <script type="text/javascript" src="platform/diagnostic-hints.js"></script>
