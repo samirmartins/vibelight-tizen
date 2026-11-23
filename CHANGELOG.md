@@ -22,8 +22,9 @@ Released 2026-11-23. Changes since v4.0.6. See the
 
 ### Changed
 
-- Settings pages: Left returns to the categories, like Back (the bitrate and jitter popups keep Left
-  and Right for the value, and typing in a text field keeps Left for the cursor).
+- Settings: Left on a page returns to the category list, like Back, and Right on a category opens its
+  page, like OK. The bitrate and jitter popups keep Left and Right for the value, and typing in a text
+  field keeps Left for the cursor.
 - Confirmations that delete or discard something (delete host, delete all hosts or profiles, quit the
   running game, restore defaults) always open on Cancel. Before, they opened on Continue the first
   time and on the last choice afterwards.

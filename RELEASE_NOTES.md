@@ -5,7 +5,7 @@
 - Wake and play: when the PC is off, Play offers to turn it on and starts the game once it answers
   (a check every 4 seconds for up to 2 minutes, with cancel). Choose Ask, Wake and play or Just try to
   play in the library settings. Wake-on-LAN only works if the PC is set up for it.
-- Settings: Left returns to the categories. Confirmations that delete or discard something
+- Settings: Right opens the focused category and Left returns to the list. Confirmations that delete or discard something
   (delete host, quit the game, restore defaults) open on Cancel.
 - Add PC: Down on Continue or Cancel no longer jumps to an address field. One-button dialogs keep
   their button focused, and the wake dialog returns the focus to the chosen game.
