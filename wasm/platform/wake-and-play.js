@@ -41,6 +41,52 @@ var WakeAndPlay = (function() {
     return null;
   }
 
-  return { KEY: KEY, POLICIES: POLICIES, DEFAULT: DEFAULT, policy: policy, setPolicy: setPolicy,
+  // The wait after Play: one wake packet, then a check every INTERVAL_MS until the PC answers or
+  // LIMIT_MS pass. options: {send(), probe(), setTimeout, clearTimeout, now, intervalMs, limitMs,
+  // onProgress(elapsedMs)}; send and probe return promises (probe resolves true once the PC is
+  // ready to stream). Returns {promise, cancel}; the promise resolves once with
+  // {result: 'ready' | 'timeout' | 'cancelled' | 'send-failed', elapsedMs}. The checks never
+  // overlap, a late answer after the end is ignored, and no timer survives the end.
+  var INTERVAL_MS = 4000, LIMIT_MS = 120000;
+  function wait(options) {
+    var set = options.setTimeout, clear = options.clearTimeout, now = options.now;
+    var interval = options.intervalMs > 0 ? options.intervalMs : INTERVAL_MS;
+    var limit = options.limitMs > 0 ? options.limitMs : LIMIT_MS;
+    var started = now(), done = false, timer = 0, deadline = 0, resolveOutcome;
+    var promise = new Promise(function(resolve) { resolveOutcome = resolve; });
+
+    function progress() {
+      if (typeof options.onProgress !== 'function') return;
+      try { options.onProgress(now() - started); } catch (e) { /* the display must not stop the wait */ }
+    }
+    function finish(result) {
+      if (done) return;
+      done = true;
+      clear(timer); clear(deadline);
+      resolveOutcome({ result: result, elapsedMs: now() - started });
+    }
+    function schedule() {
+      if (!done) timer = set(tick, interval);
+    }
+    function tick() {
+      if (done) return;
+      progress();
+      var check;
+      try { check = Promise.resolve(options.probe()); } catch (e) { check = Promise.reject(e); }
+      check.then(function(ready) {
+        if (done) return;
+        if (ready === true) finish('ready'); else schedule();
+      }, function() { schedule(); });
+    }
+
+    progress();
+    deadline = set(function() { finish('timeout'); }, limit);
+    var sent;
+    try { sent = Promise.resolve(options.send()); } catch (e) { sent = Promise.reject(e); }
+    sent.then(schedule, function() { finish('send-failed'); });
+    return { promise: promise, cancel: function() { finish('cancelled'); } };
+  }
+
+  return { INTERVAL_MS: INTERVAL_MS, LIMIT_MS: LIMIT_MS, wait: wait, KEY: KEY, POLICIES: POLICIES, DEFAULT: DEFAULT, policy: policy, setPolicy: setPolicy,
     nextPolicy: nextPolicy, decide: decide, remembered: remembered };
 })();
