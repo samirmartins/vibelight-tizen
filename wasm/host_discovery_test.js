@@ -17,7 +17,7 @@ function world() {
   const xmlQuery = (xml, tag = 'root') => ({find: name => xmlQuery(xml, name),
     text() { const m = xml.match(new RegExp('<' + tag + '>([^<]*)</' + tag + '>')); return m ? m[1] : ''; }, html() { return this.text(); }, each() {}, attr: () => '200'});
   c.$ = xml => xmlQuery(xml); c.$.parseXML = xml => xml;
-  const reply = uid => '<root status_code="200"><uniqueid>' + uid + '</uniqueid><hostname>pc</hostname><LocalIP>10.0.0.6</LocalIP><HttpsPort>47984</HttpsPort>' +
+  const reply = uid => '<root status_code="200"><uniqueid>' + uid + '</uniqueid><hostname>pc</hostname><LocalIP>192.0.2.6</LocalIP><HttpsPort>47984</HttpsPort>' +
     '<appversion>7.1.431.-1</appversion><state>SUNSHINE_SERVER_BUSY</state><currentgame>5</currentgame><PairStatus>1</PairStatus><mac>12:34:56:78:9A:BC</mac></root>';
   const flush = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
   async function advance(ms) {
@@ -32,8 +32,8 @@ function world() {
   }
   // behavior: address -> {after: ms, ok: true|false|'hang'|'other-pc'}
   function host(behavior) {
-    const h = new c.NvHTTP('10.0.0.5', 'client'); h.serverUid = 'pc'; h.ppkstr = 'pinned'; h.paired = true; h.hostname = 'pc';
-    h.httpPort = 47989; h.httpsPort = 47984; h.localAddress = '10.0.0.6'; h.userEnteredAddress = 'pc.lan'; h.externalIP = '203.0.113.9';
+    const h = new c.NvHTTP('192.0.2.5', 'client'); h.serverUid = 'pc'; h.ppkstr = 'pinned'; h.paired = true; h.hostname = 'pc';
+    h.httpPort = 47989; h.httpsPort = 47984; h.localAddress = '192.0.2.6'; h.userEnteredAddress = 'pc.lan'; h.externalIP = '203.0.113.9';
     h._parseXML = x => xmlQuery(x);
     c.sendMessage = (name, args) => {
       const address = args[0].match(/^https?:\/\/([^:/]+)/)[1];
@@ -50,7 +50,7 @@ function world() {
   const outcome = promise => { const o = {done: false}; promise.then(v => { o.done = true; o.value = v; o.at = now; }, e => { o.done = true; o.error = e; o.at = now; }); return o; };
   return {c, host, advance, requests, outcome, now: () => now, timers};
 }
-const A = '10.0.0.5', B = '10.0.0.6', C = 'pc.lan', D = 'pc.local', E = '203.0.113.9';
+const A = '192.0.2.5', B = '192.0.2.6', C = 'pc.lan', D = 'pc.local', E = '203.0.113.9';
 
 (async () => {
   // A fast preferred address wins at once; later candidates are never even probed.
