@@ -59,7 +59,8 @@ const A = {width: 2, height: 3, fps: 4, bitrate: 5, audio: 16, codec: 19, hdr: 2
       assert.deepStrictEqual(result.launches, baseline.launches, 'launch/resume request matches v4.0.4');
       assert.deepStrictEqual(result.refresh, baseline.refresh);
       assert.deepStrictEqual(result.diagnostics, baseline.diagnostics);
-      assert.deepStrictEqual(result.stages, baseline.stages, 'startup messages match v4.0.4');
+      // The messages are those of v4.0.4 except that they now end in three dots instead of the single ellipsis character.
+      assert.deepStrictEqual(result.stages, JSON.parse(JSON.stringify(baseline.stages).replace(/…/g, '...')), 'startup messages match v4.0.4');
       assert.deepStrictEqual(result.notices, baseline.notices);
       assert.strictEqual(result.timersAdded, baseline.timersAdded, 'no extra timer');
     }
