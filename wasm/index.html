@@ -403,6 +403,7 @@
   <script type="text/javascript" src="platform/audio.js"></script>
   <script type="text/javascript" src="platform/menu-tools.js"></script>
   <script type="text/javascript" src="platform/release-update.js"></script>
+  <script type="text/javascript" src="platform/wake-and-play.js"></script>
   <script type="text/javascript" src="platform/console-library.js"></script>
   <script type="text/javascript" src="platform/diagnostic-history.js"></script>
   <script type="text/javascript" src="platform/diagnostic-hints.js"></script>
@@ -457,6 +458,22 @@
         <button id="wakeSave" type="button" class="mdl-button mdl-js-button mdl-button--raised">Save MAC</button>
         <button id="wakeDetected" type="button" class="mdl-button mdl-js-button mdl-button--raised">Use detected MAC</button>
         <button id="wakeClose" type="button" class="mdl-button mdl-js-button mdl-button--raised">Close</button>
+      </div>
+    </dialog>
+  </div>
+  <div class="dialog-overlay" id="wakePlayDialogOverlay">
+    <dialog id="wakePlayDialog" class="mdl-dialog utility-dialog">
+      <h3 id="wakePlayTitle" class="mdl-dialog__title">The PC is off</h3>
+      <div class="mdl-dialog__content">
+        <p id="wakePlayStatus" role="status"></p>
+        <p id="wakePlayNote"></p>
+        <p id="wakePlayElapsed"></p>
+      </div>
+      <div class="utility-actions">
+        <button id="wakePlayWake" type="button" class="mdl-button mdl-js-button mdl-button--raised">Wake PC and play</button>
+        <button id="wakePlayTry" type="button" class="mdl-button mdl-js-button mdl-button--raised">Just try to play</button>
+        <button id="wakePlayRemember" type="button" class="mdl-button mdl-js-button mdl-button--raised">Remember my choice: Off</button>
+        <button id="wakePlayCancel" type="button" class="mdl-button mdl-js-button mdl-button--raised">Cancel</button>
       </div>
     </dialog>
   </div>

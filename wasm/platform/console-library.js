@@ -5,6 +5,8 @@ var ConsoleLibrary = (function() {
   var host = null, apps = [], selected = 0, filter = 'all';
   var active = false, scope = null, coverScope = null, epoch = 0, busy = false, checking = false;
   var settingsReturn = false, wakeScope = null;
+  // What the last finished check found: 'online', 'offline' or 'unknown' (not checked, or checking).
+  var reachState = 'unknown', wakePlay = null;
   var runtimeReady = false, hostsReady = false, started = false, bound = false;
   var navIndex = 0, currentRecord = null;
   var launchPending = false, launchTimer = 0;
@@ -145,6 +147,7 @@ var ConsoleLibrary = (function() {
     refreshPending = null; refreshCovers = false;
     if (wakeScope) wakeScope.cancel();
     wakeScope = null;
+    abortWakePlay();
   }
   function hide(preserveLaunch) {
     if (!preserveLaunch && typeof startGame === 'function' && startGame.pending) startGame.pending.cancel();
@@ -385,7 +388,7 @@ var ConsoleLibrary = (function() {
     cancel(); scope = createMenuRequestScope();
     var current = scope, token = epoch, reached = false;
     refreshCovers = forceCovers === true;
-    checking = true;
+    checking = true; reachState = 'unknown';
     status('Checking PC…'); updateSelection();
     // Disk-only artwork is independent of network discovery, including a cold
     // menu/offline PC. Never queue downloads in front of the status request.
@@ -394,7 +397,7 @@ var ConsoleLibrary = (function() {
     refreshPending = current.request(function() {
       return connect(current,token);
     }, 26000).then(function() {
-        reached = true;
+        reached = true; reachState = 'online';
         if (!hostReady()) throw new Error('Sunshine is still starting.');
         if (!host.paired) throw new Error('Pair this PC from PCs to access its library.');
         checking = false;
@@ -413,7 +416,7 @@ var ConsoleLibrary = (function() {
       current.cancel();
       // A reachable unpaired PC is different from an offline PC.
       var closing = error && error.clientStreamStopping;
-      if (!reached && !closing) host.online = false;
+      if (!reached && !closing) { host.online = false; reachState = 'offline'; }
       // No response cannot distinguish a powered-off PC from a slow Sunshine,
       // firewall or network failure. Do not claim to have measured its power.
       status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then refresh the library.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Refresh the library.');
@@ -462,7 +465,96 @@ var ConsoleLibrary = (function() {
     if (!active || isInGame || launchPending || !apps.some(function(app) { return app.id === id(appId); })) return;
     appId = id(appId); select(appId);
     if (!host.paired) { snackbarLog('Pair this PC from PCs before playing.'); return; }
+    if (wakePlay) return;
+    var mode = wakeMode();
+    if (mode === 'ask') { askWakePlay(appId); return; }
+    if (mode === 'wake') { prepareStreamAudio(); startWakePlay(appId, true); return; }
     launch(appId,false);
+  }
+  // Wake and play. Only a finished check that found the PC off, with a MAC to wake, changes what
+  // Play does; everything else starts the game exactly as before. This runs before a stream.
+  function wakeMode() {
+    if (typeof WakeAndPlay === 'undefined') return 'play';
+    return WakeAndPlay.decide({ policy: WakeAndPlay.policy(localStorage), state: reachState,
+      mac: normalizeWakeMac(host.wakeMacOverride || host.macAddress) });
+  }
+  function askWakePlay(appId) {
+    if (isDialogOpen) return;
+    var remember = false, answered = false;
+    function showRemember() { el('wakePlayRemember').textContent = 'Remember my choice: ' + (remember ? 'On' : 'Off'); }
+    function answer(kind) {
+      if (answered) return;
+      answered = true;
+      var saved = WakeAndPlay.remembered(kind, remember);
+      if (saved) WakeAndPlay.setPolicy(localStorage, saved);
+      if (kind === 'wake') {
+        // This click is the user gesture that lets the audio start later.
+        prepareStreamAudio(); startWakePlay(appId, false); return;
+      }
+      closeUtilityDialog('wakePlayDialog');
+      if (kind === 'try') launch(appId,false);
+    }
+    el('wakePlayTitle').textContent = 'The PC is off';
+    el('wakePlayStatus').textContent = 'Send Wake-on-LAN and start the game when the PC is ready?';
+    el('wakePlayNote').textContent = 'Wake-on-LAN only works if the PC is set up for it.';
+    el('wakePlayElapsed').textContent = '';
+    ['wakePlayWake','wakePlayTry','wakePlayRemember'].forEach(function(name) { el(name).style.display = ''; });
+    showRemember();
+    el('wakePlayRemember').onclick = function() { remember = !remember; showRemember(); };
+    el('wakePlayWake').onclick = function() { answer('wake'); };
+    el('wakePlayTry').onclick = function() { answer('try'); };
+    el('wakePlayCancel').onclick = function() { answer('cancel'); };
+    openUtilityDialog('wakePlayDialog', ['wakePlayWake','wakePlayTry','wakePlayRemember','wakePlayCancel'], 'wakePlayCancel', 'libraryPlay');
+  }
+  function endWakePlay(result, current) {
+    if (wakePlay !== current) return;
+    wakePlay = null;
+    current.scope.cancel();
+    closeUtilityDialog('wakePlayDialog');
+    if (result === 'ready') { reachState = 'online'; launch(current.appId, true); return; }
+    // Nothing starts: give the prepared audio back.
+    if (typeof stopAudioScheduler === 'function') stopAudioScheduler(true);
+    if (result === 'timeout') {
+      status('The PC did not respond in time. Check that Wake-on-LAN is enabled on it, then try again.');
+      snackbarLog('The PC did not respond in time. Check that Wake-on-LAN is enabled on it.');
+    } else if (result === 'send-failed') {
+      snackbarLog('Could not send Wake-on-LAN. Check the saved MAC and PC settings.');
+    }
+    updateSelection();
+  }
+  function startWakePlay(appId, openDialog) {
+    var current = { appId: appId, scope: createMenuRequestScope(), handle: null };
+    wakePlay = current;
+    el('wakePlayTitle').textContent = 'Waking the PC';
+    el('wakePlayStatus').textContent = 'Waiting for the PC to start…';
+    el('wakePlayNote').textContent = 'The game starts when the PC is ready.';
+    el('wakePlayElapsed').textContent = '0 s';
+    ['wakePlayWake','wakePlayTry','wakePlayRemember'].forEach(function(name) { el(name).style.display = 'none'; });
+    el('wakePlayCancel').onclick = function() { if (current.handle) current.handle.cancel(); };
+    if (openDialog) {
+      openUtilityDialog('wakePlayDialog', ['wakePlayCancel'], 'wakePlayCancel', 'libraryPlay');
+    } else {
+      Views.UtilityDialog.controls = ['wakePlayCancel'];
+    }
+    focusElement('wakePlayCancel');
+    current.handle = WakeAndPlay.wait({
+      send: function() { return current.scope.request(function() { return host.sendWOL(); }, 8000); },
+      // The PC counts as ready once Sunshine answers and the saved pairing is accepted.
+      probe: function() {
+        var check = createMenuRequestScope();
+        return check.request(function() { return host.connect(check); }, 8000).then(function() {
+          check.cancel(); return hostReady();
+        }, function() { check.cancel(); return false; });
+      },
+      setTimeout: function(fn, ms) { return setTimeout(fn, ms); },
+      clearTimeout: function(id) { clearTimeout(id); },
+      now: function() { return Date.now(); },
+      onProgress: function(ms) { el('wakePlayElapsed').textContent = Math.floor(ms / 1000) + ' s'; }
+    });
+    current.handle.promise.then(function(outcome) { endWakePlay(outcome.result, current); });
+  }
+  function abortWakePlay() {
+    if (wakePlay && wakePlay.handle) wakePlay.handle.cancel();
   }
   function wake() {
     if (!active || isInGame || wakeScope) return;
