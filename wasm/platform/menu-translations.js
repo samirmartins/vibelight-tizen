@@ -721,5 +721,4 @@ var MenuTranslations = [
   ["The last 120 FPS start did not finish. Back to 60 FPS.", "O último início em 120 FPS não terminou. Voltando para 60 FPS.", "El último inicio a 120 FPS no terminó. Se vuelve a 60 FPS."],
   ["120 FPS is not available on this display. Using 60 FPS.", "O 120 FPS não está disponível nesta tela. Usando 60 FPS.", "Los 120 FPS no están disponibles en esta pantalla. Se usan 60 FPS."],
   ["120 FPS needs a display that reports 120 Hz. Starting at 60 FPS.", "O 120 FPS exige uma tela que informe 120 Hz. Iniciando em 60 FPS.", "Los 120 FPS requieren una pantalla que indique 120 Hz. Se inicia a 60 FPS."],
-  ["PC unavailable (addresses tried: {0}). Turn it on or use Wake PC, then refresh the library.", "PC indisponível (endereços tentados: {0}). Ligue-o ou use Acordar PC e atualize a biblioteca.", "PC no disponible (direcciones probadas: {0}). Enciéndelo o usa Despertar PC y actualiza la biblioteca."],
 ];

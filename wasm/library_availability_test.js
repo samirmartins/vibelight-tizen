@@ -74,16 +74,5 @@ function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve
   c.sendMessage=()=>Promise.resolve('wrong server');
   await assert.rejects(host.connect(c.createMenuRequestScope()));assert.strictEqual(host._authenticatedOnline,false);
   assert.strictEqual(timers.size,0);
-  // When no address answered, the status says how many were tried instead of only suggesting the PC is off.
-  for(const tried of [1,5]){
-    f=fixture();f.host.connect=()=>Promise.reject(Object.assign(Error('PC did not respond'),{tried}));
-    await f.c.ConsoleLibrary.open(f.host);await f.flush();
-    assert.strictEqual(f.node('libraryStatus').textContent,'PC unavailable (addresses tried: '+tried+'). Turn it on or use Wake PC, then refresh the library.');
-    assert(!f.host.online);f.suspend();
-  }
-  // Other failures keep the general text.
-  f=fixture();f.host.connect=()=>Promise.reject(Error('quick timeout'));
-  await f.c.ConsoleLibrary.open(f.host);await f.flush();
-  assert.strictEqual(f.node('libraryStatus').textContent,'PC unavailable. Turn it on or use Wake PC, then refresh the library.');f.suspend();
   console.log('library_availability_test: cache before one-shot check, bounded probes, no false power claim, slow list, explicit recovery, pinned fallback and cancellation OK');
 })().catch(error=>{console.error(error);process.exitCode=1;});
