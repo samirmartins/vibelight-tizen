@@ -7,7 +7,10 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
-## Unreleased (4.0.7 in preparation)
+## v4.0.7
+
+Released 2026-11-23. Changes since v4.0.6. See the
+[release notes](RELEASE_NOTES.md) for the concise summary.
 
 ### Added
 
@@ -17,8 +20,20 @@ that reason: the two lines are separate and should never be read as one.
   is off, chooses Ask (the default), Wake and play, or Just try to play, which starts the game as
   before. Wake-on-LAN only works if the PC is set up for it.
 
+### Changed
+
+- Settings pages: Left returns to the categories, like Back (the bitrate and jitter popups keep Left
+  and Right for the value, and typing in a text field keeps Left for the cursor).
+- Confirmations that delete or discard something (delete host, delete all hosts or profiles, quit the
+  running game, restore defaults) always open on Cancel. Before, they opened on Continue the first
+  time and on the last choice afterwards.
+- The wake-and-play dialog returns the focus to the card of the chosen game.
+
 ### Fixed
 
+- Add PC: in the numeric IP-field mode, Down on Continue or Cancel no longer jumps to the second field.
+- The pairing, host details and warning dialogs keep their only button focused on Up and Down
+  instead of dropping and returning the focus.
 - Fixes audio that started behind: PCM that piled up before the audio output began is dropped
   down to the target instead of playing as a fixed delay, and a lead that stays more than 40 ms
   over the target for a full second is cut down to 10 ms above it.

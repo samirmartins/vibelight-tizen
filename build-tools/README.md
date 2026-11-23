@@ -138,8 +138,8 @@ Info shows Build: Unavailable.
 
 ## Documentation
 
-[CHANGELOG.md](../CHANGELOG.md#v406) and [RELEASE_NOTES.md](../RELEASE_NOTES.md)
-describe v4.0.6. The online [visual guide](https://samirmartins.github.io/vibelight-tizen/)
+[CHANGELOG.md](../CHANGELOG.md#v407) and [RELEASE_NOTES.md](../RELEASE_NOTES.md)
+describe v4.0.7. The online [visual guide](https://samirmartins.github.io/vibelight-tizen/)
 covers the same release. Keep published changelog sections intact. `metadata.published` in
 `build-docs.cjs` is the single published version: `docs-test.cjs` requires
 README, INSTALLATION, this section, RELEASE_NOTES, the CHANGELOG and the site to

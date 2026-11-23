@@ -245,7 +245,7 @@
             "Conecte o PC por cabo Ethernet à mesma rede local da TV. No BIOS/UEFI, ative Wake-on-LAN, PME ou Power on by PCI-E; o nome depende da placa-mãe.",
             "Nas configurações da placa de rede do sistema, permita acordar por Magic Packet, se houver essa opção. Confira o MAC da placa Ethernet física; no Windows, ipconfig /all mostra o Endereço Físico. Não use o endereço de VPN ou adaptador virtual.",
             "No VibeLight, abra o menu do PC → Ligar PC. Confira o MAC detectado ou informe o da placa física e use Salvar MAC. A biblioteca também tem a ação Ligar PC.",
-            "Coloque o PC em suspensão e selecione Ligar PC na TV. Aguarde o PC e o host iniciarem, atualize a biblioteca e escolha Jogar. Enviar o pacote não abre um jogo automaticamente."
+            "Coloque o PC em suspensão e selecione Ligar PC na TV. Aguarde o PC e o host iniciarem, atualize a biblioteca e escolha Jogar. Enviar o pacote pelo botão Ligar PC não abre um jogo; para ligar o PC e iniciar um jogo de uma vez, use Jogar com o PC desligado (veja Ligue o PC e jogue)."
           ],
           "callout": "Teste primeiro a partir da suspensão. Acordar por Wi-Fi ou após desligar depende do PC, da placa e das opções de energia; a placa de rede precisa continuar energizada.",
           "links": [
@@ -331,6 +331,14 @@
             "Cima e baixo andam entre as linhas da biblioteca: os botões do topo, as ações do PC (Wake PC, Jogar, Favorito, Perfil), os filtros e os jogos. Esquerda e direita andam ao longo da linha e param nas pontas. Da primeira linha de jogos, cima vai ao filtro mais próximo daquele jogo."
           ],
           "keywords": "navegacao biblioteca controle foco setas linhas"
+        },
+        {
+          "id": "wake-and-play",
+          "title": "Ligue o PC e jogue",
+          "text": [
+            "Aperte Jogar com o PC desligado e o VibeLight oferece ligá-lo: Ligar o PC e jogar envia o pacote e inicia o jogo quando o PC responder; Só tentar jogar inicia como antes. Escolha o que o Jogar faz em Configurações → Configurações do PC → Quando o PC estiver desligado (Perguntar, Ligar e jogar ou Só tentar jogar). Só funciona se o PC estiver configurado para o Wake-on-LAN, como em Acorde o PC."
+          ],
+          "keywords": "wake on lan jogar desligado perguntar configuracao biblioteca ligar"
         }
       ]
     },

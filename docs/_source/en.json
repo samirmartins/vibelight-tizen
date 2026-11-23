@@ -245,7 +245,7 @@
             "Connect the PC by Ethernet to the same local network as the TV. In its BIOS/UEFI, enable Wake-on-LAN, PME or Power on by PCI-E; the name depends on the motherboard.",
             "In the operating system’s network-adapter settings, enable waking by Magic Packet where supported. Find the physical Ethernet adapter’s MAC address; on Windows, ipconfig /all shows it as Physical Address. Do not use a VPN or virtual adapter’s address.",
             "In VibeLight, open the PC menu → Wake PC. Check the detected MAC or enter the physical adapter’s address, then use Save MAC. You can also use Wake PC in the library.",
-            "Put the PC to sleep and select Wake PC on the TV. Wait for the PC and host to start, then refresh the library and select Play. Sending the packet does not launch a game automatically."
+            "Put the PC to sleep and select Wake PC on the TV. Wait for the PC and host to start, then refresh the library and select Play. Sending the packet from the Wake PC button does not launch a game; to wake the PC and start a game in one step, use Play while the PC is off (see Turn the PC on and play)."
           ],
           "callout": "Test from sleep first. Waking over Wi-Fi or after shutdown depends on the PC, adapter and power settings; the network adapter must remain powered.",
           "links": [
@@ -331,6 +331,14 @@
             "Up and down move between the rows of the library: the top buttons, the PC actions (Wake PC, Play, Favorite, Profile), the filters and the games. Left and right move along a row and stop at its ends. From the first row of games, up goes to the filter nearest to that game."
           ],
           "keywords": "library navigation remote focus arrows rows"
+        },
+        {
+          "id": "wake-and-play",
+          "title": "Turn the PC on and play",
+          "text": [
+            "Press Play on a PC that is off and VibeLight offers to turn it on: Wake PC and play sends the wake packet and starts the game when the PC answers; Just try to play starts as before. Choose what Play does under Settings → Host Settings → When the PC is off (Ask, Wake and play or Just try to play). It only works if the PC is set up for Wake-on-LAN, as described in Wake the PC."
+          ],
+          "keywords": "wake on lan play off ask setting library"
         }
       ]
     },

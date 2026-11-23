@@ -245,7 +245,7 @@
             "Conecta el PC por Ethernet a la misma red local que la TV. En la BIOS/UEFI, activa Wake-on-LAN, PME o Power on by PCI-E; el nombre depende de la placa base.",
             "En los ajustes del adaptador de red del sistema, permite despertar mediante Magic Packet si existe esa opción. Busca la MAC del adaptador Ethernet físico; en Windows, ipconfig /all la muestra como Dirección física. No uses una VPN ni un adaptador virtual.",
             "En VibeLight, abre el menú del PC → Encender PC. Comprueba la MAC detectada o introduce la del adaptador físico y usa Guardar MAC. La biblioteca también incluye Encender PC.",
-            "Suspende el PC y selecciona Encender PC en la TV. Espera a que el PC y el host se inicien, actualiza la biblioteca y elige Jugar. Enviar el paquete no inicia un juego automáticamente."
+            "Suspende el PC y selecciona Encender PC en la TV. Espera a que el PC y el host se inicien, actualiza la biblioteca y elige Jugar. Enviar el paquete con el botón Encender PC no inicia un juego; para encender el PC e iniciar un juego de una vez, usa Jugar con el PC apagado (consulta Enciende el PC y juega)."
           ],
           "callout": "Prueba primero desde la suspensión. Despertar por Wi-Fi o tras apagar depende del PC, el adaptador y las opciones de energía; el adaptador de red debe seguir recibiendo alimentación.",
           "links": [
@@ -331,6 +331,14 @@
             "Arriba y abajo se mueven entre las filas de la biblioteca: los botones superiores, las acciones del PC (Wake PC, Jugar, Favorito, Perfil), los filtros y los juegos. Izquierda y derecha se mueven por la fila y se detienen en los extremos. Desde la primera fila de juegos, arriba va al filtro más cercano a ese juego."
           ],
           "keywords": "navegacion biblioteca mando foco flechas filas"
+        },
+        {
+          "id": "wake-and-play",
+          "title": "Enciende el PC y juega",
+          "text": [
+            "Pulsa Jugar con el PC apagado y VibeLight te ofrece encenderlo: Encender el PC y jugar envía el paquete e inicia el juego cuando el PC responda; Solo intentar jugar inicia como antes. Elige qué hace Jugar en Ajustes → Configuración del PC → Cuando el PC esté apagado (Preguntar, Encender y jugar o Solo intentar jugar). Solo funciona si el PC está configurado para Wake-on-LAN, como se explica en Despierta el PC."
+          ],
+          "keywords": "wake on lan jugar apagado preguntar ajuste biblioteca encender"
         }
       ]
     },

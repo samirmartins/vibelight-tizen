@@ -1,13 +1,17 @@
-# Moonlight Tizen v4.0.6
+# Moonlight Tizen v4.0.7
 
 ## What's new
 
-- Experimental 120 FPS, offered only on a display measured near 120 Hz, and the H.264 level now
-  follows the picture (4K and rates above 60 FPS), with the old level as fallback.
-- A PC that is alive but slow to answer is found instead of shown as unavailable when the app reopens.
-- The library follows the remote by rows, and the arrows and OK follow a control you click with the pointer.
-- Two quick mouse clicks select two diagnosis history records.
-- Portuguese and Spanish: the Language label and a few other texts that were still in English are translated.
+- Wake and play: when the PC is off, Play offers to turn it on and starts the game once it answers
+  (a check every 4 seconds for up to 2 minutes, with cancel). Choose Ask, Wake and play or Just try to
+  play in the library settings. Wake-on-LAN only works if the PC is set up for it.
+- Audio no longer starts behind: sound that piled up before the output began is dropped, a standing
+  delay is cut, and after a network hiccup the audio buffer returns to its low-latency size in seconds.
+- Settings: Left returns to the categories. Confirmations that delete or discard something
+  (delete host, quit the game, restore defaults) open on Cancel.
+- Add PC: Down on Continue or Cancel no longer jumps to an address field. One-button dialogs keep
+  their button focused, and the wake dialog returns the focus to the chosen game.
+- Portuguese and Spanish texts for the new dialog and setting.
 
 ## Downloads
 
