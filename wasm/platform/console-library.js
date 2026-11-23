@@ -6,7 +6,7 @@ var ConsoleLibrary = (function() {
   var active = false, scope = null, coverScope = null, epoch = 0, busy = false, checking = false;
   var settingsReturn = false, wakeScope = null;
   // What the last finished check found: 'online', 'offline' or 'unknown' (not checked, or checking).
-  var reachState = 'unknown', wakePlay = null, pendingResume = null;
+  var reachState = 'unknown', wakePlay = null;
   // The last finished answer for a PC, kept while a new check runs (reachState is 'unknown' meanwhile).
   var lastReach = 'unknown', lastReachHost = null;
   var searchOpen = false, searchQuery = '';
@@ -156,7 +156,6 @@ var ConsoleLibrary = (function() {
     clearTimeout(retryTimer); retryTimer = 0;
   }
   function hide(preserveLaunch) {
-    dropResume();
     if (!preserveLaunch && typeof startGame === 'function' && startGame.pending) startGame.pending.cancel();
     cancel(); active = false;
     clearTimeout(launchTimer); launchTimer = 0; launchPending = false;
@@ -419,7 +418,6 @@ var ConsoleLibrary = (function() {
       if (!valid(token)) return;
       apps = cleanApps(value); record().apps = apps; host._memCachedApplist = apps;
       save(); checking = false; status('PC online · ' + apps.length + ' games');
-      tryResume();
       return cached.then(function() {
         if (valid(token)) return render(refreshCovers);
       });
@@ -432,7 +430,6 @@ var ConsoleLibrary = (function() {
       if (!reached && !closing) { host.online = false; reachState = lastReach = 'offline'; lastReachHost = host; }
       // No response cannot distinguish a powered-off PC from a slow Sunshine,
       // firewall or network failure. Do not claim to have measured its power.
-      failResume();
       if (!reached && !closing && afterStream) {
         // The first check after a stream: the host may still be closing the session. Check once more
         // in a few seconds before saying the PC is unavailable.
@@ -472,9 +469,8 @@ var ConsoleLibrary = (function() {
     if (at === -1) r.favorites.push(selected); else r.favorites.splice(at,1);
     save(); render();
   }
-  function launch(appId, audioReady, automatic) {
+  function launch(appId, audioReady) {
     var chosenHost = host;
-    if (typeof ResumeOnDrop !== 'undefined') ResumeOnDrop.noteLaunch(chosenHost, appId, Date.now(), automatic === true);
     afterStream = true;
     var r = record();
     if (r.focus !== appId) { r.focus = appId; saveFocus(); }
@@ -491,7 +487,6 @@ var ConsoleLibrary = (function() {
     appId = id(appId); select(appId);
     if (!host.paired) { snackbarLog('Pair this PC from PCs before playing.'); return; }
     if (wakePlay) return;
-    pendingResume = null; // a manual start takes over a resume that is waiting for the PC
     var mode = wakeMode();
     if (mode === 'ask') { askWakePlay(appId); return; }
     if (mode === 'wake') { prepareStreamAudio(); startWakePlay(appId, true); return; }
@@ -533,40 +528,6 @@ var ConsoleLibrary = (function() {
   function backAction() {
     if (searchOpen) { closeSearch(); return; }
     exitAppDialog();
-  }
-  // Resume after a drop (see ResumeOnDrop). The stream-end handler keeps its AudioContext and asks for the
-  // resume; it starts once the PC confirms the game is still running, and ends with a short message and the
-  // audio given back when it is not, when the PC does not answer, or when the user leaves the library.
-  function releaseResumeAudio() {
-    if (typeof stopAudioScheduler === 'function') stopAudioScheduler(true);
-  }
-  function resumeAfterDrop(pc, appId) {
-    if (!pc || !id(appId)) { releaseResumeAudio(); return; }
-    pendingResume = { host: pc, appId: id(appId) };
-    snackbarLog('Connection lost. Resuming the game…');
-  }
-  function tryResume() {
-    var pending = pendingResume;
-    if (!pending) return;
-    pendingResume = null;
-    if (pending.host === host && active && !isInGame && hostReady() &&
-        Number(host.currentGame) === pending.appId && apps.some(function(app) { return app.id === pending.appId; })) {
-      launch(pending.appId, true, true);
-      return;
-    }
-    releaseResumeAudio();
-    snackbarLog('The game could not be resumed. Check the PC and try again.');
-  }
-  function failResume() {
-    if (!pendingResume) return;
-    pendingResume = null;
-    releaseResumeAudio();
-    snackbarLog('The game could not be resumed. Check the PC and try again.');
-  }
-  function dropResume() {
-    if (!pendingResume) return;
-    pendingResume = null;
-    releaseResumeAudio();
   }
   // Wake and play. Only a finished check that found the PC off, with a MAC to wake, changes what
   // Play does; everything else starts the game exactly as before. This runs before a stream.
@@ -772,7 +733,6 @@ var ConsoleLibrary = (function() {
   return {
     invalidateCovers: invalidateCovers,
     pause: pause, resume: resume,
-    resumeAfterDrop: resumeAfterDrop,
     open: open, ready: ready, hide: hide, suspend: suspend, visible: function() { return active; },
     move: move, focusCards: focusCards, focusNav: focusNav, navMove: navMove,
     acceptNav: function() { var names = controls(); if (names.length) el(names[Math.max(0,Math.min(navIndex,names.length-1))]).click(); },

@@ -347,14 +347,6 @@
             "On the filter row, choose Search and type part of a game’s name. The list narrows with every letter, ignoring capital letters and accents, and only looks inside the filter you are in (All games, Favorites or Recent). Clear, or Back, empties the search and closes it; a new visit to the library starts without a search."
           ],
           "keywords": "library search find game name filter keyboard"
-        },
-        {
-          "id": "resume-on-drop",
-          "title": "Resume after a connection drop",
-          "text": [
-            "If the network or the video fails during a game, VibeLight resumes the same game on its own, up to 3 times in a row, once the PC confirms that the game is still running. Turn it off under Settings → Advanced → During the game → Resume after a connection drop. Leaving the game from the menu, or an error reported by the PC itself, never resumes."
-          ],
-          "keywords": "resume reconnect connection drop network lost settings advanced"
         }
       ]
     },

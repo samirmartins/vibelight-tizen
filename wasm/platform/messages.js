@@ -124,17 +124,8 @@ function handleMessage(msg) {
     if (typeof StreamSession !== 'undefined') StreamSession.terminated();
     else if (typeof StreamOverlay !== 'undefined') StreamOverlay.close(true);
     stopVideoPresentationObserver();
-    // A network or video drop may resume the same game on its own (setting on by default). That start
-    // has no user gesture, so the AudioContext of this stream is kept for it; every other ending
-    // closes it as before.
-    var dropResume = { resume: false };
-    if (typeof ResumeOnDrop !== 'undefined') {
-      var dropContext = window._mlAudioCtx;
-      dropResume = ResumeOnDrop.onTermination({ code: parseInt(msg.replace('streamTerminated: ', '')),
-        now: Date.now(), enabled: ResumeOnDrop.enabled(localStorage) && !!dropContext && dropContext.state !== 'closed' });
-    }
     // Reset the Web Audio scheduler so the next stream starts from a clean clock
-    stopAudioScheduler(!dropResume.resume);
+    stopAudioScheduler(true);
     // Remove the on-screen overlays
     $('#connection-warnings, #performance-stats').css('display', 'none');
     // Remove the video stream now
@@ -167,12 +158,8 @@ function handleMessage(msg) {
         break;
     }
     // Return to the app list with new current game
-    if (typeof AppLifecycle !== 'undefined' && AppLifecycle.deferMenu(api)) {
-      if (dropResume.resume) stopAudioScheduler(true);
-      return;
-    }
+    if (typeof AppLifecycle !== 'undefined' && AppLifecycle.deferMenu(api)) return;
     showApps(api);
-    if (dropResume.resume) ConsoleLibrary.resumeAfterDrop(dropResume.host, dropResume.appId);
     setTimeout(() => {
       // A previous return must not steal focus from a new launch or stream.
       if (isInGame || typeof StreamStartup !== 'undefined' && StreamStartup.active()) return;

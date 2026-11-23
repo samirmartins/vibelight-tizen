@@ -347,14 +347,6 @@
             "En la fila de filtros, elige Buscar y escribe parte del nombre de un juego. La lista se reduce con cada letra, sin distinguir mayúsculas ni acentos, y busca solo dentro del filtro en que estás (Todos los juegos, Favoritos o Recientes). Borrar, o Atrás, vacía la búsqueda y la cierra; una nueva visita a la biblioteca empieza sin búsqueda."
           ],
           "keywords": "buscar biblioteca encontrar juego nombre filtro teclado"
-        },
-        {
-          "id": "resume-on-drop",
-          "title": "Reanuda tras una caída de conexión",
-          "text": [
-            "Si la red o el vídeo falla durante el juego, VibeLight reanuda el mismo juego por sí solo, hasta 3 veces seguidas, cuando el PC confirma que el juego sigue abierto. Desactívalo en Ajustes → Avanzado → Durante el juego → Reanudar tras una caída de conexión. Salir del juego desde el menú, o un error informado por el propio PC, nunca reanuda."
-          ],
-          "keywords": "reanudar reconectar caida conexion red perdida ajustes avanzado"
         }
       ]
     },

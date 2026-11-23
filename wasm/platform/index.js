@@ -83,7 +83,6 @@ function attachListeners() {
   $('#gameModeSwitch').on('click', saveGameMode);
   $('#framePacingSwitch').on('click', saveFramePacing);
   $('#disableWarningsSwitch').on('click', saveDisableWarnings);
-  $('#resumeOnDropSwitch').on('click', saveResumeOnDrop);
   $('#diagnosticsReportBtn').on('click', SessionDiagnostics.show);
   $('#diagnosticsHistoryBtn').on('click', DiagnosticView.history);
   $('#languageSettingsBtn').on('click', function(){MenuI18n.openSettings();});
@@ -2674,12 +2673,6 @@ function saveFramePacing() {
 
 
 
-function saveResumeOnDrop() {
-  setTimeout(() => {
-    if (typeof ResumeOnDrop !== 'undefined') ResumeOnDrop.setEnabled(localStorage, $('#resumeOnDropSwitch').parent().hasClass('is-checked'));
-  }, 100);
-}
-
 function saveDisableWarnings() {
   setTimeout(() => {
     const chosenDisableWarnings = $('#disableWarningsSwitch').parent().hasClass('is-checked');
@@ -2784,11 +2777,6 @@ function restoreDefaultsSettingsValues() {
   const defaultDisableWarnings = false;
   document.querySelector('#disableWarningsBtn').MaterialSwitch.off();
   storeData('disableWarnings', defaultDisableWarnings, null);
-
-  if (typeof ResumeOnDrop !== 'undefined') {
-    document.querySelector('#resumeOnDropBtn').MaterialSwitch.on();
-    ResumeOnDrop.setEnabled(localStorage, true);
-  }
 
   const defaultPerformanceStats = false;
 
@@ -3084,11 +3072,6 @@ function loadUserDataCb() {
     }
   });
 
-  if (typeof ResumeOnDrop !== 'undefined') {
-    // Saved in localStorage by the module; on unless the user turned it off.
-    var resumeSwitch = document.querySelector('#resumeOnDropBtn').MaterialSwitch;
-    if (ResumeOnDrop.enabled(localStorage)) resumeSwitch.on(); else resumeSwitch.off();
-  }
 
   // Legacy statistics preferences never authorize collection in a new game.
 
