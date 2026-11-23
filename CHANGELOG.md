@@ -20,6 +20,15 @@ Released 2026-11-23. Changes since v4.0.6. See the
   is off, chooses Ask (the default), Wake and play, or Just try to play, which starts the game as
   before. Wake-on-LAN only works if the PC is set up for it.
 
+- Adds resume after a connection drop. When the network or the video fails during a game, the same
+  game resumes on its own once the PC confirms it is still running, up to 3 times in a row (the count
+  starts again after a stream that lasts 2 minutes or more, or a manual start). A new switch, Settings →
+  Advanced → During the game → Resume after a connection drop, is on by default; off keeps the old
+  behavior (a message and the library). Leaving the game from the menu and errors reported by the PC
+  itself never resume.
+- Adds a library search: a Search button on the filter row opens a field below it, and the list narrows
+  on every letter inside the current filter, ignoring case and accents. Clear and Back close it.
+
 ### Changed
 
 - Settings: Left on a page returns to the category list, like Back, and Right on a category opens its

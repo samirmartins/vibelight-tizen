@@ -339,6 +339,22 @@
             "Aperte Jogar com o PC desligado e o VibeLight oferece ligá-lo: Ligar o PC e jogar envia o pacote e inicia o jogo quando o PC responder; Só tentar jogar inicia como antes. Escolha o que o Jogar faz em Configurações → Configurações do PC → Quando o PC estiver desligado (Perguntar, Ligar e jogar ou Só tentar jogar). Só funciona se o PC estiver configurado para o Wake-on-LAN, como em Acorde o PC."
           ],
           "keywords": "wake on lan jogar desligado perguntar configuracao biblioteca ligar"
+        },
+        {
+          "id": "library-search",
+          "title": "Busque na biblioteca",
+          "text": [
+            "Na linha dos filtros, escolha Buscar e digite parte do nome do jogo. A lista diminui a cada letra, sem diferenciar maiúsculas nem acentos, e procura só dentro do filtro em que você está (Todos os jogos, Favoritos ou Recentes). Limpar, ou Voltar, esvazia a busca e a fecha; uma nova visita à biblioteca começa sem busca."
+          ],
+          "keywords": "buscar biblioteca procurar jogo nome filtro teclado"
+        },
+        {
+          "id": "resume-on-drop",
+          "title": "Retome após uma queda de conexão",
+          "text": [
+            "Se a rede ou o vídeo falhar durante o jogo, o VibeLight retoma o mesmo jogo sozinho, até 3 vezes seguidas, assim que o PC confirmar que o jogo continua aberto. Desative em Configurações → Avançado → Durante o jogo → Retomar após queda de conexão. Sair do jogo pelo menu, ou um erro informado pelo próprio PC, nunca retoma."
+          ],
+          "keywords": "retomar reconectar queda conexao rede perdida configuracoes avancado"
         }
       ]
     },
