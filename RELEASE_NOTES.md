@@ -2,14 +2,12 @@
 
 ## What's new
 
-- Experimental 120 FPS, offered only on a display measured near 120 Hz.
-- H.264 4K and rates above 60 FPS declare the level the picture needs, with the old one as fallback.
-- A PC that is alive but slow to answer is now found instead of shown as unavailable.
-- Portuguese and Spanish: the Language label and a few other texts were still in English and are now translated.
-- The library follows the remote by rows: up and down change row, left and right stay
-  in the row.
-- Two quick mouse clicks now select two diagnosis history records.
-- After clicking a library control with the pointer, the arrows and OK start from it.
+- Experimental 120 FPS, offered only on a display measured near 120 Hz, and the H.264 level now
+  follows the picture (4K and rates above 60 FPS), with the old level as fallback.
+- A PC that is alive but slow to answer is found instead of shown as unavailable when the app reopens.
+- The library follows the remote by rows, and the arrows and OK follow a control you click with the pointer.
+- Two quick mouse clicks select two diagnosis history records.
+- Portuguese and Spanish: the Language label and a few other texts that were still in English are translated.
 
 ## Downloads
 
