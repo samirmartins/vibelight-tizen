@@ -34,28 +34,18 @@ var LibraryNavigation = (function() {
     if (typeof Navigation.isRunning === 'function' && !Navigation.isRunning()) return;
     if (typeof Navigation.change === 'function') Navigation.change(Views.Apps);
   }
-  // R1/L1 walk the filter row: All games, Favorites, Recent, Search, and around. The three filters are
-  // pressed (the list changes); Search only receives the focus, OK opens it. Where the focus is wins over
-  // the filter in use, so the walk continues from Search.
   function filterStep(delta) {
     if (isDialogOpen || isInGame || typeof ConsoleLibrary === 'undefined' || !ConsoleLibrary.visible()) return;
     if (typeof document === 'undefined' || typeof document.getElementById !== 'function') return;
     showAppsView();
-    var stops = ['libraryAll', 'libraryFavorites', 'libraryRecent', 'librarySearch'], current = 0;
-    var focused = document.activeElement && document.activeElement.id ? stops.indexOf(document.activeElement.id) : -1;
-    if (focused !== -1) current = focused;
-    else {
-      for (var i = 0; i < 3; i++) {
-        var pressed = document.getElementById(stops[i]);
-        if (pressed && typeof pressed.getAttribute === 'function' &&
-            pressed.getAttribute('aria-pressed') === 'true') current = i;
-      }
+    var names = ['All', 'Favorites', 'Recent'], current = 0;
+    for (var i = 0; i < names.length; i++) {
+      var pressed = document.getElementById('library' + names[i]);
+      if (pressed && typeof pressed.getAttribute === 'function' &&
+          pressed.getAttribute('aria-pressed') === 'true') current = i;
     }
-    var name = stops[(current + delta + stops.length) % stops.length];
-    var target = document.getElementById(name);
-    if (!target) return;
-    if (name !== 'librarySearch' && typeof target.click === 'function') target.click();
-    if (typeof ConsoleLibrary.focusNav === 'function') ConsoleLibrary.focusNav(0, name);
+    var target = document.getElementById('library' + names[(current + delta + names.length) % names.length]);
+    if (target && typeof target.click === 'function') target.click();
   }
   function pageStep(delta) {
     if (isDialogOpen || isInGame || typeof ConsoleLibrary === 'undefined' || !ConsoleLibrary.visible()) return;

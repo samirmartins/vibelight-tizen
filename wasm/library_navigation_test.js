@@ -215,8 +215,6 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
    getAttribute(name){return this.attrs[name]===undefined?null:this.attrs[name];},
    click(){filters++;Object.keys(filterNodes).forEach(key=>{filterNodes[key].attrs['aria-pressed']=key==='library'+name?'true':'false';});}};
  });
- // Search is the fourth stop of the filter row: the bumpers reach it by focus only and never press it.
- filterNodes.librarySearch={attrs:{},getAttribute(){return null;},click(){filters+=100;}};
  f.c.document.getElementById=id=>filterNodes[id]||null;
  f.c.Views={Apps:{}};f.c.Navigation.change=()=>{changes++;};
  f.c.ConsoleLibrary.move=(dx,dy)=>pages.push([dx,dy]);
@@ -225,7 +223,7 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
  f.c.navigationGuideDialog=()=>{guide++;};
  f.button(4,true);f.advance(16);f.button(4,false);f.advance(32);
  f.button(5,true);f.advance(48);f.button(5,false);f.advance(64);
- assert.strictEqual(filters,1,'LB goes round to Search (focus only, not pressed) and RB steps to Favorites (see library_bumpers_test)');
+ assert.strictEqual(filters,2,'LB/RB cycle the three library filters');
  assert(changes>=2,'filtering returns to the Apps view');
  f.button(6,true);f.advance(80);f.button(6,false);f.advance(96);
  f.button(7,true);f.advance(112);f.button(7,false);f.advance(128);
@@ -238,7 +236,7 @@ assert.deepStrictEqual(crossAction.moves.at(-1),['right',752]);
  assert.strictEqual(help,1,'Start opens quick help');assert.strictEqual(guide,1,'Guide opens the guide');
  f.c.isDialogOpen=true;
  f.button(4,true);f.advance(272);f.button(4,false);f.advance(288);
- assert.strictEqual(filters,1,'filters are inert while a dialog is open');
+ assert.strictEqual(filters,2,'filters are inert while a dialog is open');
  f.c.isDialogOpen=false;
  f.c.ControllerIdentity={familyAt:()=> 'nintendo',refreshPlayers(){},localizeGuide(){},setGuideIndex(){}};
  f.button(0,true);f.advance(304);f.button(0,false);f.advance(320);
