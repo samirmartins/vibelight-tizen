@@ -1010,6 +1010,7 @@ const Views = {
       'ipAddressFieldModeBtn',
       'optimizeGamesBtn',
       'sortAppsListBtn',
+      'wakePlayPolicyBtn',
       'removeAllHostsBtn',
       'removeAllProfilesBtn'
     ]),

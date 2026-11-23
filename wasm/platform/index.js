@@ -63,6 +63,11 @@ function attachListeners() {
   $('#ipAddressFieldModeSwitch').on('click', saveIpAddressFieldMode);
   $('#ipAddressTextInput').on('input', updateIpAddressInputValidationState);
   $('#sortAppsListSwitch').on('click', saveSortAppsList);
+  if (typeof WakeAndPlay !== 'undefined') {
+    var wakePlayButton = document.getElementById('wakePlayPolicyBtn');
+    WakeAndPlay.show(wakePlayButton, localStorage);
+    $('#wakePlayPolicyBtn').on('click', function() { WakeAndPlay.cycle(wakePlayButton, localStorage); });
+  }
   $('#optimizeGamesSwitch').on('click', saveOptimizeGames);
   $('#removeAllHostsBtn').on('click', deleteAllHostsDialog);
   $('#removeAllProfilesBtn').on('click', deleteAllProfilesDialog);
@@ -2701,6 +2706,8 @@ function restoreDefaultsSettingsValues() {
   const defaultSortAppsList = false;
   document.querySelector('#sortAppsListBtn').MaterialSwitch.off();
   storeData('sortAppsList', defaultSortAppsList, null);
+
+  if (typeof WakeAndPlay !== 'undefined') WakeAndPlay.reset(document.getElementById('wakePlayPolicyBtn'), localStorage);
 
   // Matches DEFAULT_SOPS in moonlight-android: let the host pick game settings
   // that suit the stream.

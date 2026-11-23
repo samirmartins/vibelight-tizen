@@ -748,4 +748,8 @@ var MenuTranslations = [
   ["Remember my choice: On", "Lembrar minha escolha: Ligado", "Recordar mi elección: Activado"],
   ["The PC did not respond in time. Check that Wake-on-LAN is enabled on it, then try again.", "O PC não respondeu a tempo. Confira se o Wake-on-LAN está ativado nele e tente de novo.", "El PC no respondió a tiempo. Comprueba que Wake-on-LAN esté activado en él e inténtalo de nuevo."],
   ["The PC did not respond in time. Check that Wake-on-LAN is enabled on it.", "O PC não respondeu a tempo. Confira se o Wake-on-LAN está ativado nele.", "El PC no respondió a tiempo. Comprueba que Wake-on-LAN esté activado en él."],
+  ["When the PC is off", "Quando o PC estiver desligado", "Cuando el PC esté apagado"],
+  ["What Play does when the PC is off. Waking it needs Wake-on-LAN set up on the PC.", "O que o Jogar faz com o PC desligado. Acordá-lo exige o Wake-on-LAN configurado no PC.", "Qué hace Jugar con el PC apagado. Despertarlo requiere Wake-on-LAN configurado en el PC."],
+  ["Ask", "Perguntar", "Preguntar"],
+  ["Wake and play", "Acordar e jogar", "Despertar y jugar"],
 ];

@@ -41,6 +41,21 @@ var WakeAndPlay = (function() {
     return null;
   }
 
+  // The settings button: one press moves to the next choice, saves it and shows it.
+  var LABELS = { ask: 'Ask', wake: 'Wake and play', never: 'Just try to play' };
+  function choiceLabel(value) { return LABELS[valid(value) ? value : DEFAULT]; }
+  function show(button, storage) {
+    if (button) button.textContent = choiceLabel(policy(storage));
+  }
+  function cycle(button, storage) {
+    setPolicy(storage, nextPolicy(policy(storage)));
+    show(button, storage);
+  }
+  function reset(button, storage) {
+    setPolicy(storage, DEFAULT);
+    if (button) button.textContent = choiceLabel(DEFAULT);
+  }
+
   // The wait after Play: one wake packet, then a check every INTERVAL_MS until the PC answers or
   // LIMIT_MS pass. options: {send(), probe(), setTimeout, clearTimeout, now, intervalMs, limitMs,
   // onProgress(elapsedMs)}; send and probe return promises (probe resolves true once the PC is
@@ -88,5 +103,5 @@ var WakeAndPlay = (function() {
   }
 
   return { INTERVAL_MS: INTERVAL_MS, LIMIT_MS: LIMIT_MS, wait: wait, KEY: KEY, POLICIES: POLICIES, DEFAULT: DEFAULT, policy: policy, setPolicy: setPolicy,
-    nextPolicy: nextPolicy, decide: decide, remembered: remembered };
+    nextPolicy: nextPolicy, choiceLabel: choiceLabel, show: show, cycle: cycle, reset: reset, decide: decide, remembered: remembered };
 })();
