@@ -63,12 +63,6 @@ var _audFallbackStableFrames = 0;
 var _AUD_DECAY_BASE_S = 10;
 var _AUD_DECAY_MAX_S = 60;
 var _audFallbackDecayWaitS = _AUD_DECAY_BASE_S;
-// Same lead rule as the worklet: a lead over the target that lasts a whole second is dropped.
-var _AUD_LEAD_NONE = 0x7fffffff;
-var _AUD_LEAD_LIMIT_S = 0.04;
-var _AUD_LEAD_KEEP_S = 0.01;
-var _audFallbackLeadMin = _AUD_LEAD_NONE;
-var _audFallbackLeadFrames = 0;
 var _audFallbackStatsCountdown = 0;
 var _audFallbackOutputData = [];
 
@@ -353,8 +347,6 @@ function _audFallbackUnderrun(outputBuffer, from) {
   }
   _audFallbackStarted = false;
   _audFallbackStableFrames = 0;
-  _audFallbackLeadMin = _AUD_LEAD_NONE;
-  _audFallbackLeadFrames = 0;
   Atomics.store(_audControl, _AUD_CTL_STARTED, 0);
 }
 
@@ -384,8 +376,6 @@ function _audRenderFallback(event) {
     _audFallbackPhase = 0.0;
     _audFallbackStarted = false;
     _audFallbackStableFrames = 0;
-    _audFallbackLeadMin = _AUD_LEAD_NONE;
-    _audFallbackLeadFrames = 0;
     Atomics.store(_audControl, _AUD_CTL_STARTED, 0);
     Atomics.store(_audControl, _AUD_CTL_READ, _audFallbackReadFrame | 0);
     _audClearOutput(output, 0);
@@ -416,21 +406,6 @@ function _audRenderFallback(event) {
   var outputFrames = output.length;
   var outputRate = output.sampleRate ||
     (window._mlAudioCtx ? window._mlAudioCtx.sampleRate : _audSourceRate);
-  // Drop a lead over the target that lasted a whole second (dropped frames are not "played").
-  var lead = depth - target;
-  if (lead < _audFallbackLeadMin) _audFallbackLeadMin = lead;
-  _audFallbackLeadFrames += outputFrames;
-  if (_audFallbackLeadFrames >= outputRate) {
-    var leadFloor = _audFallbackLeadMin;
-    _audFallbackLeadMin = _AUD_LEAD_NONE;
-    _audFallbackLeadFrames = 0;
-    if (leadFloor > Math.round(_audSourceRate * _AUD_LEAD_LIMIT_S)) {
-      var drop = leadFloor - Math.round(_audSourceRate * _AUD_LEAD_KEEP_S);
-      _audFallbackReadFrame = (_audFallbackReadFrame + drop) >>> 0;
-      Atomics.store(_audControl, _AUD_CTL_READ, _audFallbackReadFrame | 0);
-      depth -= drop;
-    }
-  }
   var driftPpm = Atomics.load(_audControl, _AUD_CTL_DRIFT_PPM) | 0;
   var error = target > 0 ? (depth - target) / target : 0;
   var bufferPpm = _audClamp(Math.round(error * 10000), -3000, 7500);
@@ -525,8 +500,6 @@ function _audActivateFallback(ctx, token) {
     _audFallbackStarted = false;
     _audFallbackStableFrames = 0;
     _audFallbackDecayWaitS = _AUD_DECAY_BASE_S;
-    _audFallbackLeadMin = _AUD_LEAD_NONE;
-    _audFallbackLeadFrames = 0;
     var backendControl = _audControl, backendGeneration = _audGeneration;
     node.onaudioprocess = function(event) {
       if (token !== _audConfigToken || backendControl !== _audControl || backendGeneration !== _audGeneration) {
