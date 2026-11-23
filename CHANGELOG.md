@@ -7,6 +7,25 @@ the history of [brightcraft/moonlight-tizen](https://github.com/brightcraft/moon
 kept here so the trail back is not lost. The version numbering restarts at v2.0.0 for
 that reason: the two lines are separate and should never be read as one.
 
+## Unreleased (4.0.7 in preparation)
+
+### Added
+
+- Adds wake and play. When the PC was checked and found off and a MAC address is known, Play
+  offers to send Wake-on-LAN, waits for the PC (a check every 4 seconds for up to 2 minutes, with
+  a cancel button) and starts the game once Sunshine answers. A new library setting, When the PC
+  is off, chooses Ask (the default), Wake and play, or Just try to play, which starts the game as
+  before. Wake-on-LAN only works if the PC is set up for it.
+
+### Fixed
+
+- Fixes audio that started behind: PCM that piled up before the audio output began is dropped
+  down to the target instead of playing as a fixed delay, and a lead that stays more than 40 ms
+  over the target for a full second is cut down to 10 ms above it.
+- Brings a raised audio target back faster after underruns: it steps down after 10 seconds of
+  stable playback instead of a minute, and the wait grows (up to a minute) only while underruns
+  keep coming.
+
 ## v4.0.6
 
 Released 2026-11-22. Changes since v4.0.5. See the
