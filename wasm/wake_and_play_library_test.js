@@ -20,7 +20,7 @@ async function setup(options = {}) {
   const f = fixture(2), c = f.c, h = f.host;
   vm.runInContext(fs.readFileSync('wasm/platform/wake-and-play.js', 'utf8'), c);
   Object.assign(h, {online: false, paired: true, ppkstr: 'synthetic pin', macAddress: options.mac === undefined ? MAC : options.mac});
-  Object.assign(f, {launches: [], wakes: 0, audio: 0, released: 0, probes: 0, opened: [], closed: [], messages: [], pcUp: false});
+  Object.assign(f, {launches: [], wakes: 0, audio: 0, released: 0, probes: 0, opened: [], openers: [], closed: [], messages: [], pcUp: false});
   h.connect = () => {
     f.probes++;
     if (f.probeGate) return f.probeGate.promise.then(() => { if (!f.pcUp) throw Error('offline'); h.online = true; h._authenticatedOnline = true; return 'fixture.invalid'; });
@@ -33,7 +33,7 @@ async function setup(options = {}) {
   c.stopAudioScheduler = (close) => { if (close) f.released++; };
   c.snackbarLog = (message) => f.messages.push(message);
   c.Views.UtilityDialog = {controls: []};
-  c.openUtilityDialog = (id, controls, closeId, opener) => { f.opened.push(id); c.Views.UtilityDialog.controls = controls; c.isDialogOpen = true; };
+  c.openUtilityDialog = (id, controls, closeId, opener) => { f.opened.push(id); f.openers.push(opener); c.Views.UtilityDialog.controls = controls; c.isDialogOpen = true; };
   c.closeUtilityDialog = (id) => { f.closed.push(id); c.isDialogOpen = false; };
   if (options.policy) c.localStorage.setItem(POLICY, options.policy);
   await f.open();
@@ -75,6 +75,7 @@ const text = (f, name) => f.node(name).textContent;
   assert.deepStrictEqual(Array.from(f.c.Views.UtilityDialog.controls), ['wakePlayWake', 'wakePlayTry', 'wakePlayRemember', 'wakePlayCancel']);
   assert.strictEqual(f.launches.length, 0); assert.strictEqual(f.wakes, 0); assert.strictEqual(f.audio, 0);
   assert(/Wake-on-LAN/.test(text(f, 'wakePlayNote')), 'a short note that the PC must be set up for Wake-on-LAN');
+  assert.strictEqual(f.openers[0], 'game-container-1', 'focus returns to the chosen game card, not the Play button');
   // Cancel: nothing sent, nothing started, nothing remembered.
   f.node('wakePlayCancel').click(); await f.flush();
   assert.deepStrictEqual(f.closed, ['wakePlayDialog']);
@@ -109,6 +110,7 @@ const text = (f, name) => f.node(name).textContent;
   // The PC never comes up: after 120 s the wait ends, the audio is released, the user is told.
   f = await setup();
   f.node('libraryPlay').click(); await f.flush(); f.node('wakePlayWake').click(); await f.flush();
+  assert.strictEqual(f.openers[0], 'game-container-1');
   await fire(f, 120000);
   assert.strictEqual(f.launches.length, 0); assert.strictEqual(f.released, 1, 'prepared audio released');
   assert.deepStrictEqual(f.closed, ['wakePlayDialog']);
@@ -160,9 +162,10 @@ const text = (f, name) => f.node(name).textContent;
   f.node('wakePlayWake').click(); await f.flush();
   assert.strictEqual(f.storage.get(POLICY) || f.writes.filter(w => w.key === POLICY).pop().value, 'wake');
   f.node('wakePlayCancel').click(); await f.flush();
-  f.opened.length = 0; f.audio = 0; f.wakes = 0;
+  f.opened.length = 0; f.openers.length = 0; f.audio = 0; f.wakes = 0;
   f.node('libraryPlay').click(); await f.flush();
   assert.deepStrictEqual(f.opened, ['wakePlayDialog'], 'only the waiting view opens, no question');
+  assert.deepStrictEqual(f.openers, ['game-container-1'], 'the waiting view also returns to the game card');
   assert.deepStrictEqual(Array.from(f.c.Views.UtilityDialog.controls), ['wakePlayCancel']);
   assert.strictEqual(f.audio, 1); assert.strictEqual(f.wakes, 1);
   f.pcUp = true; await fire(f, 4000);

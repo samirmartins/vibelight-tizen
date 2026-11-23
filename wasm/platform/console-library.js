@@ -478,6 +478,12 @@ var ConsoleLibrary = (function() {
     return WakeAndPlay.decide({ policy: WakeAndPlay.policy(localStorage), state: reachState,
       mac: normalizeWakeMac(host.wakeMacOverride || host.macAddress) });
   }
+  // Where the focus returns when the wake dialog closes: the chosen game's card, or Play when the
+  // card is not on screen.
+  function wakeOpener(appId) {
+    var card = el('game-container-' + appId);
+    return card && card.parentNode === el('game-grid') ? 'game-container-' + appId : 'libraryPlay';
+  }
   function askWakePlay(appId) {
     if (isDialogOpen) return;
     var remember = false, answered = false;
@@ -504,7 +510,7 @@ var ConsoleLibrary = (function() {
     el('wakePlayWake').onclick = function() { answer('wake'); };
     el('wakePlayTry').onclick = function() { answer('try'); };
     el('wakePlayCancel').onclick = function() { answer('cancel'); };
-    openUtilityDialog('wakePlayDialog', ['wakePlayWake','wakePlayTry','wakePlayRemember','wakePlayCancel'], 'wakePlayCancel', 'libraryPlay');
+    openUtilityDialog('wakePlayDialog', ['wakePlayWake','wakePlayTry','wakePlayRemember','wakePlayCancel'], 'wakePlayCancel', wakeOpener(appId));
   }
   function endWakePlay(result, current) {
     if (wakePlay !== current) return;
@@ -532,7 +538,7 @@ var ConsoleLibrary = (function() {
     ['wakePlayWake','wakePlayTry','wakePlayRemember'].forEach(function(name) { el(name).style.display = 'none'; });
     el('wakePlayCancel').onclick = function() { if (current.handle) current.handle.cancel(); };
     if (openDialog) {
-      openUtilityDialog('wakePlayDialog', ['wakePlayCancel'], 'wakePlayCancel', 'libraryPlay');
+      openUtilityDialog('wakePlayDialog', ['wakePlayCancel'], 'wakePlayCancel', wakeOpener(appId));
     } else {
       Views.UtilityDialog.controls = ['wakePlayCancel'];
     }
