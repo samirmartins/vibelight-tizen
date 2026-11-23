@@ -178,6 +178,15 @@ function blurElement(target) {
   }
 }
 
+// True while a text field is being edited, where Left must keep moving the cursor.
+function textEntryFocused() {
+  const active = document.activeElement;
+  if (!active) return false;
+  if (active.tagName === 'TEXTAREA') return true;
+  return active.tagName === 'INPUT' && !active.readOnly &&
+    ['text', 'search', 'url', 'tel', 'password', 'email', 'number'].indexOf(String(active.type || 'text').toLowerCase()) !== -1;
+}
+
 // Determine if a popup menu container is active
 function isPopupMenuActive(id) {
   const element = resolveElement(id);
@@ -866,7 +875,8 @@ const Views = {
       this.view.nextOption();
       focusElement(this.view.current());
     },
-    left: function() {},
+    // Left returns to the categories, like Back.
+    left: function() { if (!textEntryFocused()) this.back(); },
     right: function() {},
     accept: function() {
       clickElement(this.view.current());
@@ -1025,7 +1035,8 @@ const Views = {
       this.view.nextOption();
       focusElement(this.view.current());
     },
-    left: function() {},
+    // Left returns to the categories, like Back.
+    left: function() { if (!textEntryFocused()) this.back(); },
     right: function() {},
     accept: function() {
       clickElement(this.view.current());
@@ -1065,7 +1076,8 @@ const Views = {
       this.view.nextOption();
       focusElement(this.view.current());
     },
-    left: function() {},
+    // Left returns to the categories, like Back.
+    left: function() { if (!textEntryFocused()) this.back(); },
     right: function() {},
     accept: function() {
       clickElement(this.view.current());
@@ -1105,7 +1117,8 @@ const Views = {
       this.view.nextOption();
       focusElement(this.view.current());
     },
-    left: function() {},
+    // Left returns to the categories, like Back.
+    left: function() { if (!textEntryFocused()) this.back(); },
     right: function() {},
     accept: function() {
       clickElement(this.view.current());
@@ -1175,7 +1188,8 @@ const Views = {
       this.view.nextOption();
       focusElement(this.view.current());
     },
-    left: function() {},
+    // Left returns to the categories, like Back.
+    left: function() { if (!textEntryFocused()) this.back(); },
     right: function() {},
     accept: function() {
       clickElement(this.view.current());
@@ -1243,7 +1257,8 @@ const Views = {
       this.view.nextOption();
       focusElement(this.view.current());
     },
-    left: function() {},
+    // Left returns to the categories, like Back.
+    left: function() { if (!textEntryFocused()) this.back(); },
     right: function() {},
     accept: function() {
       clickElement(this.view.current());
@@ -1284,7 +1299,8 @@ const Views = {
       this.view.nextOption();
       focusElement(this.view.current());
     },
-    left: function() {},
+    // Left returns to the categories, like Back.
+    left: function() { if (!textEntryFocused()) this.back(); },
     right: function() {},
     accept: function() {
       clickElement(this.view.current());
