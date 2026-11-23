@@ -488,10 +488,13 @@ var ConsoleLibrary = (function() {
     ['librarySearchBar', 'librarySearchInput', 'librarySearchClear'].forEach(function(name) { el(name).hidden = !open; });
     searchOpen = open;
   }
+  // Opens the TV keyboard the way the other dialogs do (Add PC, Type text): editable, focused, then a
+  // click. A game controller's confirm button reaches this through code, not through a key event.
   function startTyping() {
     var input = el('librarySearchInput');
     input.readOnly = false;
     if (typeof input.focus === 'function') input.focus();
+    if (typeof input.click === 'function') input.click();
   }
   function openSearch() {
     showSearch(true);

@@ -96,5 +96,22 @@ const hovered = (f, name) => f.node(name).classList.contains('hovered');
   // OK (or a click) on the field starts typing again.
   f.node('librarySearchInput').onclick(); assert.strictEqual(f.node('librarySearchInput').readOnly, false);
 
+  // The TV keyboard opens the same way as in the other dialogs (Add PC, Type text): the field is made
+  // editable, focused and clicked, once. This is what a game controller's confirm button needs, because it
+  // reaches the library through code and not through a key event.
+  f = await setup();
+  const calls = [], field = f.node('librarySearchInput');
+  field.focus = () => { calls.push('focus'); };
+  field.click = function() { calls.push('click'); if (this.onclick) this.onclick(); }; // a real click runs the handler
+  f.node('librarySearch').click();
+  assert.deepStrictEqual(calls, ['focus', 'click'], 'Search opens the keyboard: focus, then click, once');
+  assert.strictEqual(field.readOnly, false);
+  field.onblur(); calls.length = 0;
+  f.c.ConsoleLibrary.focusNav(0, 'librarySearchInput');
+  f.c.ConsoleLibrary.acceptNav(); // what the controller's confirm button does on the focused field
+  assert.deepStrictEqual(calls, ['click', 'focus', 'click'], 'the confirm press on the field opens the keyboard once');
+  assert.strictEqual(field.readOnly, false);
+  calls.length = 0; field.click(); assert.deepStrictEqual(calls, ['click'], 'a click on a field already being edited does nothing more');
+
   console.log('library_search_test: Search opens the field, filters on every letter inside the filter, Clear and Back close it PASS');
 })().catch(error => { console.error(error); process.exit(1); });
