@@ -387,13 +387,6 @@ function _audRenderFallback(event) {
       _audClearOutput(output, 0);
       return;
     }
-    // Same as the worklet: drop PCM that piled up before the output began.
-    if (depth > target + Math.round(_audSourceRate * 0.02)) {
-      _audFallbackReadFrame = (writeFrame - target) >>> 0;
-      _audFallbackPhase = 0.0;
-      Atomics.store(_audControl, _AUD_CTL_READ, _audFallbackReadFrame | 0);
-      depth = target;
-    }
     _audFallbackStarted = true;
     Atomics.store(_audControl, _AUD_CTL_STARTED, 1);
   }

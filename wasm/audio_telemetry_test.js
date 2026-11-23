@@ -43,7 +43,7 @@ function sameControl(a,b) {
 }
 function prepare(a,b,q) {
   for(const c of [a.control,b.control]) {
-    c[1]=(c[0]+(q%43===0?1:2900))|0; // inside the 20 ms start slack: this test compares the render math, not the start-up skipc[10]=(q%11-5)*400;
+    c[1]=(c[0]+(q%43===0?1:4096))|0;c[10]=(q%11-5)*400;
     c[2]=q===451?8:7;
   }
 }

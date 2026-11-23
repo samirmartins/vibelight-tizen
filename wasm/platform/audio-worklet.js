@@ -180,14 +180,6 @@ class MoonlightPcmProcessor extends AudioWorkletProcessor {
         this.clear(outputs, 0);
         return true;
       }
-      // PCM that piled up before the output began (backend still loading) would play as a fixed
-      // delay; start from the newest target frames instead. Skipped frames are not counted as played.
-      if (depth > target + Math.round(this.sourceRate * 0.02)) {
-        this.readFrame = (writeFrame - target) >>> 0;
-        this.phase = 0.0;
-        Atomics.store(this.control, ML_AUD_READ, this.readFrame | 0);
-        depth = target;
-      }
       this.started = true;
       Atomics.store(this.control, ML_AUD_STARTED, 1);
     }
