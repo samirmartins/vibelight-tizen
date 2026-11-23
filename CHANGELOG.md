@@ -42,6 +42,9 @@ Released 2026-11-23. Changes since v4.0.6. See the
 
 ### Fixed
 
+- Back in the library after a game, a failed first check of the PC (the host may still be closing the
+  session) is repeated once a few seconds later before the PC is shown as unavailable. Wake and play shows
+  the PC as on before it starts the game.
 - Add PC: in the numeric IP-field mode, Down on Continue or Cancel no longer jumps to the second field.
 - The pairing, host details and warning dialogs keep their only button focused on Up and Down
   instead of dropping and returning the focus.

@@ -10,6 +10,8 @@ var ConsoleLibrary = (function() {
   // The last finished answer for a PC, kept while a new check runs (reachState is 'unknown' meanwhile).
   var lastReach = 'unknown', lastReachHost = null;
   var searchOpen = false, searchQuery = '';
+  // After a stream the host may still be closing its session: one more check before "unavailable".
+  var afterStream = false, retryTimer = 0;
   var runtimeReady = false, hostsReady = false, started = false, bound = false;
   var navIndex = 0, currentRecord = null;
   var launchPending = false, launchTimer = 0;
@@ -151,6 +153,7 @@ var ConsoleLibrary = (function() {
     if (wakeScope) wakeScope.cancel();
     wakeScope = null;
     abortWakePlay();
+    clearTimeout(retryTimer); retryTimer = 0;
   }
   function hide(preserveLaunch) {
     dropResume();
@@ -406,7 +409,7 @@ var ConsoleLibrary = (function() {
     refreshPending = current.request(function() {
       return connect(current,token);
     }, 26000).then(function() {
-        reached = true; reachState = lastReach = 'online'; lastReachHost = host;
+        reached = true; reachState = lastReach = 'online'; lastReachHost = host; afterStream = false;
         if (!hostReady()) throw new Error('Sunshine is still starting.');
         if (!host.paired) throw new Error('Pair this PC from PCs to access its library.');
         checking = false;
@@ -430,6 +433,15 @@ var ConsoleLibrary = (function() {
       // No response cannot distinguish a powered-off PC from a slow Sunshine,
       // firewall or network failure. Do not claim to have measured its power.
       failResume();
+      if (!reached && !closing && afterStream) {
+        // The first check after a stream: the host may still be closing the session. Check once more
+        // in a few seconds before saying the PC is unavailable.
+        afterStream = false;
+        status('Checking PC…');
+        clearTimeout(retryTimer);
+        retryTimer = setTimeout(function() { retryTimer = 0; if (active && !isInGame && valid(token)) refresh(false); }, 4000);
+        return cached;
+      }
       status(closing ? 'Previous stream is still closing. Retry shortly.' : !reached ? 'PC unavailable. Turn it on or use Wake PC, then refresh the library.' : !host.paired ? 'Pairing required · Open PCs.' : 'Games unavailable · Refresh the library.');
       return cached;
     }).then(function() {
@@ -463,6 +475,7 @@ var ConsoleLibrary = (function() {
   function launch(appId, audioReady, automatic) {
     var chosenHost = host;
     if (typeof ResumeOnDrop !== 'undefined') ResumeOnDrop.noteLaunch(chosenHost, appId, Date.now(), automatic === true);
+    afterStream = true;
     var r = record();
     if (r.focus !== appId) { r.focus = appId; saveFocus(); }
     r.recent = [appId].concat(r.recent.filter(function(old) { return old !== appId; })).slice(0,20);
@@ -603,7 +616,12 @@ var ConsoleLibrary = (function() {
     clearTimeout(current.tick);
     current.scope.cancel();
     closeUtilityDialog('wakePlayDialog');
-    if (result === 'ready') { reachState = lastReach = 'online'; lastReachHost = host; launch(current.appId, true); return; }
+    if (result === 'ready') {
+      // The PC answered: show it as on before the game starts.
+      reachState = lastReach = 'online'; lastReachHost = host; host.online = true;
+      status('PC online'); updateSelection();
+      launch(current.appId, true); return;
+    }
     // Nothing starts: give the prepared audio back.
     if (typeof stopAudioScheduler === 'function') stopAudioScheduler(true);
     if (result === 'timeout') {
